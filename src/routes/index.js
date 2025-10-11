@@ -12,6 +12,9 @@ const employeeRoutes = require('./employee.routes');
 const templateRoutes = require('./template.routes');
 const departmentRoutes = require('./department.routes');
 const subDepartmentRoutes = require('./subDepartment.routes');
+const gradeRoutes = require('./grade.routes');
+const designationRoutes = require('./designation.routes');
+const levelRoutes = require('./level.routes');
 const leaveTypeRoutes = require('./leaveType.routes');
 const leavePolicyRoutes = require('./leavePolicy.routes');
 const leaveBalanceRoutes = require('./leaveBalance.routes');
@@ -43,6 +46,15 @@ router.use('/departments', departmentRoutes);
 
 // Sub-department routes (all POST)
 router.use('/sub-departments', subDepartmentRoutes);
+
+// Grade routes (all POST)
+router.use('/grades', gradeRoutes);
+
+// Designation routes (all POST)
+router.use('/designations', designationRoutes);
+
+// Level routes (all POST)
+router.use('/levels', levelRoutes);
 
 // Leave management routes
 router.use('/leave-types', leaveTypeRoutes);
