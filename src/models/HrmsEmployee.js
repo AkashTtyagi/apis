@@ -132,7 +132,14 @@ const HrmsEmployee = sequelize.define('HrmsEmployee', {
     designation_id: {
         type: DataTypes.INTEGER,
         allowNull: true,
-        comment: 'Foreign key to designation master'
+        comment: 'Foreign key to hrms_company_designations (employee gets grade through designation)'
+    },
+
+    // Level ID
+    level_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Foreign key to hrms_levels - hierarchy level (Junior, Senior, Lead, etc.)'
     },
 
     // Reporting Manager ID
@@ -239,6 +246,9 @@ const HrmsEmployee = sequelize.define('HrmsEmployee', {
             fields: ['designation_id']
         },
         {
+            fields: ['level_id']
+        },
+        {
             fields: ['reporting_manager_id']
         },
         {
@@ -264,6 +274,24 @@ const HrmsEmployee = sequelize.define('HrmsEmployee', {
 
 // Define associations
 HrmsEmployee.associate = (models) => {
+    // Employee belongs to Company
+    HrmsEmployee.belongsTo(models.HrmsCompany, {
+        foreignKey: 'company_id',
+        as: 'company'
+    });
+
+    // Employee belongs to Company Designation (which has grade)
+    HrmsEmployee.belongsTo(models.HrmsCompanyDesignation, {
+        foreignKey: 'designation_id',
+        as: 'designation'
+    });
+
+    // Employee belongs to Level
+    HrmsEmployee.belongsTo(models.HrmsLevel, {
+        foreignKey: 'level_id',
+        as: 'level'
+    });
+
     // Employee belongs to status master
     HrmsEmployee.belongsTo(models.HrmsEmployeeStatusMaster, {
         foreignKey: 'status',
@@ -275,6 +303,17 @@ HrmsEmployee.associate = (models) => {
     HrmsEmployee.belongsTo(models.HrmsLeavePolicyMaster, {
         foreignKey: 'leave_policy_id',
         as: 'leavePolicy'
+    });
+
+    // Self-referencing association for reporting manager
+    HrmsEmployee.belongsTo(models.HrmsEmployee, {
+        foreignKey: 'reporting_manager_id',
+        as: 'reportingManager'
+    });
+
+    HrmsEmployee.hasMany(models.HrmsEmployee, {
+        foreignKey: 'reporting_manager_id',
+        as: 'reportees'
     });
 };
 

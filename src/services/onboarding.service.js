@@ -136,10 +136,10 @@ const onboardCompanyAndUser = async (data) => {
                 console.log(`✓ Found ${departments.length} generic departments (industry_id = NULL)`);
             }
 
-            // Insert departments into hrms_org_departments
+            // Insert departments into hrms_company_departments
             if (departments && departments.length > 0) {
                 const insertDepartmentsQuery = `
-                INSERT INTO hrms_org_departments (org_id, department_id, is_active, created_by, created_at)
+                INSERT INTO hrms_company_departments (company_id, department_id, is_active, created_by, created_at)
                 VALUES (?, ?, 1, ?, NOW())
                 `;
 

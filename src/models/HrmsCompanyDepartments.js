@@ -1,22 +1,22 @@
 /**
- * Organization Departments Model
- * Junction table linking organizations to their departments
+ * Company Departments Model
+ * Junction table linking companies to their departments
  */
 
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../utils/database');
 
-const HrmsOrgDepartments = sequelize.define('HrmsOrgDepartments', {
+const HrmsCompanyDepartments = sequelize.define('HrmsCompanyDepartments', {
     id: {
         type: DataTypes.INTEGER.UNSIGNED,
         primaryKey: true,
         autoIncrement: true,
-        comment: 'Primary key for org-department mapping'
+        comment: 'Primary key for company-department mapping'
     },
-    org_id: {
+    company_id: {
         type: DataTypes.INTEGER.UNSIGNED,
         allowNull: false,
-        comment: 'Reference to organization (hrms_companies.id)'
+        comment: 'Reference to company (hrms_companies.id)'
     },
     department_id: {
         type: DataTypes.INTEGER.UNSIGNED,
@@ -45,13 +45,13 @@ const HrmsOrgDepartments = sequelize.define('HrmsOrgDepartments', {
         comment: 'User ID who last updated this record'
     }
 }, {
-    tableName: 'hrms_org_departments',
+    tableName: 'hrms_company_departments',
     timestamps: true,
     underscored: true,
     indexes: [
         {
-            name: 'idx_org_id',
-            fields: ['org_id']
+            name: 'idx_company_id',
+            fields: ['company_id']
         },
         {
             name: 'idx_department_id',
@@ -66,29 +66,29 @@ const HrmsOrgDepartments = sequelize.define('HrmsOrgDepartments', {
             fields: ['department_head_id']
         },
         {
-            name: 'unique_org_department',
+            name: 'unique_company_department',
             unique: true,
-            fields: ['org_id', 'department_id']
+            fields: ['company_id', 'department_id']
         }
     ],
-    comment: 'Organization departments table - maps departments to organizations'
+    comment: 'Company departments table - maps departments to companies'
 });
 
 /**
  * Define associations
  */
-HrmsOrgDepartments.associate = (models) => {
-    // OrgDepartment belongs to Company
-    HrmsOrgDepartments.belongsTo(models.HrmsCompany, {
-        foreignKey: 'org_id',
+HrmsCompanyDepartments.associate = (models) => {
+    // CompanyDepartment belongs to Company
+    HrmsCompanyDepartments.belongsTo(models.HrmsCompany, {
+        foreignKey: 'company_id',
         as: 'company'
     });
 
-    // OrgDepartment belongs to Department Master
-    HrmsOrgDepartments.belongsTo(models.HrmsDepartmentMaster, {
+    // CompanyDepartment belongs to Department Master
+    HrmsCompanyDepartments.belongsTo(models.HrmsDepartmentMaster, {
         foreignKey: 'department_id',
         as: 'department'
     });
 };
 
-module.exports = { HrmsOrgDepartments };
+module.exports = { HrmsCompanyDepartments };
