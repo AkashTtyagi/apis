@@ -199,8 +199,8 @@ CREATE TABLE IF NOT EXISTS `hrms_companies` (
   INDEX `idx_deleted_at` (`deleted_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 10. Organization Departments Table (Junction Table)
-CREATE TABLE IF NOT EXISTS `hrms_org_departments` (
+-- 10. Company Departments Table (Junction Table)
+CREATE TABLE IF NOT EXISTS `hrms_company_departments` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Primary key for org-department mapping',
   `org_id` INT UNSIGNED NOT NULL COMMENT 'Reference to organization (hrms_companies.id)',
   `department_id` INT UNSIGNED NOT NULL COMMENT 'Reference to department master',
@@ -223,7 +223,7 @@ COMMENT='Organization departments table - maps departments to organizations';
 -- 11. Sub-Departments Table
 CREATE TABLE IF NOT EXISTS `hrms_sub_departments` (
   `id` INT NOT NULL AUTO_INCREMENT,
-  `org_dept_id` INT UNSIGNED NOT NULL COMMENT 'Reference to hrms_org_departments.id',
+  `org_dept_id` INT UNSIGNED NOT NULL COMMENT 'Reference to hrms_company_departments.id',
   `sub_department_name` VARCHAR(255) NOT NULL,
   `sub_department_code` VARCHAR(50) DEFAULT NULL COMMENT 'Optional sub-department code/identifier',
   `description` TEXT DEFAULT NULL,
@@ -243,7 +243,7 @@ CREATE TABLE IF NOT EXISTS `hrms_sub_departments` (
   INDEX `idx_updated_by` (`updated_by`),
   INDEX `idx_deleted_at` (`deleted_at`),
   UNIQUE INDEX `unique_org_dept_subdept_name` (`org_dept_id`, `sub_department_name`),
-  CONSTRAINT `fk_subdept_orgdept` FOREIGN KEY (`org_dept_id`) REFERENCES `hrms_org_departments` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `fk_subdept_orgdept` FOREIGN KEY (`org_dept_id`) REFERENCES `hrms_company_departments` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================

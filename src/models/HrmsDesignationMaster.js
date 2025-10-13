@@ -136,10 +136,10 @@ HrmsDesignationMaster.associate = (models) => {
         as: 'industry'
     });
 
-    // Designation Master has many Org Designations
-    HrmsDesignationMaster.hasMany(models.HrmsOrgDesignation, {
+    // Designation Master has many Company Designations
+    HrmsDesignationMaster.hasMany(models.HrmsCompanyDesignation, {
         foreignKey: 'designation_id',
-        as: 'orgDesignations'
+        as: 'companyDesignations'
     });
 };
 

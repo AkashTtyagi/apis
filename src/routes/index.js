@@ -19,6 +19,9 @@ const leaveTypeRoutes = require('./leaveType.routes');
 const leavePolicyRoutes = require('./leavePolicy.routes');
 const leaveBalanceRoutes = require('./leaveBalance.routes');
 const leaveCreditCronRoutes = require('./cron/leaveCreditCron.routes');
+const masterRoutes = require('./master.routes');
+const attendanceRequestRoutes = require('./attendanceRequest.routes');
+const workflowRoutes = require('./workflow.routes');
 
 // Health check endpoint
 router.get('/health', (req, res) => {
@@ -61,5 +64,14 @@ router.use('/leave-types', leaveTypeRoutes);
 router.use('/leave-policies', leavePolicyRoutes);
 router.use('/leave-balance', leaveBalanceRoutes);
 router.use('/cron/leave-credit', leaveCreditCronRoutes);
+
+// Master data routes (unified endpoint for all master_select fields)
+router.use('/master', masterRoutes);
+
+// Attendance request routes (Leave, On Duty, WFH, Short Leave, Regularization)
+router.use('/attendance', attendanceRequestRoutes);
+
+// Workflow configuration routes
+router.use('/workflows', workflowRoutes);
 
 module.exports = router;

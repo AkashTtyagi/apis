@@ -11,29 +11,42 @@ const basename = path.basename(__filename);
 const models = {};
 
 /**
- * Dynamically load all model files from the current directory
- * Skips index.js (this file)
+ * Recursively load all model files from a directory
+ * @param {string} dir - Directory path to scan
  */
-fs.readdirSync(__dirname)
-  .filter(file => {
-    return (
+const loadModelsFromDirectory = (dir) => {
+  const files = fs.readdirSync(dir);
+
+  files.forEach(file => {
+    const fullPath = path.join(dir, file);
+    const stat = fs.statSync(fullPath);
+
+    if (stat.isDirectory()) {
+      // Recursively load models from subdirectories
+      loadModelsFromDirectory(fullPath);
+    } else if (
       file.indexOf('.') !== 0 &&
       file !== basename &&
+      file !== 'index.js' &&
       file.slice(-3) === '.js'
-    );
-  })
-  .forEach(file => {
-    const modelModule = require(path.join(__dirname, file));
+    ) {
+      // Load the model file
+      const modelModule = require(fullPath);
 
-    // Get the model name (e.g., HrmsCompany, HrmsUserDetails)
-    const modelNames = Object.keys(modelModule).filter(key =>
-      key !== 'syncModel' && typeof modelModule[key] === 'function'
-    );
+      // Get the model name (e.g., HrmsCompany, HrmsUserDetails)
+      const modelNames = Object.keys(modelModule).filter(key =>
+        key !== 'syncModel' && typeof modelModule[key] === 'function'
+      );
 
-    modelNames.forEach(modelName => {
-      models[modelName] = modelModule[modelName];
-    });
+      modelNames.forEach(modelName => {
+        models[modelName] = modelModule[modelName];
+      });
+    }
   });
+};
+
+// Load all models from the models directory and subdirectories
+loadModelsFromDirectory(__dirname);
 
 /**
  * Initialize all models

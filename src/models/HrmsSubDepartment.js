@@ -16,7 +16,7 @@ const HrmsSubDepartment = sequelize.define('HrmsSubDepartment', {
         allowNull: false
     },
 
-    // Organization Department ID (links to hrms_org_departments)
+    // Organization Department ID (links to hrms_company_departments)
     org_dept_id: {
         type: DataTypes.INTEGER.UNSIGNED,
         allowNull: false,
@@ -25,7 +25,7 @@ const HrmsSubDepartment = sequelize.define('HrmsSubDepartment', {
                 msg: 'Organization Department ID is required'
             }
         },
-        comment: 'Reference to hrms_org_departments.id'
+        comment: 'Reference to hrms_company_departments.id'
     },
 
     // Sub-Department Name

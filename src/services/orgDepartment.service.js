@@ -1,9 +1,9 @@
 /**
  * Organization Department Service
- * Handles operations for HrmsOrgDepartments (department mappings)
+ * Handles operations for HrmsCompanyDepartments (department mappings)
  */
 
-const { HrmsOrgDepartments } = require('../models/HrmsOrgDepartments');
+const { HrmsCompanyDepartments } = require('../models/HrmsCompanyDepartments');
 const { HrmsDepartmentMaster } = require('../models/HrmsDepartmentMaster');
 
 /**
@@ -16,7 +16,7 @@ const createOrgDepartment = async (departmentData) => {
     const { org_id, department_id, department_head_id, user_id } = departmentData;
 
     // Check if mapping already exists
-    const existing = await HrmsOrgDepartments.findOne({
+    const existing = await HrmsCompanyDepartments.findOne({
         where: {
             org_id,
             department_id
@@ -28,7 +28,7 @@ const createOrgDepartment = async (departmentData) => {
         throw new Error('This department is already assigned to the organization');
     }
 
-    const orgDepartment = await HrmsOrgDepartments.create({
+    const orgDepartment = await HrmsCompanyDepartments.create({
         org_id,
         department_id,
         department_head_id: department_head_id || null,
@@ -50,7 +50,7 @@ const createOrgDepartment = async (departmentData) => {
 const updateOrgDepartment = async (org_dept_id, updateData) => {
     const { department_head_id, is_active, user_id } = updateData;
 
-    const [updatedRows] = await HrmsOrgDepartments.update(
+    const [updatedRows] = await HrmsCompanyDepartments.update(
         {
             ...(department_head_id !== undefined && { department_head_id }),
             ...(is_active !== undefined && { is_active }),
@@ -84,7 +84,7 @@ const getOrgDepartments = async (org_id, activeOnly = true) => {
         whereClause.is_active = true;
     }
 
-    const orgDepartments = await HrmsOrgDepartments.findAll({
+    const orgDepartments = await HrmsCompanyDepartments.findAll({
         where: whereClause,
         include: [
             {

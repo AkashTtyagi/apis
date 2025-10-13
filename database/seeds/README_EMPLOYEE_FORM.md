@@ -144,8 +144,8 @@ Permanent Address:
 ```
 ✓ Employee Code* (text, unique) - Direct Field
 ✓ Date of Joining* (date) - Direct Field
-✓ Department* (master_select: hrms_org_departments) - Direct Field
-✓ Sub Department (master_select: hrms_org_departments) - Direct Field
+✓ Department* (master_select: hrms_company_departments) - Direct Field
+✓ Sub Department (master_select: hrms_company_departments) - Direct Field
 ✓ Designation* (master_select: hrms_designations) - Direct Field
 ✓ Reporting Manager (master_select: hrms_employees) - Direct Field
 ✓ Employment Type* (select: Full-Time/Part-Time/Contract/Intern) - Direct Field
@@ -514,9 +514,9 @@ const upload = multer({
 The form references the following master tables:
 
 ```sql
--- Departments (hrms_org_departments)
+-- Departments (hrms_company_departments)
 SELECT department_id, department_name
-FROM hrms_org_departments
+FROM hrms_company_departments
 WHERE company_id = ? AND is_active = 1;
 
 -- Designations (hrms_designations)

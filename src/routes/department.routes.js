@@ -1,6 +1,6 @@
 /**
  * Department Routes
- * Manages organization department mappings (HrmsOrgDepartments)
+ * Manages organization department mappings (HrmsCompanyDepartments)
  * All routes use POST method
  */
 

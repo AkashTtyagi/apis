@@ -86,7 +86,7 @@ HrmsDepartmentMaster.associate = (models) => {
     });
 
     // Department can be assigned to many Organizations (through junction table)
-    HrmsDepartmentMaster.hasMany(models.HrmsOrgDepartments, {
+    HrmsDepartmentMaster.hasMany(models.HrmsCompanyDepartments, {
         foreignKey: 'department_id',
         as: 'organizationMappings'
     });

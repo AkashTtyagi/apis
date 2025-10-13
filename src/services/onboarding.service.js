@@ -10,6 +10,7 @@ const { HrmsLeavePolicyMaster } = require('../models/HrmsLeavePolicyMaster');
 const { HrmsLeavePolicyMapping } = require('../models/HrmsLeavePolicyMapping');
 const { HrmsEmployee } = require('../models/HrmsEmployee');
 const { copyAllTemplatesToCompany } = require('./companyTemplate.service');
+const { createDefaultWorkflows } = require('./workflow/workflowConfig.service');
 
 /**
  * Onboard company and user together in a single transaction
@@ -151,6 +152,103 @@ const onboardCompanyAndUser = async (data) => {
             } else {
                 console.log(`⚠ No departments available to assign`);
             }
+
+            // Step 9a: Auto-assign designations based on selected industry
+            const getDesignationsQuery = `
+            SELECT designation_id, designation_code, designation_name, description, level
+            FROM hrms_designation_master
+            WHERE industry_id = ? AND is_active = 1
+            `;
+
+            let designations = await dbTrans.execute(getDesignationsQuery, [org_industry]);
+            console.log(`✓ Found ${designations.length} active designations for industry ${org_industry}`);
+
+            // If no designations found for specific industry, get generic designations (industry_id IS NULL)
+            if (!designations || designations.length === 0) {
+                console.log(`⚠ No designations found for industry ${org_industry}, falling back to generic designations`);
+
+                const getGenericDesignationsQuery = `
+                SELECT designation_id, designation_code, designation_name, description, level
+                FROM hrms_designation_master
+                WHERE industry_id IS NULL AND is_active = 1
+                `;
+
+                designations = await dbTrans.execute(getGenericDesignationsQuery);
+                console.log(`✓ Found ${designations.length} generic designations (industry_id = NULL)`);
+            }
+
+            // Insert designations into hrms_company_designations
+            if (designations && designations.length > 0) {
+                const insertDesignationsQuery = `
+                INSERT INTO hrms_company_designations
+                (company_id, designation_master_id, designation_code, designation_name, job_description, is_active, created_by, created_at)
+                VALUES (?, ?, ?, ?, ?, 1, ?, NOW())
+                `;
+
+                for (const desig of designations) {
+                    await dbTrans.execute(insertDesignationsQuery, [
+                        company_id,
+                        desig.designation_id,
+                        desig.designation_code,
+                        desig.designation_name,
+                        desig.description || null,
+                        user_id
+                    ]);
+                }
+
+                console.log(`✓ Assigned ${designations.length} designations to company ${company_id}`);
+            } else {
+                console.log(`⚠ No designations available to assign`);
+            }
+
+            // Step 9b: Auto-assign skills based on selected industry
+            const getSkillsQuery = `
+            SELECT id, skill_code, skill_name, skill_category, description, is_statutory
+            FROM hrms_statutory_skills_master
+            WHERE industry_id = ? AND is_active = 1
+            `;
+
+            let skills = await dbTrans.execute(getSkillsQuery, [org_industry]);
+            console.log(`✓ Found ${skills.length} active skills for industry ${org_industry}`);
+
+            // If no skills found for specific industry, get generic skills (industry_id IS NULL)
+            if (!skills || skills.length === 0) {
+                console.log(`⚠ No skills found for industry ${org_industry}, falling back to generic skills`);
+
+                const getGenericSkillsQuery = `
+                SELECT id, skill_code, skill_name, skill_category, description, is_statutory
+                FROM hrms_statutory_skills_master
+                WHERE industry_id IS NULL AND is_active = 1
+                `;
+
+                skills = await dbTrans.execute(getGenericSkillsQuery);
+                console.log(`✓ Found ${skills.length} generic skills (industry_id = NULL)`);
+            }
+
+            // Insert skills into hrms_company_skills
+            if (skills && skills.length > 0) {
+                const insertSkillsQuery = `
+                INSERT INTO hrms_company_skills
+                (company_id, statutory_skill_id, skill_code, skill_name, skill_category, description, is_active, created_by, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, 1, ?, NOW())
+                `;
+
+                for (const skill of skills) {
+                    await dbTrans.execute(insertSkillsQuery, [
+                        company_id,
+                        skill.id,
+                        skill.skill_code,
+                        skill.skill_name,
+                        skill.skill_category || null,
+                        skill.description || null,
+                        user_id
+                    ]);
+                }
+
+                console.log(`✓ Assigned ${skills.length} skills to company ${company_id}`);
+            } else {
+                console.log(`⚠ No skills available to assign`);
+            }
         }
 
         // Step 10: Create employee record from user (INSIDE transaction)
@@ -187,6 +285,14 @@ const onboardCompanyAndUser = async (data) => {
         );
         console.log(`✓ Templates copied: ${templateCopyResult.templates_copied} templates, ${templateCopyResult.total_sections} sections, ${templateCopyResult.total_fields} fields`);
 
+        // Step 14: Create default workflows for all workflow types (INSIDE transaction)
+        console.log(`Creating default workflows for all workflow types...`);
+        const workflowResult = await createDefaultWorkflows(
+            company_id, user_id,
+            dbTrans.trans_id  // Pass Sequelize transaction
+        );
+        console.log(`✓ Workflows created: ${workflowResult.created_count} workflows configured`);
+
         // Commit the transaction (ALL operations successful)
         await dbTrans.commit();
         console.log(`✓ Transaction committed successfully`);
@@ -210,12 +316,13 @@ const onboardCompanyAndUser = async (data) => {
             // Don't fail the entire onboarding if email fails
         }
 
-        // Return company, user, employee, and template data
+        // Return company, user, employee, template, and workflow data
         return {
             company: company,
             user: user,
             employee: employee,
-            templates: templateCopyResult
+            templates: templateCopyResult,
+            workflows: workflowResult
         };
     } catch (error) {
         // Rollback transaction on any error
