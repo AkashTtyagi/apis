@@ -963,6 +963,7 @@ const createDefaultWorkflows = async (companyId, userId, transaction = null) => 
                     company_id: companyId,
                     workflow_master_id: workflowMaster.id,
                     workflow_name: `Default ${workflowMaster.workflow_for_name} Workflow`,
+                    workflow_code: `DEFAULT_${workflowMaster.workflow_code}_${companyId}`,
                     description: `Auto-generated default workflow for ${workflowMaster.workflow_for_name}`,
                     version: 1,
                     is_active: true,
