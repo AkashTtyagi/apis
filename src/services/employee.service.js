@@ -80,9 +80,9 @@ const createEmployee = async (employeeData) => {
                 designation_id: directFields.designation_id || null,
                 reporting_manager_id: directFields.reporting_manager_id || null,
                 employment_type: directFields.employment_type || 'full_time',
-                status: directFields.status || 'active',
+                status: directFields.status || 0,
                 profile_picture: directFields.profile_picture || null,
-                is_active: true,
+                is_deleted: 0,
                 created_by: user_id
             },
             { transaction }
@@ -184,7 +184,6 @@ const updateEmployee = async (employee_id, updateData) => {
                 ...(directFields.employment_type !== undefined && { employment_type: directFields.employment_type }),
                 ...(directFields.status !== undefined && { status: directFields.status }),
                 ...(directFields.profile_picture !== undefined && { profile_picture: directFields.profile_picture }),
-                ...(directFields.is_active !== undefined && { is_active: directFields.is_active }),
                 updated_by: user_id
             },
             {
@@ -344,8 +343,8 @@ const getEmployeesByCompany = async (company_id, filters = {}) => {
         whereClause.designation_id = filters.designation_id;
     }
 
-    if (filters.is_active !== undefined) {
-        whereClause.is_active = filters.is_active;
+    if (filters.is_deleted !== undefined) {
+        whereClause.is_deleted = filters.is_deleted;
     }
 
     const employees = await HrmsEmployee.findAll({
@@ -367,12 +366,14 @@ const getLoggedInUserDetails = async (user_id) => {
     // Get user details with employee in a single query
     const userDetails = await HrmsUserDetails.findOne({
         where: { id: user_id },
-        attributes: ['id', 'company_id', 'email', 'phone', 'is_active', 'is_password_set', 'created_at'],
+        attributes: ['id', 'company_id', 'email', 'phone', 'created_at'],
         include: [
             {
                 model: HrmsEmployee,
                 as: 'employee',
-                where: { is_active: 1 },
+                where: {
+                    status: { [Op.notIn]: [3, 4, 5, 6] }
+                },
                 required: true
             }
         ]
@@ -390,8 +391,6 @@ const getLoggedInUserDetails = async (user_id) => {
             company_id: result.company_id,
             email: result.email,
             phone: result.phone,
-            is_active: result.is_active,
-            is_password_set: result.is_password_set,
             created_at: result.created_at
         },
         employee: result.employee

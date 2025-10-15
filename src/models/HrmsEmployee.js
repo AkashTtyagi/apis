@@ -190,11 +190,12 @@ const HrmsEmployee = sequelize.define('HrmsEmployee', {
         comment: 'URL or path to profile picture'
     },
 
-    // Is Active
-    is_active: {
-        type: DataTypes.BOOLEAN,
+    // Is Deleted (Soft Delete)
+    is_deleted: {
+        type: DataTypes.TINYINT(1),
         allowNull: false,
-        defaultValue: true
+        defaultValue: 0,
+        comment: '0=Not Deleted, 1=Deleted (Soft Delete)'
     },
 
     // Created by user ID
@@ -268,7 +269,7 @@ const HrmsEmployee = sequelize.define('HrmsEmployee', {
             fields: ['status']
         },
         {
-            fields: ['is_active']
+            fields: ['is_deleted']
         },
         {
             fields: ['created_by']

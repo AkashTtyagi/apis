@@ -5,6 +5,8 @@
 
 const jwt = require('jsonwebtoken');
 const { HrmsUserDetails } = require('../models/HrmsUserDetails');
+const { HrmsEmployee } = require('../models/HrmsEmployee');
+const { Sequelize, Op } = require('sequelize');
 
 /**
  * Verify JWT token and attach user to request
@@ -29,19 +31,53 @@ const authenticate = async (req, res, next) => {
         // Verify token
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
 
-        // Get user details from database
+        // Get user and employee details in a single query
         const user = await HrmsUserDetails.findOne({
             where: {
                 id: decoded.id
             },
-            attributes: ['id', 'email', 'first_name', 'last_name', 'company_id', 'is_password_set'],
+            attributes: [
+                'id',
+                'email',
+                'phone',
+                'company_id',
+                [Sequelize.literal('`employee`.`id`'), 'employee_id'],
+                [Sequelize.literal('`employee`.`employee_code`'), 'employee_code'],
+                [Sequelize.literal('`employee`.`first_name`'), 'first_name'],
+                [Sequelize.literal('`employee`.`middle_name`'), 'middle_name'],
+                [Sequelize.literal('`employee`.`last_name`'), 'last_name'],
+                [Sequelize.literal('`employee`.`date_of_birth`'), 'date_of_birth'],
+                [Sequelize.literal('`employee`.`gender`'), 'gender'],
+                [Sequelize.literal('`employee`.`date_of_joining`'), 'date_of_joining'],
+                [Sequelize.literal('`employee`.`department_id`'), 'department_id'],
+                [Sequelize.literal('`employee`.`sub_department_id`'), 'sub_department_id'],
+                [Sequelize.literal('`employee`.`designation_id`'), 'designation_id'],
+                [Sequelize.literal('`employee`.`level_id`'), 'level_id'],
+                [Sequelize.literal('`employee`.`reporting_manager_id`'), 'reporting_manager_id'],
+                [Sequelize.literal('`employee`.`leave_policy_id`'), 'leave_policy_id'],
+                [Sequelize.literal('`employee`.`shift_id`'), 'shift_id'],
+                [Sequelize.literal('`employee`.`employment_type`'), 'employment_type'],
+                [Sequelize.literal('`employee`.`status`'), 'status'],
+                [Sequelize.literal('`employee`.`profile_picture`'), 'profile_picture']
+            ],
+            include: [
+                {
+                    model: HrmsEmployee,
+                    as: 'employee',
+                    where: {
+                        status: { [Op.notIn]: [3, 4, 5, 6] }
+                    },
+                    attributes: [],
+                    required: true
+                }
+            ],
             raw: true
         });
 
         if (!user) {
             return res.status(401).json({
                 success: false,
-                message: 'Invalid token. User not found'
+                message: 'Invalid token. User or employee not found'
             });
         }
 
@@ -93,7 +129,41 @@ const optionalAuth = async (req, res, next) => {
             where: {
                 id: decoded.id
             },
-            attributes: ['id', 'email', 'first_name', 'last_name', 'company_id', 'is_password_set'],
+            attributes: [
+                'id',
+                'email',
+                'phone',
+                'company_id',
+                [Sequelize.literal('`employee`.`id`'), 'employee_id'],
+                [Sequelize.literal('`employee`.`employee_code`'), 'employee_code'],
+                [Sequelize.literal('`employee`.`first_name`'), 'first_name'],
+                [Sequelize.literal('`employee`.`middle_name`'), 'middle_name'],
+                [Sequelize.literal('`employee`.`last_name`'), 'last_name'],
+                [Sequelize.literal('`employee`.`date_of_birth`'), 'date_of_birth'],
+                [Sequelize.literal('`employee`.`gender`'), 'gender'],
+                [Sequelize.literal('`employee`.`date_of_joining`'), 'date_of_joining'],
+                [Sequelize.literal('`employee`.`department_id`'), 'department_id'],
+                [Sequelize.literal('`employee`.`sub_department_id`'), 'sub_department_id'],
+                [Sequelize.literal('`employee`.`designation_id`'), 'designation_id'],
+                [Sequelize.literal('`employee`.`level_id`'), 'level_id'],
+                [Sequelize.literal('`employee`.`reporting_manager_id`'), 'reporting_manager_id'],
+                [Sequelize.literal('`employee`.`leave_policy_id`'), 'leave_policy_id'],
+                [Sequelize.literal('`employee`.`shift_id`'), 'shift_id'],
+                [Sequelize.literal('`employee`.`employment_type`'), 'employment_type'],
+                [Sequelize.literal('`employee`.`status`'), 'status'],
+                [Sequelize.literal('`employee`.`profile_picture`'), 'profile_picture']
+            ],
+            include: [
+                {
+                    model: HrmsEmployee,
+                    as: 'employee',
+                    where: {
+                        status: { [Op.notIn]: [3, 4, 5, 6] }
+                    },
+                    attributes: [],
+                    required: false
+                }
+            ],
             raw: true
         });
 
