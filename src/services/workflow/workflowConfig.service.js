@@ -1014,6 +1014,22 @@ const createDefaultWorkflows = async (companyId, userId, transaction = null) => 
 
                 console.log(`✓ Stage approver created: ${approver.approver_type}`);
 
+                // Create company-level applicability (workflow applies to entire company)
+                const applicability = await HrmsWorkflowApplicability.create({
+                    workflow_config_id: workflowConfig.id,
+                    applicability_type: 'company',
+                    applicability_value: null, // NULL = applies to all employees in company
+                    company_id: companyId,
+                    advanced_applicability_type: 'none',
+                    advanced_applicability_value: null,
+                    is_excluded: false,
+                    priority: 8, // Company has lowest priority (8)
+                    is_active: true,
+                    created_by: userId
+                }, { transaction });
+
+                console.log(`✓ Company-level applicability created for ${workflowMaster.workflow_for_name}`);
+
                 // Create initial version snapshot (simplified for onboarding)
                 await HrmsWorkflowVersion.create({
                     workflow_config_id: workflowConfig.id,
@@ -1040,7 +1056,8 @@ const createDefaultWorkflows = async (companyId, userId, transaction = null) => 
                     workflow_name: workflowMaster.workflow_for_name,
                     config_id: workflowConfig.id,
                     stage_id: stage.id,
-                    approver_id: approver.id
+                    approver_id: approver.id,
+                    applicability_id: applicability.id
                 });
 
                 console.log(`✓ Default workflow created for ${workflowMaster.workflow_for_name}`);

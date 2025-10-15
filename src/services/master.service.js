@@ -19,6 +19,7 @@ const { HrmsCityMaster } = require('../models/HrmsCityMaster');
 const { HrmsTimezoneMaster } = require('../models/HrmsTimezoneMaster');
 const { HrmsCurrencyMaster } = require('../models/HrmsCurrencyMaster');
 const { HrmsEmployee } = require('../models/HrmsEmployee');
+const { HrmsEmployeeTypeMaster } = require('../models/HrmsEmployeeTypeMaster');
 const { Sequelize, Op } = require('sequelize');
 
 /**
@@ -52,6 +53,20 @@ const MASTER_CONFIG = {
         companyScoped: false,
         additionalFields: ['currency_symbol', 'country_name', 'country_code', 'decimal_places', 'display_format'],
         orderBy: [['display_order', 'ASC'], ['currency_name', 'ASC']]
+    },
+
+    // Employee Type Master (NOT company scoped)
+    employee_type: {
+        model: HrmsEmployeeTypeMaster,
+        table: 'hrms_employee_type_master',
+        fields: {
+            id: 'id',
+            code: 'type_code',
+            name: 'type_name'
+        },
+        companyScoped: false,
+        additionalFields: ['description'],
+        orderBy: [['display_order', 'ASC'], ['type_name', 'ASC']]
     },
 
     // Geographic Masters (NOT company scoped)

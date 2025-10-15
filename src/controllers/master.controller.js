@@ -24,7 +24,7 @@ const getMasterData = async (req, res, next) => {
         const company_id = req.user.company_id; // Get from authenticated user
 
         // If master_type not provided, return all masters
-        const data = await masterService.getMasterData(
+        const result = await masterService.getMasterData(
             master_type || null,
             company_id || null,
             filters || {},
@@ -35,7 +35,8 @@ const getMasterData = async (req, res, next) => {
             ? `${master_type} data retrieved successfully`
             : 'All master data retrieved successfully';
 
-        return sendSuccess(res, message, { data });
+        // Send data directly without extra nesting
+        return sendSuccess(res, message, result);
     } catch (error) {
         next(error);
     }
@@ -60,12 +61,13 @@ const getMultipleMasterData = async (req, res, next) => {
             throw new Error('master_types must be an array');
         }
 
-        const data = await masterService.getMultipleMasterData(
+        const result = await masterService.getMultipleMasterData(
             master_types,
             company_id || null
         );
 
-        return sendSuccess(res, 'Master data retrieved successfully', { data });
+        // Send data directly without extra nesting
+        return sendSuccess(res, 'Master data retrieved successfully', result);
     } catch (error) {
         next(error);
     }
@@ -86,8 +88,8 @@ const getHierarchicalMasterData = async (req, res, next) => {
 
         // Default to geographic hierarchy (country -> state -> city)
         if (!type || type === 'geographic') {
-            const data = await masterService.getGeographicHierarchy();
-            return sendSuccess(res, 'Geographic hierarchy retrieved successfully', { data });
+            const result = await masterService.getGeographicHierarchy();
+            return sendSuccess(res, 'Geographic hierarchy retrieved successfully', result);
         }
 
         // Custom hierarchy (e.g., department -> sub_department)
@@ -96,13 +98,13 @@ const getHierarchicalMasterData = async (req, res, next) => {
                 throw new Error('parent_type and child_type are required for custom hierarchy');
             }
 
-            const data = await masterService.getHierarchicalMasterData(
+            const result = await masterService.getHierarchicalMasterData(
                 parent_type,
                 child_type,
                 company_id || null
             );
 
-            return sendSuccess(res, 'Hierarchical master data retrieved successfully', { data });
+            return sendSuccess(res, 'Hierarchical master data retrieved successfully', result);
         }
 
         throw new Error('Invalid type. Use "geographic" or "custom"');

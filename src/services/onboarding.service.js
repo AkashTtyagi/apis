@@ -339,6 +339,7 @@ const onboardCompanyAndUser = async (data) => {
 /**
  * Create default leave policy with all default leave types
  * This is called automatically during company onboarding
+ * Clones leave types from master (company_id = 0) to company
  * @param {number} company_id - Company ID
  * @param {number} user_id - User ID who created the company
  * @param {Object} transaction - Sequelize transaction object
@@ -351,7 +352,6 @@ const createDefaultLeavePolicy = async (company_id, user_id, transaction = null)
                 company_id: 0,
                 is_active: true
             },
-            attributes: ['id', 'leave_code', 'leave_name'],
             raw: true,
             transaction  // Pass transaction to Sequelize
         });
@@ -360,9 +360,69 @@ const createDefaultLeavePolicy = async (company_id, user_id, transaction = null)
             throw new Error('No default leave types found. Please run seed data first.');
         }
 
-        console.log(`Found ${defaultLeaveTypes.length} default leave types`);
+        console.log(`Found ${defaultLeaveTypes.length} default leave types to clone`);
 
-        // Step 2: Create default leave policy
+        // Step 2: Clone leave types for the company
+        const clonedLeaveTypes = [];
+
+        for (const masterLeave of defaultLeaveTypes) {
+            // Create a copy of the leave type for this company
+            const clonedLeave = await HrmsLeaveMaster.create({
+                master_id: masterLeave.id,  // Store master leave ID
+                company_id: company_id,      // New company ID
+                leave_code: masterLeave.leave_code,
+                leave_name: masterLeave.leave_name,
+                leave_cycle_start_month: masterLeave.leave_cycle_start_month,
+                leave_cycle_end_month: masterLeave.leave_cycle_end_month,
+                leave_type: masterLeave.leave_type,
+                is_encashment_allowed: masterLeave.is_encashment_allowed,
+                applicable_to_esi: masterLeave.applicable_to_esi,
+                applicable_to_status: masterLeave.applicable_to_status,
+                applicable_to_gender: masterLeave.applicable_to_gender,
+                credit_frequency: masterLeave.credit_frequency,
+                credit_day_of_month: masterLeave.credit_day_of_month,
+                number_of_leaves_to_credit: masterLeave.number_of_leaves_to_credit,
+                active_leaves_to_credit: masterLeave.active_leaves_to_credit,
+                probation_leaves_to_credit: masterLeave.probation_leaves_to_credit,
+                intern_leaves_to_credit: masterLeave.intern_leaves_to_credit,
+                contractor_leaves_to_credit: masterLeave.contractor_leaves_to_credit,
+                separated_leaves_to_credit: masterLeave.separated_leaves_to_credit,
+                credit_only_married: masterLeave.credit_only_married,
+                round_off_credited_leaves: masterLeave.round_off_credited_leaves,
+                lapse_balance_before_next_cycle: masterLeave.lapse_balance_before_next_cycle,
+                can_request_half_day: masterLeave.can_request_half_day,
+                can_employee_request: masterLeave.can_employee_request,
+                max_requests_per_tenure: masterLeave.max_requests_per_tenure,
+                max_requests_per_month: masterLeave.max_requests_per_month,
+                min_leaves_per_request: masterLeave.min_leaves_per_request,
+                max_continuous_leave: masterLeave.max_continuous_leave,
+                max_leaves_per_year: masterLeave.max_leaves_per_year,
+                max_leaves_per_month: masterLeave.max_leaves_per_month,
+                backdated_leave_allowed: masterLeave.backdated_leave_allowed,
+                days_allowed_for_backdated_leave: masterLeave.days_allowed_for_backdated_leave,
+                future_dated_leave_allowed: masterLeave.future_dated_leave_allowed,
+                manager_can_apply_future_dated: masterLeave.manager_can_apply_future_dated,
+                manager_can_apply_backdated: masterLeave.manager_can_apply_backdated,
+                days_allowed_manager_backdated: masterLeave.days_allowed_manager_backdated,
+                document_required: masterLeave.document_required,
+                raise_leave_after_attendance_process: masterLeave.raise_leave_after_attendance_process,
+                restrict_if_resignation_pending: masterLeave.restrict_if_resignation_pending,
+                restrict_after_joining_period: masterLeave.restrict_after_joining_period,
+                max_leaves_to_carry_forward: masterLeave.max_leaves_to_carry_forward,
+                max_carry_forward_count: masterLeave.max_carry_forward_count,
+                carry_forward_method: masterLeave.carry_forward_method,
+                carry_forward_in_same_cycle: masterLeave.carry_forward_in_same_cycle,
+                carry_forward_same_cycle_count: masterLeave.carry_forward_same_cycle_count,
+                is_active: true,
+                created_by: user_id
+            }, { transaction });
+
+            clonedLeaveTypes.push(clonedLeave);
+        }
+
+        console.log(`✓ Cloned ${clonedLeaveTypes.length} leave types for company ${company_id}`);
+
+        // Step 3: Create default leave policy
         const policy = await HrmsLeavePolicyMaster.create({
             company_id,
             policy_name: 'General Leave Policy',
@@ -373,21 +433,21 @@ const createDefaultLeavePolicy = async (company_id, user_id, transaction = null)
 
         console.log(`✓ Leave policy created with ID: ${policy.id}`);
 
-        // Step 3: Create mappings for all default leave types
-        const mappings = defaultLeaveTypes.map((leaveType, index) => ({
+        // Step 4: Create mappings for cloned leave types
+        const mappings = clonedLeaveTypes.map((clonedLeave, index) => ({
             policy_id: policy.id,
-            leave_type_id: leaveType.id,
+            leave_type_id: clonedLeave.id,  // Use cloned leave ID, not master ID
             display_order: index + 1,
             is_active: true
         }));
 
         await HrmsLeavePolicyMapping.bulkCreate(mappings, { transaction });  // Pass transaction to Sequelize
 
-        console.log(`✓ ${mappings.length} leave types mapped to policy`);
+        console.log(`✓ ${mappings.length} cloned leave types mapped to policy`);
 
         return {
             policy,
-            leaveTypesCount: defaultLeaveTypes.length
+            leaveTypesCount: clonedLeaveTypes.length
         };
     } catch (error) {
         console.error('Error creating default leave policy:', error.message);
