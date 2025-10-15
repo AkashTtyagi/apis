@@ -18,6 +18,8 @@ const { HrmsStateMaster } = require('../models/HrmsStateMaster');
 const { HrmsCityMaster } = require('../models/HrmsCityMaster');
 const { HrmsTimezoneMaster } = require('../models/HrmsTimezoneMaster');
 const { HrmsCurrencyMaster } = require('../models/HrmsCurrencyMaster');
+const { HrmsEmployee } = require('../models/HrmsEmployee');
+const { Sequelize, Op } = require('sequelize');
 
 /**
  * Master table configuration
@@ -189,6 +191,19 @@ const MASTER_CONFIG = {
         },
         companyScoped: true,
         additionalFields: ['shift_colour', 'description', 'shift_start_time', 'shift_end_time', 'is_night_shift']
+    },
+    employee: {
+        model: HrmsEmployee,
+        table: 'hrms_employees',
+        fields: {
+            id: 'id',
+            code: 'employee_code',
+            name: null  // Will use concatenated name
+        },
+        companyScoped: true,
+        useConcatenatedName: true,  // Special flag for employee
+        additionalFields: ['email', 'phone', 'designation_id', 'department_id', 'status'],
+        orderBy: [['first_name', 'ASC'], ['last_name', 'ASC']]
     }
 };
 
@@ -197,9 +212,10 @@ const MASTER_CONFIG = {
  * @param {string} masterSlug - Master table identifier
  * @param {number} companyId - Company ID for scoped masters
  * @param {Object} filters - Additional filters
+ * @param {string} search - Search term for filtering results
  * @returns {Array} List of master records
  */
-const getMasterDataBySlug = async (masterSlug, companyId = null, filters = {}) => {
+const getMasterDataBySlug = async (masterSlug, companyId = null, filters = {}, search = null) => {
     // Get master configuration
     const config = MASTER_CONFIG[masterSlug];
 
@@ -208,18 +224,67 @@ const getMasterDataBySlug = async (masterSlug, companyId = null, filters = {}) =
     }
 
     // Build where clause
-    const whereClause = {
-        is_active: true
-    };
+    const whereClause = {};
+
+    // For employees, filter by is_deleted instead of is_active
+    if (masterSlug === 'employee') {
+        whereClause.is_deleted = 0;
+    } else {
+        whereClause.is_active = true;
+    }
 
     // Add company_id filter if master is company-scoped
     if (config.companyScoped && companyId) {
         whereClause.company_id = companyId;
     }
 
+    // Extract search from filters if passed there, or use search parameter
+    const searchTerm = filters.search || search;
+
+    // Remove search from filters to avoid passing it to the query
+    if (filters.search) {
+        delete filters.search;
+    }
+
     // Add additional filters (e.g., department_id for sub_department, country_id for state)
     if (filters && Object.keys(filters).length > 0) {
         Object.assign(whereClause, filters);
+    }
+
+    // Add search functionality for employee
+    if (searchTerm && masterSlug === 'employee') {
+        whereClause[Op.or] = [
+            // Search in employee_code
+            {
+                employee_code: {
+                    [Op.like]: `%${searchTerm}%`
+                }
+            },
+            // Search in first_name
+            {
+                first_name: {
+                    [Op.like]: `%${searchTerm}%`
+                }
+            },
+            // Search in middle_name
+            {
+                middle_name: {
+                    [Op.like]: `%${searchTerm}%`
+                }
+            },
+            // Search in last_name
+            {
+                last_name: {
+                    [Op.like]: `%${searchTerm}%`
+                }
+            },
+            // Search in email
+            {
+                email: {
+                    [Op.like]: `%${searchTerm}%`
+                }
+            }
+        ];
     }
 
     // Build select fields using Sequelize array format [field, alias]
@@ -230,7 +295,20 @@ const getMasterDataBySlug = async (masterSlug, companyId = null, filters = {}) =
         selectFields.push([config.fields.code, 'code']);
     }
 
-    selectFields.push([config.fields.name, 'name']);
+    // Handle concatenated name for employees
+    if (config.useConcatenatedName && masterSlug === 'employee') {
+        // Use Sequelize.fn to concatenate first_name, middle_name, last_name
+        selectFields.push([
+            Sequelize.fn('CONCAT_WS', ' ',
+                Sequelize.col('first_name'),
+                Sequelize.fn('IFNULL', Sequelize.col('middle_name'), ''),
+                Sequelize.col('last_name')
+            ),
+            'name'
+        ]);
+    } else if (config.fields.name) {
+        selectFields.push([config.fields.name, 'name']);
+    }
 
     // Add additional fields if specified
     if (config.additionalFields && config.additionalFields.length > 0) {
@@ -258,16 +336,17 @@ const getMasterDataBySlug = async (masterSlug, companyId = null, filters = {}) =
  * @param {string|null} masterSlug - Master table identifier (optional - if not provided, returns all)
  * @param {number} companyId - Company ID for scoped masters
  * @param {Object} filters - Additional filters
+ * @param {string} search - Search term for filtering results
  * @returns {Object|Array} Object with all masters or Array with specific master data
  */
-const getMasterData = async (masterSlug = null, companyId = null, filters = {}) => {
+const getMasterData = async (masterSlug = null, companyId = null, filters = {}, search = null) => {
     // If master_slug not provided, return all masters
     if (!masterSlug) {
         const allMasters = {};
 
         for (const slug of Object.keys(MASTER_CONFIG)) {
             try {
-                allMasters[slug] = await getMasterDataBySlug(slug, companyId, filters);
+                allMasters[slug] = await getMasterDataBySlug(slug, companyId, filters, search);
             } catch (error) {
                 console.error(`Error fetching master data for ${slug}:`, error.message);
                 allMasters[slug] = [];
@@ -278,7 +357,7 @@ const getMasterData = async (masterSlug = null, companyId = null, filters = {}) 
     }
 
     // If master_slug provided, return specific master data
-    return await getMasterDataBySlug(masterSlug, companyId, filters);
+    return await getMasterDataBySlug(masterSlug, companyId, filters, search);
 };
 
 /**

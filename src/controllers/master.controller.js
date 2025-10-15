@@ -15,18 +15,20 @@ const { sendSuccess } = require('../utils/response');
  * 1. Get all masters: {}
  * 2. Get specific master: { master_type: "country" }
  * 3. Get master with filters: { master_type: "state", filters: { country_id: 101 } }
- * 4. Get master for company: { master_type: "designation", company_id: 1 }
+ * 4. Get master with search: { master_type: "employee", search: "john" }
+ * 5. Get master with filters and search: { master_type: "employee", filters: { department_id: 3 }, search: "doe" }
  */
 const getMasterData = async (req, res, next) => {
     try {
-        const { master_type, filters } = req.body;
+        const { master_type, filters, search } = req.body;
         const company_id = req.user.company_id; // Get from authenticated user
 
         // If master_type not provided, return all masters
         const data = await masterService.getMasterData(
             master_type || null,
             company_id || null,
-            filters || {}
+            filters || {},
+            search || null
         );
 
         const message = master_type

@@ -18,9 +18,15 @@ router.use(authenticate);
  *
  * Body (all optional):
  * {
- *   master_type: "country" | "state" | "city" | "department" | "designation" | "level" | "grade" | "skill" | "leave_type" | "sub_department" | "timezone" | "currency" | "shift" | "leave_policy",
- *   filters: { country_id: 101 }  // For related data (state by country, city by state, etc.)
+ *   master_type: "country" | "state" | "city" | "department" | "designation" | "level" | "grade" | "skill" | "leave_type" | "sub_department" | "timezone" | "currency" | "shift" | "leave_policy" | "employee",
+ *   filters: { country_id: 101 },  // For related data (state by country, city by state, department_id for employees, etc.)
+ *   search: "john"  // Search term (currently supported for employee - searches in employee_code, first_name, middle_name, last_name, email)
  * }
+ *
+ * Examples:
+ * 1. Get all employees: { master_type: "employee" }
+ * 2. Search employees: { master_type: "employee", search: "john" }
+ * 3. Filter + Search: { master_type: "employee", filters: { department_id: 3 }, search: "doe" }
  *
  * Note: company_id is automatically taken from authenticated user (req.user.company_id)
  * If master_type not provided, returns all masters
@@ -33,7 +39,7 @@ router.post('/data', masterController.getMasterData);
  *
  * Body:
  * {
- *   master_types: ["country", "state", "designation", "timezone", "currency", "shift", "leave_policy"]
+ *   master_types: ["country", "state", "designation", "timezone", "currency", "shift", "leave_policy", "employee"]
  * }
  *
  * Note: company_id is automatically taken from authenticated user (req.user.company_id)
