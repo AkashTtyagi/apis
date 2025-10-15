@@ -177,6 +177,16 @@ const HrmsEmployee = sequelize.define('HrmsEmployee', {
         defaultValue: 'full_time'
     },
 
+    // Notice Period (in days)
+    notice_period: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        validate: {
+            min: 0
+        },
+        comment: 'Notice period in days (e.g., 30, 60, 90)'
+    },
+
     // Employee Status (numeric reference to hrms_employee_status_master)
     // 0 - Active, 1 - Probation, 2 - Internship, 3 - Separated, 4 - Absconded, 5 - Terminated, 6 - Suspended
     status: {
@@ -274,6 +284,9 @@ const HrmsEmployee = sequelize.define('HrmsEmployee', {
         },
         {
             fields: ['timezone_id']
+        },
+        {
+            fields: ['notice_period']
         },
         {
             fields: ['status']

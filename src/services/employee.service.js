@@ -83,6 +83,7 @@ const createEmployee = async (employeeData) => {
                 shift_id: directFields.shift_id || null,
                 timezone_id: directFields.timezone_id || null,
                 employment_type: directFields.employment_type || 'full_time',
+                notice_period: directFields.notice_period || null,
                 status: directFields.status || 0,
                 profile_picture: directFields.profile_picture || null,
                 is_deleted: 0,
@@ -188,6 +189,7 @@ const updateEmployee = async (employee_id, updateData) => {
                 ...(directFields.shift_id !== undefined && { shift_id: directFields.shift_id }),
                 ...(directFields.timezone_id !== undefined && { timezone_id: directFields.timezone_id }),
                 ...(directFields.employment_type !== undefined && { employment_type: directFields.employment_type }),
+                ...(directFields.notice_period !== undefined && { notice_period: directFields.notice_period }),
                 ...(directFields.status !== undefined && { status: directFields.status }),
                 ...(directFields.profile_picture !== undefined && { profile_picture: directFields.profile_picture }),
                 updated_by: user_id

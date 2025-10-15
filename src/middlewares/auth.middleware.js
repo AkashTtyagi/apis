@@ -58,6 +58,7 @@ const authenticate = async (req, res, next) => {
                 [Sequelize.literal('`employee`.`shift_id`'), 'shift_id'],
                 [Sequelize.literal('`employee`.`timezone_id`'), 'timezone_id'],
                 [Sequelize.literal('`employee`.`employment_type`'), 'employment_type'],
+                [Sequelize.literal('`employee`.`notice_period`'), 'notice_period'],
                 [Sequelize.literal('`employee`.`status`'), 'status'],
                 [Sequelize.literal('`employee`.`profile_picture`'), 'profile_picture']
             ],
@@ -152,6 +153,7 @@ const optionalAuth = async (req, res, next) => {
                 [Sequelize.literal('`employee`.`shift_id`'), 'shift_id'],
                 [Sequelize.literal('`employee`.`timezone_id`'), 'timezone_id'],
                 [Sequelize.literal('`employee`.`employment_type`'), 'employment_type'],
+                [Sequelize.literal('`employee`.`notice_period`'), 'notice_period'],
                 [Sequelize.literal('`employee`.`status`'), 'status'],
                 [Sequelize.literal('`employee`.`profile_picture`'), 'profile_picture']
             ],
