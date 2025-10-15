@@ -11,15 +11,32 @@ const { HrmsCompanyDesignation } = require('../models/HrmsCompanyDesignation');
 const { HrmsLevel } = require('../models/HrmsLevel');
 const { HrmsCompanySkills } = require('../models/HrmsCompanySkills');
 const { HrmsLeaveMaster } = require('../models/HrmsLeaveMaster');
+const { HrmsLeavePolicyMaster } = require('../models/HrmsLeavePolicyMaster');
+const { HrmsShiftMaster } = require('../models/HrmsShiftMaster');
 const { HrmsCountryMaster } = require('../models/HrmsCountryMaster');
 const { HrmsStateMaster } = require('../models/HrmsStateMaster');
 const { HrmsCityMaster } = require('../models/HrmsCityMaster');
+const { HrmsTimezoneMaster } = require('../models/HrmsTimezoneMaster');
 
 /**
  * Master table configuration
  * Maps master_slug to table details and query structure
  */
 const MASTER_CONFIG = {
+    // Timezone Master (NOT company scoped)
+    timezone: {
+        model: HrmsTimezoneMaster,
+        table: 'hrms_timezone_master',
+        fields: {
+            id: 'id',
+            code: null,
+            name: 'display_name'
+        },
+        companyScoped: false,
+        additionalFields: ['timezone_name', 'timezone_offset', 'timezone_offset_minutes', 'country_code', 'timezone_abbr'],
+        orderBy: [['timezone_offset_minutes', 'ASC']]
+    },
+
     // Geographic Masters (NOT company scoped)
     country: {
         model: HrmsCountryMaster,
@@ -135,6 +152,28 @@ const MASTER_CONFIG = {
         },
         companyScoped: true,
         additionalFields: ['leave_type', 'description']
+    },
+    leave_policy: {
+        model: HrmsLeavePolicyMaster,
+        table: 'hrms_leave_policy_master',
+        fields: {
+            id: 'id',
+            code: null,
+            name: 'policy_name'
+        },
+        companyScoped: true,
+        additionalFields: ['policy_description']
+    },
+    shift: {
+        model: HrmsShiftMaster,
+        table: 'hrms_shift_master',
+        fields: {
+            id: 'id',
+            code: 'shift_code',
+            name: 'shift_name'
+        },
+        companyScoped: true,
+        additionalFields: ['shift_colour', 'description', 'shift_start_time', 'shift_end_time', 'is_night_shift']
     }
 };
 

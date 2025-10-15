@@ -4,6 +4,7 @@
  */
 
 const { HTTP_STATUS } = require('../utils/response');
+const { logError, extractFileDetails } = require('../utils/errorLogger');
 
 /**
  * 404 Not Found handler
@@ -20,7 +21,9 @@ const notFoundHandler = (req, res, next) => {
  * Catches all errors thrown in the application
  */
 const errorHandler = (err, req, res, next) => {
-    console.error('Error:', err.message);
+    // Log detailed error with file name and line number
+    const context = `${req.method} ${req.originalUrl || req.url}`;
+    logError(err, context);
 
     // Handle specific error types
     let statusCode = err.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR;
@@ -63,9 +66,13 @@ const errorHandler = (err, req, res, next) => {
 
     // Include error details only in development mode
     if (process.env.NODE_ENV === 'development') {
+        const fileDetails = extractFileDetails(err);
         response.error = {
             name: err.name,
             message: err.message,
+            file: fileDetails.file,
+            line: fileDetails.line,
+            column: fileDetails.column,
             stack: err.stack
         };
     }

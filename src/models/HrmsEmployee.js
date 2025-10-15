@@ -163,6 +163,13 @@ const HrmsEmployee = sequelize.define('HrmsEmployee', {
         comment: 'Foreign key to hrms_shift_master'
     },
 
+    // Timezone ID
+    timezone_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Foreign key to hrms_timezone_master - timezone where employee works'
+    },
+
     // Employment Type
     employment_type: {
         type: DataTypes.ENUM('full_time', 'part_time', 'contract', 'intern'),
@@ -266,6 +273,9 @@ const HrmsEmployee = sequelize.define('HrmsEmployee', {
             fields: ['shift_id']
         },
         {
+            fields: ['timezone_id']
+        },
+        {
             fields: ['status']
         },
         {
@@ -320,6 +330,12 @@ HrmsEmployee.associate = (models) => {
     HrmsEmployee.belongsTo(models.HrmsShiftMaster, {
         foreignKey: 'shift_id',
         as: 'shift'
+    });
+
+    // Employee belongs to timezone
+    HrmsEmployee.belongsTo(models.HrmsTimezoneMaster, {
+        foreignKey: 'timezone_id',
+        as: 'timezone'
     });
 
     // Self-referencing association for reporting manager

@@ -9,6 +9,7 @@ const { testConnection, sequelize } = require('./utils/database');
 const { connectRedis, disconnectRedis } = require('./utils/redis');
 const { initializeModels } = require('./models');
 const { startLeaveCreditScheduler, stopLeaveCreditScheduler } = require('./crons/leaveCreditScheduler');
+const { logError } = require('./utils/errorLogger');
 
 const PORT = envConfig.port;
 let leaveCreditCronTask = null; // Store cron task reference
@@ -75,7 +76,7 @@ const startServer = async () => {
           console.log('✓ Graceful shutdown completed');
           process.exit(0);
         } catch (error) {
-          console.error('✗ Error during shutdown:', error);
+          logError(error, 'Graceful Shutdown');
           process.exit(1);
         }
       });
@@ -92,7 +93,7 @@ const startServer = async () => {
     process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
   } catch (error) {
-    console.error('✗ Failed to start server:', error.message);
+    logError(error, 'Server Startup');
     process.exit(1);
   }
 };
