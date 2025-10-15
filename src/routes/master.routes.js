@@ -18,11 +18,11 @@ router.use(authenticate);
  *
  * Body (all optional):
  * {
- *   master_type: "country" | "state" | "city" | "department" | "designation" | "level" | "grade" | "skill" | "leave_type" | "sub_department",
- *   company_id: 1,
+ *   master_type: "country" | "state" | "city" | "department" | "designation" | "level" | "grade" | "skill" | "leave_type" | "sub_department" | "timezone" | "shift" | "leave_policy",
  *   filters: { country_id: 101 }  // For related data (state by country, city by state, etc.)
  * }
  *
+ * Note: company_id is automatically taken from authenticated user (req.user.company_id)
  * If master_type not provided, returns all masters
  */
 router.post('/data', masterController.getMasterData);
@@ -33,9 +33,10 @@ router.post('/data', masterController.getMasterData);
  *
  * Body:
  * {
- *   master_types: ["country", "state", "designation"],
- *   company_id: 1
+ *   master_types: ["country", "state", "designation", "timezone", "shift", "leave_policy"]
  * }
+ *
+ * Note: company_id is automatically taken from authenticated user (req.user.company_id)
  */
 router.post('/multiple', masterController.getMultipleMasterData);
 
@@ -51,9 +52,10 @@ router.post('/multiple', masterController.getMultipleMasterData);
  *    {
  *      type: "custom",
  *      parent_type: "department",
- *      child_type: "sub_department",
- *      company_id: 1
+ *      child_type: "sub_department"
  *    }
+ *
+ * Note: company_id is automatically taken from authenticated user (req.user.company_id)
  */
 router.post('/hierarchical', masterController.getHierarchicalMasterData);
 

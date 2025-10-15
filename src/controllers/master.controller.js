@@ -19,7 +19,8 @@ const { sendSuccess } = require('../utils/response');
  */
 const getMasterData = async (req, res, next) => {
     try {
-        const { master_type, company_id, filters } = req.body;
+        const { master_type, filters } = req.body;
+        const company_id = req.user.company_id; // Get from authenticated user
 
         // If master_type not provided, return all masters
         const data = await masterService.getMasterData(
@@ -50,7 +51,8 @@ const getMasterData = async (req, res, next) => {
  */
 const getMultipleMasterData = async (req, res, next) => {
     try {
-        const { master_types, company_id } = req.body;
+        const { master_types } = req.body;
+        const company_id = req.user.company_id; // Get from authenticated user
 
         if (!master_types || !Array.isArray(master_types)) {
             throw new Error('master_types must be an array');
@@ -77,7 +79,8 @@ const getMultipleMasterData = async (req, res, next) => {
  */
 const getHierarchicalMasterData = async (req, res, next) => {
     try {
-        const { type, parent_type, child_type, company_id } = req.body;
+        const { type, parent_type, child_type } = req.body;
+        const company_id = req.user.company_id; // Get from authenticated user
 
         // Default to geographic hierarchy (country -> state -> city)
         if (!type || type === 'geographic') {
