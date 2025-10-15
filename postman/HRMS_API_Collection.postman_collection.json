@@ -297,6 +297,37 @@
       "name": "3. Employees",
       "item": [
         {
+          "name": "Get Logged-in User Details",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/employees/user_details",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employees",
+                "user_details"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "Create Employee",
           "request": {
             "method": "POST",

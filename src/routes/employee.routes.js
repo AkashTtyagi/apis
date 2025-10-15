@@ -12,6 +12,9 @@ const { authenticate } = require('../middlewares/auth.middleware');
 // Apply authentication middleware to all routes
 router.use(authenticate);
 
+// Get logged-in user details with employee information
+router.post('/user_details', employeeController.getLoggedInUserDetails);
+
 // Create employee
 router.post('/', employeeController.createEmployee);
 

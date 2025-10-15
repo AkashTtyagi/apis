@@ -95,9 +95,26 @@ const getEmployeesByCompany = async (req, res, next) => {
     }
 };
 
+/**
+ * Get logged-in user details with employee information
+ * POST /api/employees/user_details
+ */
+const getLoggedInUserDetails = async (req, res, next) => {
+    try {
+        const user_id = req.user.id;
+
+        const result = await employeeService.getLoggedInUserDetails(user_id);
+
+        return sendSuccess(res, 'User details retrieved successfully', result);
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     createEmployee,
     updateEmployee,
     getEmployeeById,
-    getEmployeesByCompany
+    getEmployeesByCompany,
+    getLoggedInUserDetails
 };

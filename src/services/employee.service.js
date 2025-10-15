@@ -357,9 +357,51 @@ const getEmployeesByCompany = async (company_id, filters = {}) => {
     return employees;
 };
 
+/**
+ * Get logged-in user details with employee information
+ *
+ * @param {number} user_id - User ID from auth token
+ * @returns {Object} User details with employee information
+ */
+const getLoggedInUserDetails = async (user_id) => {
+    // Get user details with employee in a single query
+    const userDetails = await HrmsUserDetails.findOne({
+        where: { id: user_id },
+        attributes: ['id', 'company_id', 'email', 'phone', 'is_active', 'is_password_set', 'created_at'],
+        include: [
+            {
+                model: HrmsEmployee,
+                as: 'employee',
+                where: { is_active: 1 },
+                required: true
+            }
+        ]
+    });
+
+    if (!userDetails) {
+        throw new Error('User or employee not found');
+    }
+
+    const result = userDetails.toJSON();
+
+    return {
+        user: {
+            id: result.id,
+            company_id: result.company_id,
+            email: result.email,
+            phone: result.phone,
+            is_active: result.is_active,
+            is_password_set: result.is_password_set,
+            created_at: result.created_at
+        },
+        employee: result.employee
+    };
+};
+
 module.exports = {
     createEmployee,
     updateEmployee,
     getEmployeeById,
-    getEmployeesByCompany
+    getEmployeesByCompany,
+    getLoggedInUserDetails
 };
