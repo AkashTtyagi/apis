@@ -17,6 +17,7 @@ const { HrmsCountryMaster } = require('../models/HrmsCountryMaster');
 const { HrmsStateMaster } = require('../models/HrmsStateMaster');
 const { HrmsCityMaster } = require('../models/HrmsCityMaster');
 const { HrmsTimezoneMaster } = require('../models/HrmsTimezoneMaster');
+const { HrmsCurrencyMaster } = require('../models/HrmsCurrencyMaster');
 
 /**
  * Master table configuration
@@ -35,6 +36,20 @@ const MASTER_CONFIG = {
         companyScoped: false,
         additionalFields: ['timezone_name', 'timezone_offset', 'timezone_offset_minutes', 'country_code', 'timezone_abbr'],
         orderBy: [['timezone_offset_minutes', 'ASC']]
+    },
+
+    // Currency Master (NOT company scoped)
+    currency: {
+        model: HrmsCurrencyMaster,
+        table: 'hrms_currency_master',
+        fields: {
+            id: 'id',
+            code: 'currency_code',
+            name: 'currency_name'
+        },
+        companyScoped: false,
+        additionalFields: ['currency_symbol', 'country_name', 'country_code', 'decimal_places', 'display_format'],
+        orderBy: [['display_order', 'ASC'], ['currency_name', 'ASC']]
     },
 
     // Geographic Masters (NOT company scoped)

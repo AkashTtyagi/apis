@@ -62,11 +62,88 @@ const HrmsCompany = sequelize.define('HrmsCompany', {
     comment: 'Foreign key reference to countries table'
   },
 
+  // Currency ID (foreign key reference)
+  currency_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    comment: 'Foreign key to hrms_currency_master - company operating currency'
+  },
+
   // Industry ID (reference to industry master)
   org_industry: {
     type: DataTypes.INTEGER.UNSIGNED,
     allowNull: true,
     comment: 'Reference to industry master table'
+  },
+
+  // Registered Address Details
+  registered_address: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    comment: 'Registered office address'
+  },
+
+  pin_code: {
+    type: DataTypes.STRING(20),
+    allowNull: true,
+    comment: 'PIN/ZIP code'
+  },
+
+  state_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    comment: 'Foreign key to hrms_state_master'
+  },
+
+  city_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    comment: 'Foreign key to hrms_city_master'
+  },
+
+  // Contact Details
+  phone_number: {
+    type: DataTypes.STRING(20),
+    allowNull: true,
+    validate: {
+      is: {
+        args: /^[0-9+\-\s()]*$/,
+        msg: 'Phone number can only contain numbers, +, -, spaces, and parentheses'
+      }
+    },
+    comment: 'Company phone number'
+  },
+
+  fax_number: {
+    type: DataTypes.STRING(20),
+    allowNull: true,
+    validate: {
+      is: {
+        args: /^[0-9+\-\s()]*$/,
+        msg: 'Fax number can only contain numbers, +, -, spaces, and parentheses'
+      }
+    },
+    comment: 'Company fax number'
+  },
+
+  contact_person_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    comment: 'Foreign key to hrms_employees - primary contact person'
+  },
+
+  // Timezone
+  timezone_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    comment: 'Foreign key to hrms_timezone_master - company timezone'
+  },
+
+  // Company Profile/Logo
+  company_profile_path: {
+    type: DataTypes.STRING(500),
+    allowNull: true,
+    comment: 'Path to company profile image/logo'
   },
 
   // Created by user ID
@@ -106,6 +183,24 @@ const HrmsCompany = sequelize.define('HrmsCompany', {
     },
     {
       fields: ['country_id']
+    },
+    {
+      fields: ['currency_id']
+    },
+    {
+      fields: ['state_id']
+    },
+    {
+      fields: ['city_id']
+    },
+    {
+      fields: ['contact_person_id']
+    },
+    {
+      fields: ['timezone_id']
+    },
+    {
+      fields: ['pin_code']
     },
     {
       fields: ['org_name']

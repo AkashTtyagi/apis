@@ -8,6 +8,7 @@ const router = express.Router();
 
 const onboardingRoutes = require('./onboarding.routes');
 const authRoutes = require('./auth.routes');
+const companyRoutes = require('./company.routes');
 const employeeRoutes = require('./employee.routes');
 const templateRoutes = require('./template.routes');
 const departmentRoutes = require('./department.routes');
@@ -38,6 +39,9 @@ router.use('/auth', authRoutes);
 
 // Onboarding route (combined company + user creation)
 router.use('/onboarding', onboardingRoutes);
+
+// Company routes
+router.use('/company', companyRoutes);
 
 // Employee routes
 router.use('/employees', employeeRoutes);

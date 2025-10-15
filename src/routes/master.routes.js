@@ -18,7 +18,7 @@ router.use(authenticate);
  *
  * Body (all optional):
  * {
- *   master_type: "country" | "state" | "city" | "department" | "designation" | "level" | "grade" | "skill" | "leave_type" | "sub_department" | "timezone" | "shift" | "leave_policy",
+ *   master_type: "country" | "state" | "city" | "department" | "designation" | "level" | "grade" | "skill" | "leave_type" | "sub_department" | "timezone" | "currency" | "shift" | "leave_policy",
  *   filters: { country_id: 101 }  // For related data (state by country, city by state, etc.)
  * }
  *
@@ -33,7 +33,7 @@ router.post('/data', masterController.getMasterData);
  *
  * Body:
  * {
- *   master_types: ["country", "state", "designation", "timezone", "shift", "leave_policy"]
+ *   master_types: ["country", "state", "designation", "timezone", "currency", "shift", "leave_policy"]
  * }
  *
  * Note: company_id is automatically taken from authenticated user (req.user.company_id)
