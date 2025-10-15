@@ -22,6 +22,7 @@ const leaveCreditCronRoutes = require('./cron/leaveCreditCron.routes');
 const masterRoutes = require('./master.routes');
 const attendanceRequestRoutes = require('./attendanceRequest.routes');
 const workflowRoutes = require('./workflow.routes');
+const shiftRoutes = require('./shift.routes');
 
 // Health check endpoint
 router.get('/health', (req, res) => {
@@ -73,5 +74,8 @@ router.use('/attendance', attendanceRequestRoutes);
 
 // Workflow configuration routes
 router.use('/workflows', workflowRoutes);
+
+// Shift management routes
+router.use('/shifts', shiftRoutes);
 
 module.exports = router;

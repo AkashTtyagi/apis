@@ -56,8 +56,12 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/health",
-              "host": ["{{base_url}}"],
-              "path": ["health"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
             }
           },
           "response": []
@@ -102,8 +106,13 @@
             },
             "url": {
               "raw": "{{base_url}}/auth/set-password",
-              "host": ["{{base_url}}"],
-              "path": ["auth", "set-password"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "set-password"
+              ]
             }
           },
           "response": []
@@ -147,8 +156,13 @@
             },
             "url": {
               "raw": "{{base_url}}/auth/login",
-              "host": ["{{base_url}}"],
-              "path": ["auth", "login"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
             }
           },
           "response": []
@@ -172,8 +186,13 @@
             },
             "url": {
               "raw": "{{base_url}}/auth/forgot-password",
-              "host": ["{{base_url}}"],
-              "path": ["auth", "forgot-password"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "forgot-password"
+              ]
             }
           },
           "response": []
@@ -197,8 +216,13 @@
             },
             "url": {
               "raw": "{{base_url}}/auth/reset-password",
-              "host": ["{{base_url}}"],
-              "path": ["auth", "reset-password"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "reset-password"
+              ]
             }
           },
           "response": []
@@ -222,8 +246,13 @@
             },
             "url": {
               "raw": "{{base_url}}/auth/resend-set-password",
-              "host": ["{{base_url}}"],
-              "path": ["auth", "resend-set-password"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "resend-set-password"
+              ]
             }
           },
           "response": []
@@ -252,8 +281,12 @@
             },
             "url": {
               "raw": "{{base_url}}/onboarding",
-              "host": ["{{base_url}}"],
-              "path": ["onboarding"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "onboarding"
+              ]
             }
           },
           "response": []
@@ -279,8 +312,12 @@
             },
             "url": {
               "raw": "{{base_url}}/employees",
-              "host": ["{{base_url}}"],
-              "path": ["employees"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employees"
+              ]
             }
           },
           "response": []
@@ -301,8 +338,13 @@
             },
             "url": {
               "raw": "{{base_url}}/employees/{{employee_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["employees", "{{employee_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employees",
+                "{{employee_id}}"
+              ]
             }
           },
           "response": []
@@ -314,8 +356,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/employees/{{employee_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["employees", "{{employee_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employees",
+                "{{employee_id}}"
+              ]
             }
           },
           "response": []
@@ -327,8 +374,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/employees/company",
-              "host": ["{{base_url}}"],
-              "path": ["employees", "company"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employees",
+                "company"
+              ]
             }
           },
           "response": []
@@ -340,8 +392,14 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/employees/activate/{{user_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["employees", "activate", "{{user_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employees",
+                "activate",
+                "{{user_id}}"
+              ]
             }
           },
           "response": []
@@ -353,8 +411,14 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/employees/resend-activation/{{user_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["employees", "resend-activation", "{{user_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employees",
+                "resend-activation",
+                "{{user_id}}"
+              ]
             }
           },
           "response": []
@@ -371,8 +435,12 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/templates",
-              "host": ["{{base_url}}"],
-              "path": ["templates"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "templates"
+              ]
             }
           },
           "response": []
@@ -384,8 +452,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/templates/employee_template",
-              "host": ["{{base_url}}"],
-              "path": ["templates", "employee_template"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "templates",
+                "employee_template"
+              ]
             }
           },
           "response": []
@@ -406,8 +479,13 @@
             },
             "url": {
               "raw": "{{base_url}}/templates/sections",
-              "host": ["{{base_url}}"],
-              "path": ["templates", "sections"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "templates",
+                "sections"
+              ]
             }
           },
           "response": []
@@ -428,8 +506,14 @@
             },
             "url": {
               "raw": "{{base_url}}/templates/sections/1",
-              "host": ["{{base_url}}"],
-              "path": ["templates", "sections", "1"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "templates",
+                "sections",
+                "1"
+              ]
             }
           },
           "response": []
@@ -441,8 +525,14 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/templates/sections/1",
-              "host": ["{{base_url}}"],
-              "path": ["templates", "sections", "1"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "templates",
+                "sections",
+                "1"
+              ]
             }
           },
           "response": []
@@ -463,8 +553,13 @@
             },
             "url": {
               "raw": "{{base_url}}/templates/fields",
-              "host": ["{{base_url}}"],
-              "path": ["templates", "fields"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "templates",
+                "fields"
+              ]
             }
           },
           "response": []
@@ -485,8 +580,14 @@
             },
             "url": {
               "raw": "{{base_url}}/templates/fields/1",
-              "host": ["{{base_url}}"],
-              "path": ["templates", "fields", "1"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "templates",
+                "fields",
+                "1"
+              ]
             }
           },
           "response": []
@@ -498,8 +599,14 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/templates/fields/1",
-              "host": ["{{base_url}}"],
-              "path": ["templates", "fields", "1"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "templates",
+                "fields",
+                "1"
+              ]
             }
           },
           "response": []
@@ -525,8 +632,13 @@
             },
             "url": {
               "raw": "{{base_url}}/departments/create",
-              "host": ["{{base_url}}"],
-              "path": ["departments", "create"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "departments",
+                "create"
+              ]
             }
           },
           "response": []
@@ -547,8 +659,13 @@
             },
             "url": {
               "raw": "{{base_url}}/departments/update",
-              "host": ["{{base_url}}"],
-              "path": ["departments", "update"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "departments",
+                "update"
+              ]
             }
           },
           "response": []
@@ -569,8 +686,13 @@
             },
             "url": {
               "raw": "{{base_url}}/departments/list",
-              "host": ["{{base_url}}"],
-              "path": ["departments", "list"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "departments",
+                "list"
+              ]
             }
           },
           "response": []
@@ -596,8 +718,13 @@
             },
             "url": {
               "raw": "{{base_url}}/sub-departments/create",
-              "host": ["{{base_url}}"],
-              "path": ["sub-departments", "create"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sub-departments",
+                "create"
+              ]
             }
           },
           "response": []
@@ -618,8 +745,13 @@
             },
             "url": {
               "raw": "{{base_url}}/sub-departments/update",
-              "host": ["{{base_url}}"],
-              "path": ["sub-departments", "update"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sub-departments",
+                "update"
+              ]
             }
           },
           "response": []
@@ -640,8 +772,13 @@
             },
             "url": {
               "raw": "{{base_url}}/sub-departments/list",
-              "host": ["{{base_url}}"],
-              "path": ["sub-departments", "list"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sub-departments",
+                "list"
+              ]
             }
           },
           "response": []
@@ -667,8 +804,12 @@
             },
             "url": {
               "raw": "{{base_url}}/leave-types",
-              "host": ["{{base_url}}"],
-              "path": ["leave-types"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leave-types"
+              ]
             }
           },
           "response": []
@@ -689,8 +830,13 @@
             },
             "url": {
               "raw": "{{base_url}}/leave-types/1",
-              "host": ["{{base_url}}"],
-              "path": ["leave-types", "1"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leave-types",
+                "1"
+              ]
             }
           },
           "response": []
@@ -702,8 +848,12 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/leave-types?is_active=true",
-              "host": ["{{base_url}}"],
-              "path": ["leave-types"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leave-types"
+              ],
               "query": [
                 {
                   "key": "is_active",
@@ -721,8 +871,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/leave-types/1",
-              "host": ["{{base_url}}"],
-              "path": ["leave-types", "1"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leave-types",
+                "1"
+              ]
             }
           },
           "response": []
@@ -734,8 +889,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/leave-types/1",
-              "host": ["{{base_url}}"],
-              "path": ["leave-types", "1"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leave-types",
+                "1"
+              ]
             }
           },
           "response": []
@@ -747,8 +907,14 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/leave-types/1/audit-logs",
-              "host": ["{{base_url}}"],
-              "path": ["leave-types", "1", "audit-logs"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leave-types",
+                "1",
+                "audit-logs"
+              ]
             }
           },
           "response": []
@@ -774,8 +940,13 @@
             },
             "url": {
               "raw": "{{base_url}}/leave-policies/create",
-              "host": ["{{base_url}}"],
-              "path": ["leave-policies", "create"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leave-policies",
+                "create"
+              ]
             }
           },
           "response": []
@@ -796,8 +967,13 @@
             },
             "url": {
               "raw": "{{base_url}}/leave-policies/update",
-              "host": ["{{base_url}}"],
-              "path": ["leave-policies", "update"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leave-policies",
+                "update"
+              ]
             }
           },
           "response": []
@@ -809,8 +985,12 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/leave-policies?is_active=true&include_inactive_leave_types=false",
-              "host": ["{{base_url}}"],
-              "path": ["leave-policies"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leave-policies"
+              ],
               "query": [
                 {
                   "key": "is_active",
@@ -832,8 +1012,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/leave-policies/1?include_inactive_leave_types=true",
-              "host": ["{{base_url}}"],
-              "path": ["leave-policies", "1"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leave-policies",
+                "1"
+              ],
               "query": [
                 {
                   "key": "include_inactive_leave_types",
@@ -851,8 +1036,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/leave-policies/1",
-              "host": ["{{base_url}}"],
-              "path": ["leave-policies", "1"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leave-policies",
+                "1"
+              ]
             }
           },
           "response": []
@@ -873,8 +1063,16 @@
             },
             "url": {
               "raw": "{{base_url}}/leave-policies/1/leave-types/2/toggle",
-              "host": ["{{base_url}}"],
-              "path": ["leave-policies", "1", "leave-types", "2", "toggle"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leave-policies",
+                "1",
+                "leave-types",
+                "2",
+                "toggle"
+              ]
             }
           },
           "response": []
@@ -891,8 +1089,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/leave-balance/{{employee_id}}?year=2024&month=10",
-              "host": ["{{base_url}}"],
-              "path": ["leave-balance", "{{employee_id}}"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leave-balance",
+                "{{employee_id}}"
+              ],
               "query": [
                 {
                   "key": "year",
@@ -923,8 +1126,13 @@
             },
             "url": {
               "raw": "{{base_url}}/leave-balance/transaction",
-              "host": ["{{base_url}}"],
-              "path": ["leave-balance", "transaction"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leave-balance",
+                "transaction"
+              ]
             }
           },
           "response": []
@@ -950,8 +1158,322 @@
             },
             "url": {
               "raw": "{{base_url}}/cron/leave-credit/run",
-              "host": ["{{base_url}}"],
-              "path": ["cron", "leave-credit", "run"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "cron",
+                "leave-credit",
+                "run"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "11. Master Data",
+      "item": [
+        {
+          "name": "Get Single Master Data",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"master_type\": \"department\",\n  \"company_id\": \"{{company_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/master/data",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "master",
+                "data"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Master Data",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": \"{{company_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/master/data",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "master",
+                "data"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Multiple Masters",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"master_types\": [\n    \"department\",\n    \"designation\",\n    \"level\",\n    \"grade\"\n  ],\n  \"company_id\": \"{{company_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/master/multiple",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "master",
+                "multiple"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "12. Shift Management",
+      "item": [
+        {
+          "name": "Create Shift",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": \"{{company_id}}\",\n  \"shift_code\": \"SHIFT_DAY\",\n  \"shift_name\": \"Day Shift\",\n  \"shift_colour\": \"#3498db\",\n  \"description\": \"Standard day shift 9 AM to 6 PM\",\n  \"shift_start_time\": \"09:00:00\",\n  \"first_half_duration\": \"04:30:00\",\n  \"second_half_duration\": \"04:30:00\",\n  \"checkin_allowed_before_minutes\": 120,\n  \"grace_time_late_minutes\": 15,\n  \"grace_time_early_minutes\": 15,\n  \"min_minutes_half_day\": 270,\n  \"min_minutes_full_day\": 540,\n  \"absent_half_day_after_minutes\": 120,\n  \"has_shift_allowance\": 0,\n  \"restrict_manager_backdate\": 1,\n  \"manager_backdate_days_allowed\": 7,\n  \"restrict_manager_future\": 0,\n  \"restrict_hr_backdate\": 1,\n  \"hr_backdate_days_allowed\": 7,\n  \"restrict_hr_future\": 0,\n  \"enable_break_deduction\": 1,\n  \"deduct_time_before_shift\": 0,\n  \"enable_work_cutoff\": 0,\n  \"has_custom_weekly_off\": 0,\n  \"weekly_off_type\": \"policy\",\n  \"is_active\": 1,\n  \"breaks\": [\n    {\n      \"break_name\": \"Lunch Break\",\n      \"break_start_after_minutes\": 240,\n      \"break_duration_minutes\": 60,\n      \"break_order\": 1,\n      \"is_paid\": 0,\n      \"is_mandatory\": 1\n    }\n  ],\n  \"weekly_off\": [\n    {\n      \"week_number\": 1,\n      \"day_of_week\": \"sunday\",\n      \"off_type\": \"full_day\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/shifts/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "shifts",
+                "create"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Shifts",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": \"{{company_id}}\",\n  \"filters\": {\n    \"is_active\": 1\n  },\n  \"page\": 1,\n  \"limit\": 50\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/shifts/list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "shifts",
+                "list"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Shift Details",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shift_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/shifts/details",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "shifts",
+                "details"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Shift",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shift_id\": 1,\n  \"shift_name\": \"Updated Day Shift\",\n  \"grace_time_late_minutes\": 20,\n  \"description\": \"Updated description\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/shifts/update",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "shifts",
+                "update"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Toggle Shift Status",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shift_id\": 1,\n  \"is_active\": 0\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/shifts/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "shifts",
+                "status"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Shift Employees",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shift_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/shifts/employees",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "shifts",
+                "employees"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Shift Audit Logs",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shift_id\": 1,\n  \"page\": 1,\n  \"limit\": 50\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/shifts/audit-logs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "shifts",
+                "audit-logs"
+              ]
             }
           },
           "response": []

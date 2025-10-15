@@ -156,6 +156,13 @@ const HrmsEmployee = sequelize.define('HrmsEmployee', {
         comment: 'Foreign key to hrms_leave_policy_master'
     },
 
+    // Shift ID
+    shift_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Foreign key to hrms_shift_master'
+    },
+
     // Employment Type
     employment_type: {
         type: DataTypes.ENUM('full_time', 'part_time', 'contract', 'intern'),
@@ -255,6 +262,9 @@ const HrmsEmployee = sequelize.define('HrmsEmployee', {
             fields: ['leave_policy_id']
         },
         {
+            fields: ['shift_id']
+        },
+        {
             fields: ['status']
         },
         {
@@ -303,6 +313,12 @@ HrmsEmployee.associate = (models) => {
     HrmsEmployee.belongsTo(models.HrmsLeavePolicyMaster, {
         foreignKey: 'leave_policy_id',
         as: 'leavePolicy'
+    });
+
+    // Employee belongs to shift
+    HrmsEmployee.belongsTo(models.HrmsShiftMaster, {
+        foreignKey: 'shift_id',
+        as: 'shift'
     });
 
     // Self-referencing association for reporting manager
