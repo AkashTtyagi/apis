@@ -1,26 +1,34 @@
 /**
  * Master Seeder
- * Runs all location seeders in the correct order
- * Order: Country -> State -> City (due to foreign key dependencies)
+ * Runs all master data seeders in the correct order
+ * Order: Timezone, Country -> State -> City (due to foreign key dependencies)
  */
 
+const { seedTimezones } = require('./timezoneSeeder');
 const { seedCountries } = require('./countrySeeder');
 const { seedStates } = require('./stateSeeder');
 const { seedCities } = require('./citySeeder');
 const { sequelize } = require('../utils/database');
 
 /**
- * Run all location seeders
+ * Run all master data seeders
  */
 const runAllSeeders = async () => {
     try {
-        console.log('🚀 Starting location master seeder...\n');
+        console.log('🚀 Starting master data seeder...\n');
 
         // Test database connection
         await sequelize.authenticate();
         console.log('✓ Database connection established\n');
 
-        // 1. Seed Countries first (no dependencies)
+        // 0. Seed Timezones first (no dependencies)
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('STEP 0: Seeding Timezones');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        await seedTimezones();
+        console.log('');
+
+        // 1. Seed Countries (no dependencies)
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         console.log('STEP 1: Seeding Countries');
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -42,15 +50,17 @@ const runAllSeeders = async () => {
         console.log(`\n✅ ${cities.length} cities seeded\n`);
 
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        console.log('🎉 ALL LOCATION DATA SEEDED SUCCESSFULLY!');
+        console.log('🎉 ALL MASTER DATA SEEDED SUCCESSFULLY!');
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         console.log(`📊 Summary:`);
+        console.log(`   • Timezones: Seeded`);
         console.log(`   • Countries: ${countries.length}`);
         console.log(`   • States: ${states.length}`);
         console.log(`   • Cities: ${cities.length}`);
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
         return {
+            timezones: 'seeded',
             countries: countries.length,
             states: states.length,
             cities: cities.length
