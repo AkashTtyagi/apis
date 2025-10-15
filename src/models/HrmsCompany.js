@@ -29,11 +29,11 @@ const HrmsCompany = sequelize.define('HrmsCompany', {
     }
   },
 
-  // Entity ID (same as company id)
-  entity_id: {
+  // Parent Enterprise ID (for multi-company hierarchy)
+  parent_enterprise_id: {
     type: DataTypes.INTEGER,
     allowNull: true,
-    comment: 'Entity ID reference (same as company id)'
+    comment: 'Foreign key to parent enterprise (for multi-company hierarchy)'
   },
 
   // Parent company flag
@@ -102,7 +102,7 @@ const HrmsCompany = sequelize.define('HrmsCompany', {
   // Indexes
   indexes: [
     {
-      fields: ['entity_id']
+      fields: ['parent_enterprise_id']
     },
     {
       fields: ['country_id']

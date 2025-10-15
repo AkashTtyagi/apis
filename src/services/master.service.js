@@ -207,15 +207,15 @@ const getMasterDataBySlug = async (masterSlug, companyId = null, filters = {}) =
         Object.assign(whereClause, filters);
     }
 
-    // Build select fields
-    const selectFields = [`${config.fields.id} as id`];
+    // Build select fields using Sequelize array format [field, alias]
+    const selectFields = [[config.fields.id, 'id']];
 
     // Add code field if it exists
     if (config.fields.code) {
-        selectFields.push(`${config.fields.code} as code`);
+        selectFields.push([config.fields.code, 'code']);
     }
 
-    selectFields.push(`${config.fields.name} as name`);
+    selectFields.push([config.fields.name, 'name']);
 
     // Add additional fields if specified
     if (config.additionalFields && config.additionalFields.length > 0) {

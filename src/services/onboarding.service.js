@@ -91,15 +91,15 @@ const onboardCompanyAndUser = async (data) => {
         const company_id = companyInsertResult.insertId;
         console.log(`✓ Company created with ID: ${company_id}`);
 
-        // Step 7: Update the company record to set entity_id equal to company id
+        // Step 7: Update the company record to set parent_enterprise_id equal to company id
         const updateCompanyEntityQuery = `
         UPDATE hrms_companies
-        SET entity_id = ?
+        SET parent_enterprise_id = ?
         WHERE id = ?
         `;
 
         await dbTrans.execute(updateCompanyEntityQuery, [company_id, company_id]);
-        console.log(`✓ Company updated with entity_id: ${company_id}`);
+        console.log(`✓ Company updated with parent_enterprise_id: ${company_id}`);
 
         // Step 8: Update the user record to set company_id
         const updateUserQuery = `
