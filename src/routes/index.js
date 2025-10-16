@@ -24,6 +24,7 @@ const masterRoutes = require('./master.routes');
 const attendanceRequestRoutes = require('./attendanceRequest.routes');
 const workflowRoutes = require('./workflow.routes');
 const shiftRoutes = require('./shift.routes');
+const holidayRoutes = require('./holiday.routes');
 
 // Health check endpoint
 router.get('/health', (req, res) => {
@@ -81,5 +82,8 @@ router.use('/workflows', workflowRoutes);
 
 // Shift management routes
 router.use('/shifts', shiftRoutes);
+
+// Holiday management routes (holiday bank + holiday policy)
+router.use('/holiday', holidayRoutes);
 
 module.exports = router;
