@@ -113,8 +113,27 @@ const getHierarchicalMasterData = async (req, res, next) => {
     }
 };
 
+/**
+ * Get count of all masters
+ * POST /api/master/counts
+ *
+ * Returns count of records for each master table (excluding employee)
+ */
+const getAllMasterCounts = async (req, res, next) => {
+    try {
+        const company_id = req.user.company_id; // Get from authenticated user
+
+        const result = await masterService.getAllMasterCounts(company_id || null);
+
+        return sendSuccess(res, 'Master counts retrieved successfully', result);
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     getMasterData,
     getMultipleMasterData,
-    getHierarchicalMasterData
+    getHierarchicalMasterData,
+    getAllMasterCounts
 };

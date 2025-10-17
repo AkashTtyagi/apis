@@ -65,4 +65,41 @@ router.post('/multiple', masterController.getMultipleMasterData);
  */
 router.post('/hierarchical', masterController.getHierarchicalMasterData);
 
+/**
+ * Get count of all masters
+ * POST /api/master/counts
+ *
+ * Returns count of records for each master table (excluding employee)
+ *
+ * Response:
+ * {
+ *   "timezone": 10,
+ *   "currency": 15,
+ *   "country": 195,
+ *   "state": 50,
+ *   "city": 100,
+ *   "department": 5,
+ *   "sub_department": 12,
+ *   "grade": 8,
+ *   "designation": 20,
+ *   "level": 6,
+ *   "skill": 15,
+ *   "leave_type": 4,
+ *   "leave_policy": 2,
+ *   "shift": 3,
+ *   "cost_center": 10,
+ *   "division": 5,
+ *   "region": 4,
+ *   "zone": 8,
+ *   "business_unit": 6,
+ *   "channel": 3,
+ *   "category": 5,
+ *   "branch": 12,
+ *   "location": 20
+ * }
+ *
+ * Note: company_id is automatically taken from authenticated user (req.user.company_id)
+ */
+router.post('/counts', masterController.getAllMasterCounts);
+
 module.exports = router;

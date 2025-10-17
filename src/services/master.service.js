@@ -581,10 +581,52 @@ const getHierarchicalMasterData = async (parentSlug, childSlug, companyId = null
     return hierarchical;
 };
 
+/**
+ * Get count of all masters
+ * Returns count of records for each master table (excluding employee)
+ * @param {number} companyId - Company ID for scoped masters
+ * @returns {Object} Object with master_slug as keys and count as values
+ */
+const getAllMasterCounts = async (companyId = null) => {
+    const counts = {};
+
+    for (const [slug, config] of Object.entries(MASTER_CONFIG)) {
+        // Skip employee slug
+        if (slug === 'employee') {
+            continue;
+        }
+
+        try {
+            // Build where clause
+            const whereClause = {
+                is_active: true
+            };
+
+            // Add company_id filter if master is company-scoped
+            if (config.companyScoped && companyId) {
+                whereClause.company_id = companyId;
+            }
+
+            // Get count
+            const count = await config.model.count({
+                where: whereClause
+            });
+
+            counts[slug] = count;
+        } catch (error) {
+            console.error(`Error counting ${slug}:`, error.message);
+            counts[slug] = 0;
+        }
+    }
+
+    return counts;
+};
+
 module.exports = {
     getMasterData,
     getMultipleMasterData,
     getGeographicHierarchy,
     getHierarchicalMasterData,
+    getAllMasterCounts,
     MASTER_CONFIG
 };
