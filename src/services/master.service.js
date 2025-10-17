@@ -20,6 +20,15 @@ const { HrmsTimezoneMaster } = require('../models/HrmsTimezoneMaster');
 const { HrmsCurrencyMaster } = require('../models/HrmsCurrencyMaster');
 const { HrmsEmployee } = require('../models/HrmsEmployee');
 const { HrmsEmployeeTypeMaster } = require('../models/HrmsEmployeeTypeMaster');
+const { HrmsCostCenterMaster } = require('../models/HrmsCostCenterMaster');
+const { HrmsDivisionMaster } = require('../models/HrmsDivisionMaster');
+const { HrmsRegionMaster } = require('../models/HrmsRegionMaster');
+const { HrmsZoneMaster } = require('../models/HrmsZoneMaster');
+const { HrmsBusinessUnitMaster } = require('../models/HrmsBusinessUnitMaster');
+const { HrmsChannelMaster } = require('../models/HrmsChannelMaster');
+const { HrmsCategoryMaster } = require('../models/HrmsCategoryMaster');
+const { HrmsBranchMaster } = require('../models/HrmsBranchMaster');
+const { HrmsLocationMaster } = require('../models/HrmsLocationMaster');
 const { Sequelize, Op } = require('sequelize');
 
 /**
@@ -219,6 +228,116 @@ const MASTER_CONFIG = {
         useConcatenatedName: true,  // Special flag for employee
         additionalFields: ['email', 'phone', 'designation_id', 'department_id', 'status'],
         orderBy: [['first_name', 'ASC'], ['last_name', 'ASC']]
+    },
+
+    // Organizational Masters (Company scoped)
+    cost_center: {
+        model: HrmsCostCenterMaster,
+        table: 'hrms_cost_center_master',
+        fields: {
+            id: 'id',
+            code: 'cost_center_code',
+            name: 'cost_center_name'
+        },
+        companyScoped: true,
+        additionalFields: ['description', 'parent_cost_center_id'],
+        orderBy: [['display_order', 'ASC'], ['cost_center_name', 'ASC']]
+    },
+    division: {
+        model: HrmsDivisionMaster,
+        table: 'hrms_division_master',
+        fields: {
+            id: 'id',
+            code: 'division_code',
+            name: 'division_name'
+        },
+        companyScoped: true,
+        additionalFields: ['description'],
+        orderBy: [['display_order', 'ASC'], ['division_name', 'ASC']]
+    },
+    region: {
+        model: HrmsRegionMaster,
+        table: 'hrms_region_master',
+        fields: {
+            id: 'id',
+            code: 'region_code',
+            name: 'region_name'
+        },
+        companyScoped: true,
+        additionalFields: ['description'],
+        orderBy: [['display_order', 'ASC'], ['region_name', 'ASC']]
+    },
+    zone: {
+        model: HrmsZoneMaster,
+        table: 'hrms_zone_master',
+        fields: {
+            id: 'id',
+            code: 'zone_code',
+            name: 'zone_name'
+        },
+        companyScoped: true,
+        additionalFields: ['description', 'region_id'],
+        orderBy: [['display_order', 'ASC'], ['zone_name', 'ASC']]
+    },
+    business_unit: {
+        model: HrmsBusinessUnitMaster,
+        table: 'hrms_business_unit_master',
+        fields: {
+            id: 'id',
+            code: 'business_unit_code',
+            name: 'business_unit_name'
+        },
+        companyScoped: true,
+        additionalFields: ['description', 'division_id', 'cost_center_id'],
+        orderBy: [['display_order', 'ASC'], ['business_unit_name', 'ASC']]
+    },
+    channel: {
+        model: HrmsChannelMaster,
+        table: 'hrms_channel_master',
+        fields: {
+            id: 'id',
+            code: 'channel_code',
+            name: 'channel_name'
+        },
+        companyScoped: true,
+        additionalFields: ['description', 'channel_type'],
+        orderBy: [['display_order', 'ASC'], ['channel_name', 'ASC']]
+    },
+    category: {
+        model: HrmsCategoryMaster,
+        table: 'hrms_category_master',
+        fields: {
+            id: 'id',
+            code: 'category_code',
+            name: 'category_name'
+        },
+        companyScoped: true,
+        additionalFields: ['description'],
+        orderBy: [['display_order', 'ASC'], ['category_name', 'ASC']]
+    },
+    branch: {
+        model: HrmsBranchMaster,
+        table: 'hrms_branch_master',
+        fields: {
+            id: 'id',
+            code: 'branch_code',
+            name: 'branch_name'
+        },
+        companyScoped: true,
+        additionalFields: ['description', 'branch_type', 'region_id', 'zone_id', 'business_unit_id', 'channel_id', 'cost_center_id', 'address_line1', 'city_id', 'state_id', 'country_id'],
+        orderBy: [['display_order', 'ASC'], ['branch_name', 'ASC']]
+    },
+    location: {
+        model: HrmsLocationMaster,
+        table: 'hrms_location_master',
+        fields: {
+            id: 'id',
+            code: 'location_code',
+            name: 'location_name'
+        },
+        companyScoped: true,
+        additionalFields: ['description', 'location_type', 'branch_id', 'capacity', 'address_line1', 'city_id', 'state_id', 'country_id'],
+        orderBy: [['display_order', 'ASC'], ['location_name', 'ASC']]
     }
 };
 
