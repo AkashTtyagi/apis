@@ -36,10 +36,11 @@ const getTemplateBySlug = async (template_slug, company_id = null) => {
         where: {
             template_id: template.id,
             is_active: true,
-            [Op.or]: [
-                { company_id: company_id },
-                { company_id: null }
-            ]
+            company_id: company_id
+            // [Op.or]: [
+            //     { company_id: company_id },
+            //     { company_id: null }
+            // ]
         },
         order: [['section_order', 'ASC']],
         raw: true
