@@ -1510,6 +1510,922 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "13. Roster Management",
+      "item": [
+        {
+          "name": "Create Roster",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roster_name\": \"January 2025 Roster\",\n  \"roster_description\": \"Security team roster for January\",\n  \"date_shift_pattern\": [\n    {\"roster_date\": \"2025-01-20\", \"shift_id\": 1},\n    {\"roster_date\": \"2025-01-21\", \"shift_id\": 2},\n    {\"roster_date\": \"2025-01-22\", \"shift_id\": 3}\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/roster/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "roster",
+                "create"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Roster",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roster_id\": 1,\n  \"roster_name\": \"Updated Roster Name\",\n  \"roster_description\": \"Updated description\",\n  \"date_shift_pattern\": [\n    {\"roster_date\": \"2025-01-20\", \"shift_id\": 1},\n    {\"roster_date\": \"2025-01-21\", \"shift_id\": 2}\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/roster/update",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "roster",
+                "update"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Assign Roster to Employees",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roster_id\": 1,\n  \"employee_ids\": [1, 2, 3, 4, 5]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/roster/assign-employees",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "roster",
+                "assign-employees"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Roster Details",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roster_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/roster/details",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "roster",
+                "details"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Rosters",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_active\": true,\n  \"limit\": 20,\n  \"offset\": 0\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/roster/list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "roster",
+                "list"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Roster Employees",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roster_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/roster/employees",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "roster",
+                "employees"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Employees from Roster",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roster_id\": 1,\n  \"employee_ids\": [1, 2]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/roster/remove-employees",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "roster",
+                "remove-employees"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Roster",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roster_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/roster/delete",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "roster",
+                "delete"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "14. Rotating Shift Patterns",
+      "item": [
+        {
+          "name": "Create Rotating Shift Pattern",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pattern_name\": \"Security Weekly Rotation\",\n  \"pattern_description\": \"Weekly shift rotation for security team\",\n  \"shift_order\": [1, 2, 3],\n  \"frequency\": \"weekly\",\n  \"start_date\": \"2025-01-20\",\n  \"end_date\": null,\n  \"applicability_rules\": [\n    {\n      \"applicability_type\": \"department\",\n      \"applicability_value\": \"1,2\",\n      \"priority\": 1\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/rotating-shift/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "rotating-shift",
+                "create"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Rotating Shift Pattern",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pattern_id\": 1,\n  \"pattern_name\": \"Updated Pattern Name\",\n  \"shift_order\": [1, 2, 3, 4],\n  \"frequency\": \"daily\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/rotating-shift/update",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "rotating-shift",
+                "update"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Rotating Shift Pattern Details",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pattern_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/rotating-shift/details",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "rotating-shift",
+                "details"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Rotating Shift Patterns",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_active\": true,\n  \"frequency\": \"weekly\",\n  \"limit\": 20,\n  \"offset\": 0\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/rotating-shift/list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "rotating-shift",
+                "list"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Rotating Shift Pattern",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pattern_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/rotating-shift/delete",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "rotating-shift",
+                "delete"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "15. Shift Swap Requests",
+      "item": [
+        {
+          "name": "Create Shift Swap Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"target_employee_id\": 2,\n  \"swap_date\": \"2025-01-25\",\n  \"requester_current_shift_id\": 1,\n  \"target_current_shift_id\": 2,\n  \"swap_reason\": \"Personal emergency, need to swap shifts\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/shift-swap/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "shift-swap",
+                "create"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Respond to Swap Request (Target)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"swap_id\": 1,\n  \"consent\": 1,\n  \"rejection_reason\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/shift-swap/respond",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "shift-swap",
+                "respond"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Swap Request Details",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"swap_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/shift-swap/details",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "shift-swap",
+                "details"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Swap Requests",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"approval_status\": 0,\n  \"limit\": 20,\n  \"offset\": 0\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/shift-swap/list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "shift-swap",
+                "list"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Pending Swap Requests (For Me)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/shift-swap/pending-for-me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "shift-swap",
+                "pending-for-me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Swap Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"swap_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/shift-swap/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "shift-swap",
+                "cancel"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "16. Attendance Requests (Employee)",
+      "item": [
+        {
+          "name": "Apply Leave",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leave_type\": 1,\n  \"from_date\": \"2025-01-25\",\n  \"to_date\": \"2025-01-27\",\n  \"reason\": \"Personal work\",\n  \"is_paid\": true,\n  \"attachment\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/employee/leave/apply",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employee",
+                "leave",
+                "apply"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Apply Leave (Multiple Dates)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leave_type\": 1,\n  \"specific_dates\": [\"2025-01-20\", \"2025-01-22\", \"2025-01-25\"],\n  \"reason\": \"Personal commitments\",\n  \"is_paid\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/employee/leave/apply",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employee",
+                "leave",
+                "apply"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Apply On Duty",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from_date\": \"2025-01-25\",\n  \"to_date\": \"2025-01-25\",\n  \"from_time\": \"09:00\",\n  \"to_time\": \"18:00\",\n  \"duration\": 1,\n  \"purpose\": \"Client meeting\",\n  \"location\": \"Client Office, Sector 18\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/employee/onduty/apply",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employee",
+                "onduty",
+                "apply"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Apply WFH",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from_date\": \"2025-01-25\",\n  \"to_date\": \"2025-01-26\",\n  \"duration\": 2,\n  \"reason\": \"Internet connectivity issues\",\n  \"work_plan\": \"Complete pending documentation and code review\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/employee/wfh/apply",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employee",
+                "wfh",
+                "apply"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Apply Short Leave",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leave_date\": \"2025-01-25\",\n  \"from_time\": \"10:00\",\n  \"to_time\": \"12:00\",\n  \"duration_hours\": 2,\n  \"reason\": \"Doctor appointment\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/employee/short-leave/apply",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employee",
+                "short-leave",
+                "apply"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Apply Regularization",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"attendance_date\": \"2025-01-24\",\n  \"punch_in\": \"09:30\",\n  \"punch_out\": \"18:30\",\n  \"reason\": \"Forgot to mark attendance\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/employee/regularization/apply",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employee",
+                "regularization",
+                "apply"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/employee/requests/my-requests?type=leave&status=pending",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employee",
+                "requests",
+                "my-requests"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "leave"
+                },
+                {
+                  "key": "status",
+                  "value": "pending"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Request Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/employee/requests/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employee",
+                "requests",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Withdraw Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"remarks\": \"Plans changed\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/employee/requests/1/withdraw",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employee",
+                "requests",
+                "1",
+                "withdraw"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Leave Balance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/employee/leave/balance",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employee",
+                "leave",
+                "balance"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ]
 }
