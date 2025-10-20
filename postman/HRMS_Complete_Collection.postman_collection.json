@@ -1,0 +1,4998 @@
+{
+  "info": {
+    "name": "HRMS API Collection",
+    "description": "Complete API collection for HRMS (Human Resource Management System)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "hrms-api"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "company_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "employee_id",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Set Password (First Time)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.token) {",
+                  "        pm.collectionVariables.set('auth_token', jsonData.data.token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"your-password-set-token-here\",\n  \"password\": \"NewPassword@123\",\n  \"confirmPassword\": \"NewPassword@123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/set-password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "set-password"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.token) {",
+                  "        pm.collectionVariables.set('auth_token', jsonData.data.token);",
+                  "    }",
+                  "    if (jsonData.data && jsonData.data.user) {",
+                  "        pm.collectionVariables.set('user_id', jsonData.data.user.id);",
+                  "        pm.collectionVariables.set('company_id', jsonData.data.user.company_id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"Password@123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/forgot-password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "forgot-password"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"your-reset-token-here\",\n  \"password\": \"NewPassword@123\",\n  \"confirmPassword\": \"NewPassword@123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/reset-password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "reset-password"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Resend Set Password Email",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/resend-set-password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "resend-set-password"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Onboarding",
+      "item": [
+        {
+          "name": "Onboard Company and User",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"org_name\": \"Tech Solutions Inc\",\n  \"country_id\": 1,\n  \"org_industry\": 1,\n  \"first_name\": \"John\",\n  \"middle_name\": \"M\",\n  \"last_name\": \"Doe\",\n  \"email\": \"admin@techsolutions.com\",\n  \"phone\": \"+1234567890\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/onboarding",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "onboarding"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Employees",
+      "item": [
+        {
+          "name": "Get Logged-in User Details",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/employees/user_details",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employees",
+                "user_details"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Employee",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employee_code\": \"EMP001\",\n  \"first_name\": \"Jane\",\n  \"middle_name\": \"M\",\n  \"last_name\": \"Smith\",\n  \"email\": \"jane.smith@example.com\",\n  \"phone\": \"+1234567891\",\n  \"date_of_birth\": \"1990-05-15\",\n  \"gender\": \"female\",\n  \"date_of_joining\": \"2024-01-01\",\n  \"department_id\": 1,\n  \"sub_department_id\": 1,\n  \"designation_id\": 1,\n  \"reporting_manager_id\": null,\n  \"leave_policy_id\": 1,\n  \"employment_type\": \"full_time\",\n  \"status\": 0\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/employees",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employees"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Employee",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Jane\",\n  \"last_name\": \"Smith Updated\",\n  \"phone\": \"+1234567892\",\n  \"department_id\": 2\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/employees/{{employee_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employees",
+                "{{employee_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Employee by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/employees/{{employee_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employees",
+                "{{employee_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Employees by Company",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/employees/company",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employees",
+                "company"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Activate User",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/employees/activate/{{user_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employees",
+                "activate",
+                "{{user_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Resend Activation Email",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/employees/resend-activation/{{user_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employees",
+                "resend-activation",
+                "{{user_id}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Templates",
+      "item": [
+        {
+          "name": "Get All Templates",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/templates",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "templates"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Template by Slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/templates/employee_template",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "templates",
+                "employee_template"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Section",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": 1,\n  \"template_id\": 1,\n  \"section_slug\": \"personal_details\",\n  \"section_name\": \"Personal Details\",\n  \"section_description\": \"Employee personal information\",\n  \"section_order\": 1,\n  \"is_collapsible\": false,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/templates/sections",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "templates",
+                "sections"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Section",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"section_name\": \"Personal Information Updated\",\n  \"section_order\": 2\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/templates/sections/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "templates",
+                "sections",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Section",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/templates/sections/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "templates",
+                "sections",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Field",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": 1,\n  \"template_id\": 1,\n  \"section_id\": 1,\n  \"field_slug\": \"blood_group\",\n  \"field_label\": \"Blood Group\",\n  \"field_type\": \"select\",\n  \"field_options\": [\"A+\", \"A-\", \"B+\", \"B-\", \"O+\", \"O-\", \"AB+\", \"AB-\"],\n  \"is_required\": false,\n  \"data_type\": \"string\",\n  \"display_order\": 1,\n  \"field_width\": \"half\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/templates/fields",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "templates",
+                "fields"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Field",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"field_label\": \"Blood Group (Updated)\",\n  \"is_required\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/templates/fields/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "templates",
+                "fields",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Field",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/templates/fields/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "templates",
+                "fields",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Departments",
+      "item": [
+        {
+          "name": "Create Organization Department",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"org_id\": 1,\n  \"department_id\": 1,\n  \"department_head_id\": null,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/departments/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "departments",
+                "create"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Organization Department",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 1,\n  \"department_head_id\": 5,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/departments/update",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "departments",
+                "update"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Organization Departments",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"org_id\": 1,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/departments/list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "departments",
+                "list"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Sub-Departments",
+      "item": [
+        {
+          "name": "Create Sub-Department",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"org_dept_id\": 1,\n  \"sub_department_name\": \"Backend Development\",\n  \"sub_department_code\": \"BACKEND\",\n  \"description\": \"Backend development team\",\n  \"head_id\": null,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/sub-departments/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sub-departments",
+                "create"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Sub-Department",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 1,\n  \"sub_department_name\": \"Backend Development Updated\",\n  \"head_id\": 10,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/sub-departments/update",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sub-departments",
+                "update"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Sub-Departments by Org Department",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"org_dept_id\": 1,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/sub-departments/list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sub-departments",
+                "list"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "7. Leave Types",
+      "item": [
+        {
+          "name": "Create Leave Type",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leave_code\": \"CL\",\n  \"leave_name\": \"Casual Leave\",\n  \"leave_cycle_start_month\": 1,\n  \"leave_cycle_end_month\": 12,\n  \"leave_type\": \"paid\",\n  \"is_encashment_allowed\": false,\n  \"applicable_to_esi\": \"both\",\n  \"applicable_to_status\": \"0,1\",\n  \"applicable_to_gender\": \"all\",\n  \"credit_frequency\": \"monthly\",\n  \"credit_day_of_month\": 1,\n  \"number_of_leaves_to_credit\": 12,\n  \"active_leaves_to_credit\": 12,\n  \"probation_leaves_to_credit\": 6,\n  \"can_request_half_day\": true,\n  \"can_employee_request\": true,\n  \"max_requests_per_month\": 4,\n  \"max_continuous_leave\": 3,\n  \"backdated_leave_allowed\": true,\n  \"days_allowed_for_backdated_leave\": 7,\n  \"max_leaves_to_carry_forward\": \"zero\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/leave-types",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leave-types"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Leave Type",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leave_name\": \"Casual Leave (Updated)\",\n  \"max_continuous_leave\": 5,\n  \"max_requests_per_month\": 6\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/leave-types/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leave-types",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Leave Types",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/leave-types?is_active=true",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leave-types"
+              ],
+              "query": [
+                {
+                  "key": "is_active",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Leave Type by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/leave-types/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leave-types",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Leave Type",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/leave-types/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leave-types",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Leave Type Audit Logs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/leave-types/1/audit-logs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leave-types",
+                "1",
+                "audit-logs"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "8. Leave Policies",
+      "item": [
+        {
+          "name": "Create Leave Policy",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"policy_name\": \"Permanent Employee Policy\",\n  \"policy_description\": \"Leave policy for permanent employees\",\n  \"leave_type_ids\": [1, 2, 3, 5]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/leave-policies/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leave-policies",
+                "create"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Leave Policy",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 1,\n  \"policy_name\": \"Updated Policy Name\",\n  \"policy_description\": \"Updated description\",\n  \"leave_type_ids\": [1, 2, 3, 4, 5]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/leave-policies/update",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leave-policies",
+                "update"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Leave Policies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/leave-policies?is_active=true&include_inactive_leave_types=false",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leave-policies"
+              ],
+              "query": [
+                {
+                  "key": "is_active",
+                  "value": "true"
+                },
+                {
+                  "key": "include_inactive_leave_types",
+                  "value": "false"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Leave Policy by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/leave-policies/1?include_inactive_leave_types=true",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leave-policies",
+                "1"
+              ],
+              "query": [
+                {
+                  "key": "include_inactive_leave_types",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Leave Policy",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/leave-policies/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leave-policies",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Toggle Leave Type in Policy",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_active\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/leave-policies/1/leave-types/2/toggle",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leave-policies",
+                "1",
+                "leave-types",
+                "2",
+                "toggle"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "9. Leave Balance",
+      "item": [
+        {
+          "name": "Get Employee Leave Balance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/leave-balance/{{employee_id}}?year=2024&month=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leave-balance",
+                "{{employee_id}}"
+              ],
+              "query": [
+                {
+                  "key": "year",
+                  "value": "2024"
+                },
+                {
+                  "key": "month",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Process Leave Transaction",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employee_id\": 1,\n  \"leave_type_id\": 1,\n  \"transaction_type\": \"credit\",\n  \"amount\": 2,\n  \"transaction_date\": \"2024-10-11\",\n  \"reference_type\": \"manual_adjustment\",\n  \"remarks\": \"Manual credit for special case\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/leave-balance/transaction",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leave-balance",
+                "transaction"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "10. Leave Credit Cron",
+      "item": [
+        {
+          "name": "Run Leave Credit Cron",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"frequency\": \"monthly\",\n  \"execution_date\": \"2024-10-01\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/cron/leave-credit/run",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "cron",
+                "leave-credit",
+                "run"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "11. Master Data",
+      "item": [
+        {
+          "name": "Get Single Master Data",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"master_type\": \"department\",\n  \"company_id\": \"{{company_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/master/data",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "master",
+                "data"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Master Data",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": \"{{company_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/master/data",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "master",
+                "data"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Multiple Masters",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"master_types\": [\n    \"department\",\n    \"designation\",\n    \"level\",\n    \"grade\"\n  ],\n  \"company_id\": \"{{company_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/master/multiple",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "master",
+                "multiple"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "12. Shift Management",
+      "item": [
+        {
+          "name": "Create Shift",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": \"{{company_id}}\",\n  \"shift_code\": \"SHIFT_DAY\",\n  \"shift_name\": \"Day Shift\",\n  \"shift_colour\": \"#3498db\",\n  \"description\": \"Standard day shift 9 AM to 6 PM\",\n  \"shift_start_time\": \"09:00:00\",\n  \"first_half_duration\": \"04:30:00\",\n  \"second_half_duration\": \"04:30:00\",\n  \"checkin_allowed_before_minutes\": 120,\n  \"grace_time_late_minutes\": 15,\n  \"grace_time_early_minutes\": 15,\n  \"min_minutes_half_day\": 270,\n  \"min_minutes_full_day\": 540,\n  \"absent_half_day_after_minutes\": 120,\n  \"has_shift_allowance\": 0,\n  \"restrict_manager_backdate\": 1,\n  \"manager_backdate_days_allowed\": 7,\n  \"restrict_manager_future\": 0,\n  \"restrict_hr_backdate\": 1,\n  \"hr_backdate_days_allowed\": 7,\n  \"restrict_hr_future\": 0,\n  \"enable_break_deduction\": 1,\n  \"deduct_time_before_shift\": 0,\n  \"enable_work_cutoff\": 0,\n  \"has_custom_weekly_off\": 0,\n  \"weekly_off_type\": \"policy\",\n  \"is_active\": 1,\n  \"breaks\": [\n    {\n      \"break_name\": \"Lunch Break\",\n      \"break_start_after_minutes\": 240,\n      \"break_duration_minutes\": 60,\n      \"break_order\": 1,\n      \"is_paid\": 0,\n      \"is_mandatory\": 1\n    }\n  ],\n  \"weekly_off\": [\n    {\n      \"week_number\": 1,\n      \"day_of_week\": \"sunday\",\n      \"off_type\": \"full_day\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/shifts/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "shifts",
+                "create"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Shifts",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": \"{{company_id}}\",\n  \"filters\": {\n    \"is_active\": 1\n  },\n  \"page\": 1,\n  \"limit\": 50\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/shifts/list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "shifts",
+                "list"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Shift Details",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shift_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/shifts/details",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "shifts",
+                "details"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Shift",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shift_id\": 1,\n  \"shift_name\": \"Updated Day Shift\",\n  \"grace_time_late_minutes\": 20,\n  \"description\": \"Updated description\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/shifts/update",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "shifts",
+                "update"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Toggle Shift Status",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shift_id\": 1,\n  \"is_active\": 0\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/shifts/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "shifts",
+                "status"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Shift Employees",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shift_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/shifts/employees",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "shifts",
+                "employees"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Shift Audit Logs",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shift_id\": 1,\n  \"page\": 1,\n  \"limit\": 50\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/shifts/audit-logs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "shifts",
+                "audit-logs"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "13. Roster Management",
+      "item": [
+        {
+          "name": "Create Roster",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roster_name\": \"January 2025 Roster\",\n  \"roster_description\": \"Security team roster for January\",\n  \"date_shift_pattern\": [\n    {\"roster_date\": \"2025-01-20\", \"shift_id\": 1},\n    {\"roster_date\": \"2025-01-21\", \"shift_id\": 2},\n    {\"roster_date\": \"2025-01-22\", \"shift_id\": 3}\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/roster/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "roster",
+                "create"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Roster",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roster_id\": 1,\n  \"roster_name\": \"Updated Roster Name\",\n  \"roster_description\": \"Updated description\",\n  \"date_shift_pattern\": [\n    {\"roster_date\": \"2025-01-20\", \"shift_id\": 1},\n    {\"roster_date\": \"2025-01-21\", \"shift_id\": 2}\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/roster/update",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "roster",
+                "update"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Assign Roster to Employees",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roster_id\": 1,\n  \"employee_ids\": [1, 2, 3, 4, 5]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/roster/assign-employees",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "roster",
+                "assign-employees"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Roster Details",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roster_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/roster/details",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "roster",
+                "details"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Rosters",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_active\": true,\n  \"limit\": 20,\n  \"offset\": 0\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/roster/list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "roster",
+                "list"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Roster Employees",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roster_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/roster/employees",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "roster",
+                "employees"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Employees from Roster",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roster_id\": 1,\n  \"employee_ids\": [1, 2]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/roster/remove-employees",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "roster",
+                "remove-employees"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Roster",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roster_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/roster/delete",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "roster",
+                "delete"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "14. Rotating Shift Patterns",
+      "item": [
+        {
+          "name": "Create Rotating Shift Pattern",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pattern_name\": \"Security Weekly Rotation\",\n  \"pattern_description\": \"Weekly shift rotation for security team\",\n  \"shift_order\": [1, 2, 3],\n  \"frequency\": \"weekly\",\n  \"start_date\": \"2025-01-20\",\n  \"end_date\": null,\n  \"applicability_rules\": [\n    {\n      \"applicability_type\": \"department\",\n      \"applicability_value\": \"1,2\",\n      \"priority\": 1\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/rotating-shift/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "rotating-shift",
+                "create"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Rotating Shift Pattern",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pattern_id\": 1,\n  \"pattern_name\": \"Updated Pattern Name\",\n  \"shift_order\": [1, 2, 3, 4],\n  \"frequency\": \"daily\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/rotating-shift/update",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "rotating-shift",
+                "update"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Rotating Shift Pattern Details",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pattern_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/rotating-shift/details",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "rotating-shift",
+                "details"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Rotating Shift Patterns",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_active\": true,\n  \"frequency\": \"weekly\",\n  \"limit\": 20,\n  \"offset\": 0\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/rotating-shift/list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "rotating-shift",
+                "list"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Rotating Shift Pattern",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pattern_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/rotating-shift/delete",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "rotating-shift",
+                "delete"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "15. Shift Swap Requests",
+      "item": [
+        {
+          "name": "Create Shift Swap Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"target_employee_id\": 2,\n  \"swap_date\": \"2025-01-25\",\n  \"requester_current_shift_id\": 1,\n  \"target_current_shift_id\": 2,\n  \"swap_reason\": \"Personal emergency, need to swap shifts\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/shift-swap/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "shift-swap",
+                "create"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Respond to Swap Request (Target)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"swap_id\": 1,\n  \"consent\": 1,\n  \"rejection_reason\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/shift-swap/respond",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "shift-swap",
+                "respond"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Swap Request Details",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"swap_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/shift-swap/details",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "shift-swap",
+                "details"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Swap Requests",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"approval_status\": 0,\n  \"limit\": 20,\n  \"offset\": 0\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/shift-swap/list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "shift-swap",
+                "list"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Pending Swap Requests (For Me)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/shift-swap/pending-for-me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "shift-swap",
+                "pending-for-me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Swap Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"swap_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/shift-swap/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "shift-swap",
+                "cancel"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "16. Attendance Requests (Employee)",
+      "item": [
+        {
+          "name": "Apply Leave",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leave_type\": 1,\n  \"from_date\": \"2025-01-25\",\n  \"to_date\": \"2025-01-27\",\n  \"reason\": \"Personal work\",\n  \"is_paid\": true,\n  \"attachment\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/employee/leave/apply",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employee",
+                "leave",
+                "apply"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Apply Leave (Multiple Dates)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leave_type\": 1,\n  \"specific_dates\": [\"2025-01-20\", \"2025-01-22\", \"2025-01-25\"],\n  \"reason\": \"Personal commitments\",\n  \"is_paid\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/employee/leave/apply",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employee",
+                "leave",
+                "apply"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Apply On Duty",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from_date\": \"2025-01-25\",\n  \"to_date\": \"2025-01-25\",\n  \"from_time\": \"09:00\",\n  \"to_time\": \"18:00\",\n  \"duration\": 1,\n  \"purpose\": \"Client meeting\",\n  \"location\": \"Client Office, Sector 18\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/employee/onduty/apply",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employee",
+                "onduty",
+                "apply"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Apply WFH",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from_date\": \"2025-01-25\",\n  \"to_date\": \"2025-01-26\",\n  \"duration\": 2,\n  \"reason\": \"Internet connectivity issues\",\n  \"work_plan\": \"Complete pending documentation and code review\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/employee/wfh/apply",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employee",
+                "wfh",
+                "apply"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Apply Short Leave",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leave_date\": \"2025-01-25\",\n  \"from_time\": \"10:00\",\n  \"to_time\": \"12:00\",\n  \"duration_hours\": 2,\n  \"reason\": \"Doctor appointment\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/employee/short-leave/apply",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employee",
+                "short-leave",
+                "apply"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Apply Regularization",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"attendance_date\": \"2025-01-24\",\n  \"punch_in\": \"09:30\",\n  \"punch_out\": \"18:30\",\n  \"reason\": \"Forgot to mark attendance\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/employee/regularization/apply",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employee",
+                "regularization",
+                "apply"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/employee/requests/my-requests?type=leave&status=pending",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employee",
+                "requests",
+                "my-requests"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "leave"
+                },
+                {
+                  "key": "status",
+                  "value": "pending"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Request Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/employee/requests/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employee",
+                "requests",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Withdraw Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"remarks\": \"Plans changed\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/employee/requests/1/withdraw",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employee",
+                "requests",
+                "1",
+                "withdraw"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Leave Balance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/employee/leave/balance",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employee",
+                "leave",
+                "balance"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "17. Attendance Requests (Admin)",
+      "item": [
+        {
+          "name": "Get All Requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/attendance/admin/requests?type=leave&status=pending&limit=20&offset=0",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "attendance",
+                "admin",
+                "requests"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "leave",
+                  "description": "leave, onduty, wfh, regularization, short-leave"
+                },
+                {
+                  "key": "status",
+                  "value": "pending"
+                },
+                {
+                  "key": "employee_id",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "from_date",
+                  "value": "2024-01-01",
+                  "disabled": true
+                },
+                {
+                  "key": "to_date",
+                  "value": "2024-12-31",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Request Details (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/attendance/admin/requests/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "attendance",
+                "admin",
+                "requests",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Admin Action (Approve/Reject)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"approve\",\n  \"remarks\": \"Approved by admin\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/attendance/admin/requests/1/action",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "attendance",
+                "admin",
+                "requests",
+                "1",
+                "action"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Dashboard Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/attendance/admin/requests/dashboard?from_date=2024-01-01&to_date=2024-12-31",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "attendance",
+                "admin",
+                "requests",
+                "dashboard"
+              ],
+              "query": [
+                {
+                  "key": "from_date",
+                  "value": "2024-01-01",
+                  "disabled": true
+                },
+                {
+                  "key": "to_date",
+                  "value": "2024-12-31",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Bulk Approve Requests",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"request_ids\": [1, 2, 3],\n  \"remarks\": \"Bulk approved\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/attendance/admin/requests/bulk-approve",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "attendance",
+                "admin",
+                "requests",
+                "bulk-approve"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Bulk Reject Requests",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"request_ids\": [4, 5],\n  \"remarks\": \"Policy violation\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/attendance/admin/requests/bulk-reject",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "attendance",
+                "admin",
+                "requests",
+                "bulk-reject"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "18. Company Management",
+      "item": [
+        {
+          "name": "Update Company Details",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"registered_address\": \"123 Main Street\",\n  \"pin_code\": \"110001\",\n  \"state_id\": 12,\n  \"city_id\": 345,\n  \"phone_number\": \"+91-11-12345678\",\n  \"timezone_id\": 15,\n  \"currency_id\": 4\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/company/update-company-details",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "company",
+                "update-company-details"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Company Details",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/company/details",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "company",
+                "details"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "19. Designation Management",
+      "item": [
+        {
+          "name": "Create Designation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"designation_name\": \"Senior Software Engineer\",\n  \"description\": \"Senior development role\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/designations/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "designations",
+                "create"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Designation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"designation_id\": 1,\n  \"designation_name\": \"Lead Engineer\",\n  \"description\": \"Updated description\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/designations/update",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "designations",
+                "update"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Designations",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/designations/list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "designations",
+                "list"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "20. Grade Management",
+      "item": [
+        {
+          "name": "Create Grade",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"grade_name\": \"Grade A\",\n  \"description\": \"Top grade\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/grades/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "grades",
+                "create"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Grade",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"grade_id\": 1,\n  \"grade_name\": \"Grade A+\",\n  \"description\": \"Updated\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/grades/update",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "grades",
+                "update"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Grades",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/grades/list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "grades",
+                "list"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "21. Level Management",
+      "item": [
+        {
+          "name": "Create Level",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"level_name\": \"L1\",\n  \"description\": \"Entry level\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/levels/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "levels",
+                "create"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Level",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"level_id\": 1,\n  \"level_name\": \"L1A\",\n  \"description\": \"Updated\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/levels/update",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "levels",
+                "update"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Levels",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/levels/list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "levels",
+                "list"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "22. Holiday Management",
+      "item": [
+        {
+          "name": "Holiday Bank",
+          "item": [
+            {
+              "name": "Get All Holidays",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/holiday/bank?year=2024",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "holiday",
+                    "bank"
+                  ],
+                  "query": [
+                    {
+                      "key": "year",
+                      "value": "2024"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Holiday by ID",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/holiday/bank/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "holiday",
+                    "bank",
+                    "1"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Holiday",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"holiday_name\": \"Republic Day\",\n  \"holiday_date\": \"2024-01-26\",\n  \"is_national_holiday\": true,\n  \"description\": \"National holiday\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/holiday/bank",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "holiday",
+                    "bank"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Bulk Create Holidays",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"holidays\": [\n    {\n      \"holiday_name\": \"Holi\",\n      \"holiday_date\": \"2024-03-25\",\n      \"is_national_holiday\": true\n    },\n    {\n      \"holiday_name\": \"Diwali\",\n      \"holiday_date\": \"2024-11-01\",\n      \"is_national_holiday\": true\n    }\n  ]\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/holiday/bank/bulk",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "holiday",
+                    "bank",
+                    "bulk"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update Holiday",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"holiday_name\": \"Republic Day Updated\",\n  \"holiday_date\": \"2024-01-26\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/holiday/bank/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "holiday",
+                    "bank",
+                    "1"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete Holiday",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/holiday/bank/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "holiday",
+                    "bank",
+                    "1"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Holiday Policy",
+          "item": [
+            {
+              "name": "Get All Policies",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/holiday/policy?year=2024",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "holiday",
+                    "policy"
+                  ],
+                  "query": [
+                    {
+                      "key": "year",
+                      "value": "2024"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Policy by ID",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/holiday/policy/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "holiday",
+                    "policy",
+                    "1"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Policy",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"company_id\": 1,\n  \"calendar_name\": \"2024 Calendar\",\n  \"year\": 2024,\n  \"is_restricted_holiday_applicable\": true,\n  \"restricted_holiday_count\": 2,\n  \"holiday_ids\": [1, 2, 3]\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/holiday/policy",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "holiday",
+                    "policy"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update Policy",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"calendar_name\": \"Updated 2024 Calendar\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/holiday/policy/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "holiday",
+                    "policy",
+                    "1"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete Policy",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/holiday/policy/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "holiday",
+                    "policy",
+                    "1"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Add Holidays to Policy",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"holiday_ids\": [4, 5, 6]\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/holiday/policy/1/holidays",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "holiday",
+                    "policy",
+                    "1",
+                    "holidays"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Remove Holiday from Policy",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/holiday/policy/1/holidays/4",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "holiday",
+                    "policy",
+                    "1",
+                    "holidays",
+                    "4"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "23. Workflow Management",
+      "item": [
+        {
+          "name": "Workflow Requests (User)",
+          "item": [
+            {
+              "name": "Submit Request",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"workflow_master_id\": 1,\n  \"request_data\": {\n    \"leave_type_id\": 2,\n    \"from_date\": \"2024-02-01\",\n    \"to_date\": \"2024-02-03\"\n  }\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/requests/submit",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "workflows",
+                    "requests",
+                    "submit"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get My Requests",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/workflows/requests/my-requests?status=pending",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "workflows",
+                    "requests",
+                    "my-requests"
+                  ],
+                  "query": [
+                    {
+                      "key": "status",
+                      "value": "pending"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Pending Approvals",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/workflows/requests/pending-approvals",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "workflows",
+                    "requests",
+                    "pending-approvals"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Dashboard",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/workflows/requests/dashboard",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "workflows",
+                    "requests",
+                    "dashboard"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Request by ID",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/workflows/requests/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "workflows",
+                    "requests",
+                    "1"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Approve Request",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"remarks\": \"Approved\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/requests/1/approve",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "workflows",
+                    "requests",
+                    "1",
+                    "approve"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Reject Request",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"remarks\": \"Does not meet criteria\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/requests/1/reject",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "workflows",
+                    "requests",
+                    "1",
+                    "reject"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Withdraw Request",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"No longer needed\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/requests/1/withdraw",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "workflows",
+                    "requests",
+                    "1",
+                    "withdraw"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Request History",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/workflows/requests/1/history",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "workflows",
+                    "requests",
+                    "1",
+                    "history"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Workflow Configuration (Admin)",
+          "item": [
+            {
+              "name": "Get Workflow Masters",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/masters",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "workflows",
+                    "admin",
+                    "masters"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Config",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"company_id\": 1,\n  \"workflow_master_id\": 1,\n  \"workflow_name\": \"Leave Approval\",\n  \"is_active\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/configs",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "workflows",
+                    "admin",
+                    "configs"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get All Configs",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/configs",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "workflows",
+                    "admin",
+                    "configs"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Config by ID",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/configs/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "workflows",
+                    "admin",
+                    "configs",
+                    "1"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update Config",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"workflow_name\": \"Updated Leave Approval\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/configs/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "workflows",
+                    "admin",
+                    "configs",
+                    "1"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete Config",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/configs/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "workflows",
+                    "admin",
+                    "configs",
+                    "1"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Clone Config",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"workflow_name\": \"Cloned Workflow\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/configs/1/clone",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "workflows",
+                    "admin",
+                    "configs",
+                    "1",
+                    "clone"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Stage",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"stage_name\": \"Manager Approval\",\n  \"stage_order\": 1,\n  \"approver_logic\": \"any\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/configs/1/stages",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "workflows",
+                    "admin",
+                    "configs",
+                    "1",
+                    "stages"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update Stage",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"stage_name\": \"Updated Manager Approval\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/stages/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "workflows",
+                    "admin",
+                    "stages",
+                    "1"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete Stage",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/stages/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "workflows",
+                    "admin",
+                    "stages",
+                    "1"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Stage Approver",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"approver_type\": \"reporting_manager\",\n  \"approver_order\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/stages/1/approvers",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "workflows",
+                    "admin",
+                    "stages",
+                    "1",
+                    "approvers"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update Stage Approver",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"approver_type\": \"custom_user\",\n  \"custom_user_id\": 20\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/approvers/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "workflows",
+                    "admin",
+                    "approvers",
+                    "1"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete Stage Approver",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/approvers/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "workflows",
+                    "admin",
+                    "approvers",
+                    "1"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Condition",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"condition_name\": \"High Value\",\n  \"action_type\": \"add_stage\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/configs/1/conditions",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "workflows",
+                    "admin",
+                    "configs",
+                    "1",
+                    "conditions"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update Condition",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"condition_name\": \"Updated Condition\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/conditions/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "workflows",
+                    "admin",
+                    "conditions",
+                    "1"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete Condition",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/conditions/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "workflows",
+                    "admin",
+                    "conditions",
+                    "1"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Condition Rule",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"field_name\": \"amount\",\n  \"operator\": \">\",\n  \"compare_value\": \"10000\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/conditions/1/rules",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "workflows",
+                    "admin",
+                    "conditions",
+                    "1",
+                    "rules"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete Condition Rule",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/rules/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "workflows",
+                    "admin",
+                    "rules",
+                    "1"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Applicability",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"applicability_type\": \"department\",\n  \"department_id\": 5\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/configs/1/applicability",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "workflows",
+                    "admin",
+                    "configs",
+                    "1",
+                    "applicability"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete Applicability",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/applicability/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "workflows",
+                    "admin",
+                    "applicability",
+                    "1"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Version History",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/configs/1/versions",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "workflows",
+                    "admin",
+                    "configs",
+                    "1",
+                    "versions"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Restore from Version",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/versions/1/restore",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "workflows",
+                    "admin",
+                    "versions",
+                    "1",
+                    "restore"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "24. Channel Management",
+      "item": [
+        {
+          "name": "Create Channel",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"channel_code\": \"CH001\",\n  \"channel_name\": \"Online\",\n  \"channel_type\": \"digital\",\n  \"description\": \"Online sales channel\",\n  \"display_order\": 1,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/channels/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "channels",
+                "create"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Channel",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"channel_name\": \"Updated Online Channel\",\n  \"description\": \"Updated description\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/channels/update/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "channels",
+                "update",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Channels",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/channels/list?is_active=true",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "channels",
+                "list"
+              ],
+              "query": [
+                {
+                  "key": "is_active",
+                  "value": "true",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "channel_type",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "25. Business Unit Management",
+      "item": [
+        {
+          "name": "Create Business Unit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"business_unit_code\": \"BU001\",\n  \"business_unit_name\": \"IT Services\",\n  \"division_id\": 1,\n  \"cost_center_id\": 1,\n  \"description\": \"IT Services Business Unit\",\n  \"display_order\": 1,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/business-units/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "business-units",
+                "create"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Business Unit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"business_unit_name\": \"Updated IT Services\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/business-units/update/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "business-units",
+                "update",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Business Units",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/business-units/list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "business-units",
+                "list"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "26. Category Management",
+      "item": [
+        {
+          "name": "Create Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category_code\": \"CAT001\",\n  \"category_name\": \"Sales\",\n  \"description\": \"Sales Category\",\n  \"display_order\": 1,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/categories/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "categories",
+                "create"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category_name\": \"Updated Sales\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/categories/update/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "categories",
+                "update",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Categories",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/categories/list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "categories",
+                "list"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "27. Branch Management",
+      "item": [
+        {
+          "name": "Create Branch",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"branch_code\": \"BR001\",\n  \"branch_name\": \"Mumbai Branch\",\n  \"branch_type\": \"corporate\",\n  \"region_id\": 1,\n  \"zone_id\": 1,\n  \"business_unit_id\": 1,\n  \"channel_id\": 1,\n  \"cost_center_id\": 1,\n  \"address\": \"Mumbai Address\",\n  \"country_id\": 101,\n  \"state_id\": 1,\n  \"city_id\": 1,\n  \"pin_code\": \"400001\",\n  \"display_order\": 1,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/branches/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "branches",
+                "create"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Branch",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"branch_name\": \"Updated Mumbai Branch\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/branches/update/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "branches",
+                "update",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Branches",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/branches/list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "branches",
+                "list"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "28. Location Management",
+      "item": [
+        {
+          "name": "Create Location",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"location_code\": \"LOC001\",\n  \"location_name\": \"Main Office\",\n  \"location_type\": \"office\",\n  \"branch_id\": 1,\n  \"address\": \"Office Address\",\n  \"country_id\": 101,\n  \"state_id\": 1,\n  \"city_id\": 1,\n  \"pin_code\": \"400001\",\n  \"display_order\": 1,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/locations/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "locations",
+                "create"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Location",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"location_name\": \"Updated Main Office\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/locations/update/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "locations",
+                "update",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Locations",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/locations/list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "locations",
+                "list"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "29. Zone Management",
+      "item": [
+        {
+          "name": "Create Zone",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"zone_code\": \"ZONE001\",\n  \"zone_name\": \"West Zone\",\n  \"region_id\": 1,\n  \"description\": \"Western Region Zone\",\n  \"display_order\": 1,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/zones/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "zones",
+                "create"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Zone",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"zone_name\": \"Updated West Zone\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/zones/update/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "zones",
+                "update",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Zones",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/zones/list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "zones",
+                "list"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "30. Cost Center Management",
+      "item": [
+        {
+          "name": "Create Cost Center",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cost_center_code\": \"CC001\",\n  \"cost_center_name\": \"IT Cost Center\",\n  \"parent_cost_center_id\": null,\n  \"description\": \"IT Department Cost Center\",\n  \"display_order\": 1,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/cost-centers/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "cost-centers",
+                "create"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Cost Center",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cost_center_name\": \"Updated IT Cost Center\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/cost-centers/update/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "cost-centers",
+                "update",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Cost Centers",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/cost-centers/list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "cost-centers",
+                "list"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "31. Skill Management",
+      "item": [
+        {
+          "name": "Create Skill",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"skill_code\": \"SK001\",\n  \"skill_name\": \"JavaScript\",\n  \"skill_category\": \"technical\",\n  \"statutory_skill_id\": null,\n  \"description\": \"JavaScript Programming\",\n  \"display_order\": 1,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/skills/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "skills",
+                "create"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Skill",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"skill_id\": 1,\n  \"skill_name\": \"Advanced JavaScript\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/skills/update",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "skills",
+                "update"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Skills",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/skills/list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "skills",
+                "list"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

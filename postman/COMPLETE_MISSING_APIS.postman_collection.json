@@ -1,0 +1,1094 @@
+{
+  "info": {
+    "name": "HRMS Missing APIs - Import This",
+    "description": "Contains ALL 61 missing API endpoints that need to be added to main collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "17. Attendance Requests (Admin)",
+      "item": [
+        {
+          "name": "Get All Requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/attendance/admin/requests?type=leave&status=pending&limit=20&offset=0",
+              "host": ["{{base_url}}"],
+              "path": ["attendance", "admin", "requests"],
+              "query": [
+                {"key": "type", "value": "leave", "description": "leave, onduty, wfh, regularization, short-leave"},
+                {"key": "status", "value": "pending"},
+                {"key": "employee_id", "value": "", "disabled": true},
+                {"key": "from_date", "value": "2024-01-01", "disabled": true},
+                {"key": "to_date", "value": "2024-12-31", "disabled": true},
+                {"key": "limit", "value": "20"},
+                {"key": "offset", "value": "0"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Request Details (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/attendance/admin/requests/1",
+              "host": ["{{base_url}}"],
+              "path": ["attendance", "admin", "requests", "1"]
+            }
+          }
+        },
+        {
+          "name": "Admin Action (Approve/Reject)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"approve\",\n  \"remarks\": \"Approved by admin\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/attendance/admin/requests/1/action",
+              "host": ["{{base_url}}"],
+              "path": ["attendance", "admin", "requests", "1", "action"]
+            }
+          }
+        },
+        {
+          "name": "Get Dashboard Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/attendance/admin/requests/dashboard?from_date=2024-01-01&to_date=2024-12-31",
+              "host": ["{{base_url}}"],
+              "path": ["attendance", "admin", "requests", "dashboard"],
+              "query": [
+                {"key": "from_date", "value": "2024-01-01", "disabled": true},
+                {"key": "to_date", "value": "2024-12-31", "disabled": true}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Bulk Approve Requests",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"request_ids\": [1, 2, 3],\n  \"remarks\": \"Bulk approved\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/attendance/admin/requests/bulk-approve",
+              "host": ["{{base_url}}"],
+              "path": ["attendance", "admin", "requests", "bulk-approve"]
+            }
+          }
+        },
+        {
+          "name": "Bulk Reject Requests",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"request_ids\": [4, 5],\n  \"remarks\": \"Policy violation\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/attendance/admin/requests/bulk-reject",
+              "host": ["{{base_url}}"],
+              "path": ["attendance", "admin", "requests", "bulk-reject"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "18. Company Management",
+      "item": [
+        {
+          "name": "Update Company Details",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"registered_address\": \"123 Main Street\",\n  \"pin_code\": \"110001\",\n  \"state_id\": 12,\n  \"city_id\": 345,\n  \"phone_number\": \"+91-11-12345678\",\n  \"timezone_id\": 15,\n  \"currency_id\": 4\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/company/update-company-details",
+              "host": ["{{base_url}}"],
+              "path": ["company", "update-company-details"]
+            }
+          }
+        },
+        {
+          "name": "Get Company Details",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/company/details",
+              "host": ["{{base_url}}"],
+              "path": ["company", "details"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "19. Designation Management",
+      "item": [
+        {
+          "name": "Create Designation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"designation_name\": \"Senior Software Engineer\",\n  \"description\": \"Senior development role\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/designations/create",
+              "host": ["{{base_url}}"],
+              "path": ["designations", "create"]
+            }
+          }
+        },
+        {
+          "name": "Update Designation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"designation_id\": 1,\n  \"designation_name\": \"Lead Engineer\",\n  \"description\": \"Updated description\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/designations/update",
+              "host": ["{{base_url}}"],
+              "path": ["designations", "update"]
+            }
+          }
+        },
+        {
+          "name": "List Designations",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/designations/list",
+              "host": ["{{base_url}}"],
+              "path": ["designations", "list"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "20. Grade Management",
+      "item": [
+        {
+          "name": "Create Grade",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"grade_name\": \"Grade A\",\n  \"description\": \"Top grade\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/grades/create",
+              "host": ["{{base_url}}"],
+              "path": ["grades", "create"]
+            }
+          }
+        },
+        {
+          "name": "Update Grade",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"grade_id\": 1,\n  \"grade_name\": \"Grade A+\",\n  \"description\": \"Updated\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/grades/update",
+              "host": ["{{base_url}}"],
+              "path": ["grades", "update"]
+            }
+          }
+        },
+        {
+          "name": "List Grades",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/grades/list",
+              "host": ["{{base_url}}"],
+              "path": ["grades", "list"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "21. Level Management",
+      "item": [
+        {
+          "name": "Create Level",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"level_name\": \"L1\",\n  \"description\": \"Entry level\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/levels/create",
+              "host": ["{{base_url}}"],
+              "path": ["levels", "create"]
+            }
+          }
+        },
+        {
+          "name": "Update Level",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"level_id\": 1,\n  \"level_name\": \"L1A\",\n  \"description\": \"Updated\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/levels/update",
+              "host": ["{{base_url}}"],
+              "path": ["levels", "update"]
+            }
+          }
+        },
+        {
+          "name": "List Levels",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/levels/list",
+              "host": ["{{base_url}}"],
+              "path": ["levels", "list"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "22. Holiday Management",
+      "item": [
+        {
+          "name": "Holiday Bank",
+          "item": [
+            {
+              "name": "Get All Holidays",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}],
+                "url": {
+                  "raw": "{{base_url}}/holiday/bank?year=2024",
+                  "host": ["{{base_url}}"],
+                  "path": ["holiday", "bank"],
+                  "query": [{"key": "year", "value": "2024"}]
+                }
+              }
+            },
+            {
+              "name": "Get Holiday by ID",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}],
+                "url": {
+                  "raw": "{{base_url}}/holiday/bank/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["holiday", "bank", "1"]
+                }
+              }
+            },
+            {
+              "name": "Create Holiday",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {"key": "Content-Type", "value": "application/json"},
+                  {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"holiday_name\": \"Republic Day\",\n  \"holiday_date\": \"2024-01-26\",\n  \"is_national_holiday\": true,\n  \"description\": \"National holiday\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/holiday/bank",
+                  "host": ["{{base_url}}"],
+                  "path": ["holiday", "bank"]
+                }
+              }
+            },
+            {
+              "name": "Bulk Create Holidays",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {"key": "Content-Type", "value": "application/json"},
+                  {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"holidays\": [\n    {\n      \"holiday_name\": \"Holi\",\n      \"holiday_date\": \"2024-03-25\",\n      \"is_national_holiday\": true\n    },\n    {\n      \"holiday_name\": \"Diwali\",\n      \"holiday_date\": \"2024-11-01\",\n      \"is_national_holiday\": true\n    }\n  ]\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/holiday/bank/bulk",
+                  "host": ["{{base_url}}"],
+                  "path": ["holiday", "bank", "bulk"]
+                }
+              }
+            },
+            {
+              "name": "Update Holiday",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {"key": "Content-Type", "value": "application/json"},
+                  {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"holiday_name\": \"Republic Day Updated\",\n  \"holiday_date\": \"2024-01-26\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/holiday/bank/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["holiday", "bank", "1"]
+                }
+              }
+            },
+            {
+              "name": "Delete Holiday",
+              "request": {
+                "method": "DELETE",
+                "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}],
+                "url": {
+                  "raw": "{{base_url}}/holiday/bank/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["holiday", "bank", "1"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Holiday Policy",
+          "item": [
+            {
+              "name": "Get All Policies",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}],
+                "url": {
+                  "raw": "{{base_url}}/holiday/policy?year=2024",
+                  "host": ["{{base_url}}"],
+                  "path": ["holiday", "policy"],
+                  "query": [{"key": "year", "value": "2024"}]
+                }
+              }
+            },
+            {
+              "name": "Get Policy by ID",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}],
+                "url": {
+                  "raw": "{{base_url}}/holiday/policy/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["holiday", "policy", "1"]
+                }
+              }
+            },
+            {
+              "name": "Create Policy",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {"key": "Content-Type", "value": "application/json"},
+                  {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"company_id\": 1,\n  \"calendar_name\": \"2024 Calendar\",\n  \"year\": 2024,\n  \"is_restricted_holiday_applicable\": true,\n  \"restricted_holiday_count\": 2,\n  \"holiday_ids\": [1, 2, 3]\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/holiday/policy",
+                  "host": ["{{base_url}}"],
+                  "path": ["holiday", "policy"]
+                }
+              }
+            },
+            {
+              "name": "Update Policy",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {"key": "Content-Type", "value": "application/json"},
+                  {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"calendar_name\": \"Updated 2024 Calendar\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/holiday/policy/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["holiday", "policy", "1"]
+                }
+              }
+            },
+            {
+              "name": "Delete Policy",
+              "request": {
+                "method": "DELETE",
+                "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}],
+                "url": {
+                  "raw": "{{base_url}}/holiday/policy/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["holiday", "policy", "1"]
+                }
+              }
+            },
+            {
+              "name": "Add Holidays to Policy",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {"key": "Content-Type", "value": "application/json"},
+                  {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"holiday_ids\": [4, 5, 6]\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/holiday/policy/1/holidays",
+                  "host": ["{{base_url}}"],
+                  "path": ["holiday", "policy", "1", "holidays"]
+                }
+              }
+            },
+            {
+              "name": "Remove Holiday from Policy",
+              "request": {
+                "method": "DELETE",
+                "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}],
+                "url": {
+                  "raw": "{{base_url}}/holiday/policy/1/holidays/4",
+                  "host": ["{{base_url}}"],
+                  "path": ["holiday", "policy", "1", "holidays", "4"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "23. Workflow Management",
+      "item": [
+        {
+          "name": "Workflow Requests (User)",
+          "item": [
+            {
+              "name": "Submit Request",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {"key": "Content-Type", "value": "application/json"},
+                  {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"workflow_master_id\": 1,\n  \"request_data\": {\n    \"leave_type_id\": 2,\n    \"from_date\": \"2024-02-01\",\n    \"to_date\": \"2024-02-03\"\n  }\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/requests/submit",
+                  "host": ["{{base_url}}"],
+                  "path": ["workflows", "requests", "submit"]
+                }
+              }
+            },
+            {
+              "name": "Get My Requests",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}],
+                "url": {
+                  "raw": "{{base_url}}/workflows/requests/my-requests?status=pending",
+                  "host": ["{{base_url}}"],
+                  "path": ["workflows", "requests", "my-requests"],
+                  "query": [{"key": "status", "value": "pending"}]
+                }
+              }
+            },
+            {
+              "name": "Get Pending Approvals",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}],
+                "url": {
+                  "raw": "{{base_url}}/workflows/requests/pending-approvals",
+                  "host": ["{{base_url}}"],
+                  "path": ["workflows", "requests", "pending-approvals"]
+                }
+              }
+            },
+            {
+              "name": "Get Dashboard",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}],
+                "url": {
+                  "raw": "{{base_url}}/workflows/requests/dashboard",
+                  "host": ["{{base_url}}"],
+                  "path": ["workflows", "requests", "dashboard"]
+                }
+              }
+            },
+            {
+              "name": "Get Request by ID",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}],
+                "url": {
+                  "raw": "{{base_url}}/workflows/requests/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["workflows", "requests", "1"]
+                }
+              }
+            },
+            {
+              "name": "Approve Request",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {"key": "Content-Type", "value": "application/json"},
+                  {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"remarks\": \"Approved\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/requests/1/approve",
+                  "host": ["{{base_url}}"],
+                  "path": ["workflows", "requests", "1", "approve"]
+                }
+              }
+            },
+            {
+              "name": "Reject Request",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {"key": "Content-Type", "value": "application/json"},
+                  {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"remarks\": \"Does not meet criteria\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/requests/1/reject",
+                  "host": ["{{base_url}}"],
+                  "path": ["workflows", "requests", "1", "reject"]
+                }
+              }
+            },
+            {
+              "name": "Withdraw Request",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {"key": "Content-Type", "value": "application/json"},
+                  {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"No longer needed\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/requests/1/withdraw",
+                  "host": ["{{base_url}}"],
+                  "path": ["workflows", "requests", "1", "withdraw"]
+                }
+              }
+            },
+            {
+              "name": "Get Request History",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}],
+                "url": {
+                  "raw": "{{base_url}}/workflows/requests/1/history",
+                  "host": ["{{base_url}}"],
+                  "path": ["workflows", "requests", "1", "history"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Workflow Configuration (Admin)",
+          "item": [
+            {
+              "name": "Get Workflow Masters",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}],
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/masters",
+                  "host": ["{{base_url}}"],
+                  "path": ["workflows", "admin", "masters"]
+                }
+              }
+            },
+            {
+              "name": "Create Config",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {"key": "Content-Type", "value": "application/json"},
+                  {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"company_id\": 1,\n  \"workflow_master_id\": 1,\n  \"workflow_name\": \"Leave Approval\",\n  \"is_active\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/configs",
+                  "host": ["{{base_url}}"],
+                  "path": ["workflows", "admin", "configs"]
+                }
+              }
+            },
+            {
+              "name": "Get All Configs",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}],
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/configs",
+                  "host": ["{{base_url}}"],
+                  "path": ["workflows", "admin", "configs"]
+                }
+              }
+            },
+            {
+              "name": "Get Config by ID",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}],
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/configs/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["workflows", "admin", "configs", "1"]
+                }
+              }
+            },
+            {
+              "name": "Update Config",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {"key": "Content-Type", "value": "application/json"},
+                  {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"workflow_name\": \"Updated Leave Approval\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/configs/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["workflows", "admin", "configs", "1"]
+                }
+              }
+            },
+            {
+              "name": "Delete Config",
+              "request": {
+                "method": "DELETE",
+                "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}],
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/configs/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["workflows", "admin", "configs", "1"]
+                }
+              }
+            },
+            {
+              "name": "Clone Config",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {"key": "Content-Type", "value": "application/json"},
+                  {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"workflow_name\": \"Cloned Workflow\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/configs/1/clone",
+                  "host": ["{{base_url}}"],
+                  "path": ["workflows", "admin", "configs", "1", "clone"]
+                }
+              }
+            },
+            {
+              "name": "Create Stage",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {"key": "Content-Type", "value": "application/json"},
+                  {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"stage_name\": \"Manager Approval\",\n  \"stage_order\": 1,\n  \"approver_logic\": \"any\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/configs/1/stages",
+                  "host": ["{{base_url}}"],
+                  "path": ["workflows", "admin", "configs", "1", "stages"]
+                }
+              }
+            },
+            {
+              "name": "Update Stage",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {"key": "Content-Type", "value": "application/json"},
+                  {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"stage_name\": \"Updated Manager Approval\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/stages/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["workflows", "admin", "stages", "1"]
+                }
+              }
+            },
+            {
+              "name": "Delete Stage",
+              "request": {
+                "method": "DELETE",
+                "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}],
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/stages/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["workflows", "admin", "stages", "1"]
+                }
+              }
+            },
+            {
+              "name": "Create Stage Approver",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {"key": "Content-Type", "value": "application/json"},
+                  {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"approver_type\": \"reporting_manager\",\n  \"approver_order\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/stages/1/approvers",
+                  "host": ["{{base_url}}"],
+                  "path": ["workflows", "admin", "stages", "1", "approvers"]
+                }
+              }
+            },
+            {
+              "name": "Update Stage Approver",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {"key": "Content-Type", "value": "application/json"},
+                  {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"approver_type\": \"custom_user\",\n  \"custom_user_id\": 20\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/approvers/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["workflows", "admin", "approvers", "1"]
+                }
+              }
+            },
+            {
+              "name": "Delete Stage Approver",
+              "request": {
+                "method": "DELETE",
+                "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}],
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/approvers/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["workflows", "admin", "approvers", "1"]
+                }
+              }
+            },
+            {
+              "name": "Create Condition",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {"key": "Content-Type", "value": "application/json"},
+                  {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"condition_name\": \"High Value\",\n  \"action_type\": \"add_stage\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/configs/1/conditions",
+                  "host": ["{{base_url}}"],
+                  "path": ["workflows", "admin", "configs", "1", "conditions"]
+                }
+              }
+            },
+            {
+              "name": "Update Condition",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {"key": "Content-Type", "value": "application/json"},
+                  {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"condition_name\": \"Updated Condition\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/conditions/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["workflows", "admin", "conditions", "1"]
+                }
+              }
+            },
+            {
+              "name": "Delete Condition",
+              "request": {
+                "method": "DELETE",
+                "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}],
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/conditions/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["workflows", "admin", "conditions", "1"]
+                }
+              }
+            },
+            {
+              "name": "Create Condition Rule",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {"key": "Content-Type", "value": "application/json"},
+                  {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"field_name\": \"amount\",\n  \"operator\": \">\",\n  \"compare_value\": \"10000\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/conditions/1/rules",
+                  "host": ["{{base_url}}"],
+                  "path": ["workflows", "admin", "conditions", "1", "rules"]
+                }
+              }
+            },
+            {
+              "name": "Delete Condition Rule",
+              "request": {
+                "method": "DELETE",
+                "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}],
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/rules/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["workflows", "admin", "rules", "1"]
+                }
+              }
+            },
+            {
+              "name": "Create Applicability",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {"key": "Content-Type", "value": "application/json"},
+                  {"key": "Authorization", "value": "Bearer {{auth_token}}"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"applicability_type\": \"department\",\n  \"department_id\": 5\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/configs/1/applicability",
+                  "host": ["{{base_url}}"],
+                  "path": ["workflows", "admin", "configs", "1", "applicability"]
+                }
+              }
+            },
+            {
+              "name": "Delete Applicability",
+              "request": {
+                "method": "DELETE",
+                "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}],
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/applicability/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["workflows", "admin", "applicability", "1"]
+                }
+              }
+            },
+            {
+              "name": "Get Version History",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}],
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/configs/1/versions",
+                  "host": ["{{base_url}}"],
+                  "path": ["workflows", "admin", "configs", "1", "versions"]
+                }
+              }
+            },
+            {
+              "name": "Restore from Version",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/workflows/admin/versions/1/restore",
+                  "host": ["{{base_url}}"],
+                  "path": ["workflows", "admin", "versions", "1", "restore"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

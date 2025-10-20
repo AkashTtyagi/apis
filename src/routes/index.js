@@ -28,6 +28,16 @@ const holidayRoutes = require('./holiday.routes');
 const rosterRoutes = require('./roster.routes');
 const rotatingShiftRoutes = require('./rotatingShift.routes');
 const shiftSwapRoutes = require('./shiftSwap.routes');
+const skillRoutes = require('./skill.routes');
+
+// Organizational routes
+const channelRoutes = require('./organizational/channel.routes');
+const businessUnitRoutes = require('./organizational/businessUnit.routes');
+const categoryRoutes = require('./organizational/category.routes');
+const branchRoutes = require('./organizational/branch.routes');
+const locationRoutes = require('./organizational/location.routes');
+const zoneRoutes = require('./organizational/zone.routes');
+const costCenterRoutes = require('./organizational/costCenter.routes');
 
 // Health check endpoint
 router.get('/health', (req, res) => {
@@ -97,5 +107,17 @@ router.use('/rotating-shift', rotatingShiftRoutes);
 
 // Shift swap routes (employee-to-employee shift swap with workflow)
 router.use('/shift-swap', shiftSwapRoutes);
+
+// Skill management routes
+router.use('/skills', skillRoutes);
+
+// Organizational structure routes
+router.use('/channels', channelRoutes);
+router.use('/business-units', businessUnitRoutes);
+router.use('/categories', categoryRoutes);
+router.use('/branches', branchRoutes);
+router.use('/locations', locationRoutes);
+router.use('/zones', zoneRoutes);
+router.use('/cost-centers', costCenterRoutes);
 
 module.exports = router;
