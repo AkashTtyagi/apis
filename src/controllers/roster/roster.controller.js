@@ -4,6 +4,7 @@
  */
 
 const rosterService = require('../../services/roster/roster.service');
+const { successResponse, errorResponse } = require('../../utils/responseHandler');
 
 /**
  * Create roster with date-shift pattern
@@ -16,18 +17,11 @@ const createRoster = async (req, res) => {
 
         const result = await rosterService.createRoster(rosterData, user_id);
 
-        return res.status(201).json({
-            success: true,
-            message: result.message,
-            data: result.data
-        });
+        return successResponse(res, result.data, result.message, 201);
 
     } catch (error) {
         console.error('Error in createRoster controller:', error);
-        return res.status(400).json({
-            success: false,
-            message: error.message
-        });
+        return errorResponse(res, error.message, 400);
     }
 };
 
@@ -41,26 +35,16 @@ const updateRoster = async (req, res) => {
         const { roster_id, ...updateData } = req.body;
 
         if (!roster_id) {
-            return res.status(400).json({
-                success: false,
-                message: 'roster_id is required'
-            });
+            return errorResponse(res, 'roster_id is required', 400);
         }
 
         const result = await rosterService.updateRoster(roster_id, updateData, user_id);
 
-        return res.status(200).json({
-            success: true,
-            message: result.message,
-            data: result.data
-        });
+        return successResponse(res, result.data, result.message);
 
     } catch (error) {
         console.error('Error in updateRoster controller:', error);
-        return res.status(400).json({
-            success: false,
-            message: error.message
-        });
+        return errorResponse(res, error.message, 400);
     }
 };
 
@@ -74,10 +58,7 @@ const assignRosterToEmployees = async (req, res) => {
         const { roster_id, employee_ids } = req.body;
 
         if (!roster_id) {
-            return res.status(400).json({
-                success: false,
-                message: 'roster_id is required'
-            });
+            return errorResponse(res, 'roster_id is required', 400);
         }
 
         if (!employee_ids || !Array.isArray(employee_ids)) {
@@ -90,10 +71,7 @@ const assignRosterToEmployees = async (req, res) => {
 
     } catch (error) {
         console.error('Error in assignRosterToEmployees controller:', error);
-        return res.status(400).json({
-            success: false,
-            message: error.message
-        });
+        return errorResponse(res, error.message, 400);
     }
 };
 
@@ -106,10 +84,7 @@ const getRosterById = async (req, res) => {
         const { roster_id } = req.body;
 
         if (!roster_id) {
-            return res.status(400).json({
-                success: false,
-                message: 'roster_id is required'
-            });
+            return errorResponse(res, 'roster_id is required', 400);
         }
 
         const result = await rosterService.getRosterById(roster_id);
@@ -118,10 +93,7 @@ const getRosterById = async (req, res) => {
 
     } catch (error) {
         console.error('Error in getRosterById controller:', error);
-        return res.status(404).json({
-            success: false,
-            message: error.message
-        });
+        return errorResponse(res, error.message, 404);
     }
 };
 
@@ -145,10 +117,7 @@ const getRosters = async (req, res) => {
 
     } catch (error) {
         console.error('Error in getRosters controller:', error);
-        return res.status(400).json({
-            success: false,
-            message: error.message
-        });
+        return errorResponse(res, error.message, 400);
     }
 };
 
@@ -161,10 +130,7 @@ const getRosterEmployees = async (req, res) => {
         const { roster_id } = req.body;
 
         if (!roster_id) {
-            return res.status(400).json({
-                success: false,
-                message: 'roster_id is required'
-            });
+            return errorResponse(res, 'roster_id is required', 400);
         }
 
         const result = await rosterService.getRosterEmployees(roster_id);
@@ -173,10 +139,7 @@ const getRosterEmployees = async (req, res) => {
 
     } catch (error) {
         console.error('Error in getRosterEmployees controller:', error);
-        return res.status(400).json({
-            success: false,
-            message: error.message
-        });
+        return errorResponse(res, error.message, 400);
     }
 };
 
@@ -190,10 +153,7 @@ const removeEmployeesFromRoster = async (req, res) => {
         const { roster_id, employee_ids } = req.body;
 
         if (!roster_id) {
-            return res.status(400).json({
-                success: false,
-                message: 'roster_id is required'
-            });
+            return errorResponse(res, 'roster_id is required', 400);
         }
 
         if (!employee_ids || !Array.isArray(employee_ids)) {
@@ -206,10 +166,7 @@ const removeEmployeesFromRoster = async (req, res) => {
 
     } catch (error) {
         console.error('Error in removeEmployeesFromRoster controller:', error);
-        return res.status(400).json({
-            success: false,
-            message: error.message
-        });
+        return errorResponse(res, error.message, 400);
     }
 };
 
@@ -223,10 +180,7 @@ const deleteRoster = async (req, res) => {
         const { roster_id } = req.body;
 
         if (!roster_id) {
-            return res.status(400).json({
-                success: false,
-                message: 'roster_id is required'
-            });
+            return errorResponse(res, 'roster_id is required', 400);
         }
 
         const result = await rosterService.deleteRoster(roster_id, user_id);
@@ -235,10 +189,7 @@ const deleteRoster = async (req, res) => {
 
     } catch (error) {
         console.error('Error in deleteRoster controller:', error);
-        return res.status(400).json({
-            success: false,
-            message: error.message
-        });
+        return errorResponse(res, error.message, 400);
     }
 };
 
