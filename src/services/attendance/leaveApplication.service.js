@@ -6,12 +6,15 @@
 
 const { HrmsEmployee } = require('../../models/HrmsEmployee');
 const { HrmsWorkflowRequest } = require('../../models/workflow');
+const { HrmsDailyAttendance } = require('../../models/HrmsDailyAttendance');
+const { HrmsLeaveMaster } = require('../../models/HrmsLeaveMaster');
 const workflowExecutionService = require('../workflow/workflowExecution.service');
 const moment = require('moment');
 
 /**
  * Apply for leave (Date Range or Multiple Dates mode)
  * @param {Object} leaveData - Leave application data
+ * @param {number} leaveData.leave_type - Leave type ID (FK to hrms_leave_master)
  * @param {number} employee_id - Employee ID
  * @param {number} user_id - User ID
  * @returns {Promise<Object>} Created leave request
@@ -34,7 +37,13 @@ const applyLeave = async (leaveData, employee_id, user_id) => {
 
     // Validation - either date range OR specific dates is required
     if (!leave_type || !reason) {
-        throw new Error('Required fields: leave_type, reason');
+        throw new Error('Required fields: leave_type (leave master ID), reason');
+    }
+
+    // Validate leave_type is valid leave master ID
+    const leaveMaster = await HrmsLeaveMaster.findByPk(leave_type);
+    if (!leaveMaster) {
+        throw new Error('Invalid leave_type. Must be valid leave master ID.');
     }
 
     if (!isDateRangeMode && !isMultipleDatesMode) {
@@ -95,6 +104,21 @@ const applyLeave = async (leaveData, employee_id, user_id) => {
         1,
         requestData
     );
+
+    // Create daily attendance entries for each date
+    await createDailyAttendanceEntries({
+        request_id: request.id,
+        workflow_master_id: 1,  // Leave
+        employee_id: employee_id,
+        company_id: employee.company_id,
+        dates: leaveDates,
+        is_date_range: isDateRangeMode,
+        from_date: requestData.from_date,
+        to_date: requestData.to_date,
+        specific_dates: requestData.specific_dates,
+        pay_day: requestData.is_paid ? 1 : 4,  // 1=Full Day Paid, 4=Unpaid
+        status: 'pending'
+    });
 
     return {
         request,
@@ -345,6 +369,61 @@ const getLeaveBalance = async (employee_id) => {
             { leave_type: 'Casual Leave', total: 12, used: 5, remaining: 7 }
         ]
     };
+};
+
+/**
+ * Create daily attendance entries for all dates in the request
+ * Creates one entry per unique date with status "pending"
+ *
+ * @param {Object} data - Attendance data
+ * @returns {Promise<void>}
+ */
+const createDailyAttendanceEntries = async (data) => {
+    const {
+        request_id,
+        workflow_master_id,
+        employee_id,
+        company_id,
+        is_date_range,
+        from_date,
+        to_date,
+        specific_dates,
+        pay_day,
+        status
+    } = data;
+
+    const datesToProcess = [];
+
+    if (is_date_range) {
+        // Generate all dates from from_date to to_date
+        const currentDate = moment(from_date);
+        const endDate = moment(to_date);
+
+        while (currentDate.isSameOrBefore(endDate)) {
+            datesToProcess.push(currentDate.format('YYYY-MM-DD'));
+            currentDate.add(1, 'day');
+        }
+    } else {
+        // Use specific dates
+        datesToProcess.push(...specific_dates);
+    }
+
+    // Create attendance entry for each date
+    for (const dateStr of datesToProcess) {
+        await HrmsDailyAttendance.create({
+            employee_id,
+            company_id,
+            attendance_date: dateStr,
+            request_id,
+            workflow_master_id,
+            pay_day,
+            status,  // pending
+            punch_in: null,
+            punch_out: null,
+            punch_in_location: null,
+            punch_out_location: null
+        });
+    }
 };
 
 module.exports = {

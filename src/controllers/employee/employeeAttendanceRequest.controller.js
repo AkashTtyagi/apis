@@ -8,6 +8,7 @@ const leaveApplicationService = require('../../services/attendance/leaveApplicat
 const workflowExecutionService = require('../../services/workflow/workflowExecution.service');
 const { HrmsWorkflowRequest } = require('../../models/workflow');
 const { HrmsEmployee } = require('../../models/HrmsEmployee');
+const { HrmsDailyAttendance } = require('../../models/HrmsDailyAttendance');
 const moment = require('moment');
 
 /**
@@ -90,6 +91,9 @@ const applyOnDuty = async (req, res) => {
             applied_at: new Date()
         };
 
+        // Get employee details
+        const employee = await HrmsEmployee.findByPk(employee_id);
+
         // Submit workflow request (workflow_master_id = 2 for On Duty)
         const request = await workflowExecutionService.submitRequest(
             employee_id,
@@ -97,6 +101,18 @@ const applyOnDuty = async (req, res) => {
             2,
             requestData
         );
+
+        // Create daily attendance entries
+        await createDailyAttendanceForRequest({
+            request_id: request.id,
+            workflow_master_id: 2,  // On Duty
+            employee_id,
+            company_id: employee.company_id,
+            from_date,
+            to_date,
+            pay_day: 1,  // Full day
+            status: 'pending'
+        });
 
         return res.status(201).json({
             success: true,
@@ -158,6 +174,9 @@ const applyWFH = async (req, res) => {
             applied_at: new Date()
         };
 
+        // Get employee details
+        const employee = await HrmsEmployee.findByPk(employee_id);
+
         // Submit workflow request (workflow_master_id = 3 for WFH)
         const request = await workflowExecutionService.submitRequest(
             employee_id,
@@ -165,6 +184,18 @@ const applyWFH = async (req, res) => {
             3,
             requestData
         );
+
+        // Create daily attendance entries
+        await createDailyAttendanceForRequest({
+            request_id: request.id,
+            workflow_master_id: 3,  // WFH
+            employee_id,
+            company_id: employee.company_id,
+            from_date,
+            to_date,
+            pay_day: 1,  // Full day
+            status: 'pending'
+        });
 
         return res.status(201).json({
             success: true,
@@ -458,6 +489,47 @@ const getLeaveBalance = async (req, res) => {
             success: false,
             message: error.message || 'Failed to get leave balance'
         });
+    }
+};
+
+/**
+ * Helper: Create daily attendance entries for date range
+ * @param {Object} data - Request data
+ */
+const createDailyAttendanceForRequest = async (data) => {
+    const {
+        request_id,
+        workflow_master_id,
+        employee_id,
+        company_id,
+        from_date,
+        to_date,
+        pay_day,
+        status
+    } = data;
+
+    // Generate all dates from from_date to to_date
+    const currentDate = moment(from_date);
+    const endDate = moment(to_date);
+
+    while (currentDate.isSameOrBefore(endDate)) {
+        const dateStr = currentDate.format('YYYY-MM-DD');
+
+        await HrmsDailyAttendance.create({
+            employee_id,
+            company_id,
+            attendance_date: dateStr,
+            request_id,
+            workflow_master_id,
+            pay_day,
+            status,  // pending
+            punch_in: null,
+            punch_out: null,
+            punch_in_location: null,
+            punch_out_location: null
+        });
+
+        currentDate.add(1, 'day');
     }
 };
 

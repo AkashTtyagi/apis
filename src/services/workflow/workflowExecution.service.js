@@ -61,7 +61,7 @@ const submitRequest = async (employeeId, workflowMasterId, requestData, submitte
         const requestNumber = await generateRequestNumber(workflowMaster.workflow_code, employee.company_id);
 
         // 6. Create workflow request
-        const request = await HrmsWorkflowRequest.create({
+        const requestPayload = {
             request_number: requestNumber,
             workflow_config_id: workflow.id,
             workflow_master_id: workflowMasterId,
@@ -72,7 +72,22 @@ const submitRequest = async (employeeId, workflowMasterId, requestData, submitte
             request_status: 'submitted',
             overall_status: 'in_progress',
             submitted_at: new Date()
-        }, { transaction: transaction.trans_id });
+        };
+
+        // Add leave-specific fields if workflow is for Leave (workflow_master_id = 1)
+        if (workflowMasterId === 1 && requestData) {
+            requestPayload.leave_type = requestData.leave_type || null;
+            requestPayload.from_date = requestData.from_date || null;
+            requestPayload.to_date = requestData.to_date || null;
+        }
+
+        // Add date fields for OnDuty (workflow_master_id = 2) and WFH (workflow_master_id = 3)
+        if ((workflowMasterId === 2 || workflowMasterId === 3) && requestData) {
+            requestPayload.from_date = requestData.from_date || null;
+            requestPayload.to_date = requestData.to_date || null;
+        }
+
+        const request = await HrmsWorkflowRequest.create(requestPayload, { transaction: transaction.trans_id });
 
         console.log(`✓ Request created: ${requestNumber}`);
 

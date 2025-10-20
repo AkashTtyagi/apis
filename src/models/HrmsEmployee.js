@@ -156,6 +156,84 @@ const HrmsEmployee = sequelize.define('HrmsEmployee', {
         comment: 'Foreign key to hrms_leave_policy_master'
     },
 
+    // ==================
+    // ORGANIZATIONAL HIERARCHY FIELDS
+    // ==================
+
+    // Cost Center ID
+    cost_center_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Foreign key to hrms_cost_center_master'
+    },
+
+    // Division ID
+    division_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Foreign key to hrms_division_master'
+    },
+
+    // Region ID
+    region_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Foreign key to hrms_region_master'
+    },
+
+    // Zone ID
+    zone_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Foreign key to hrms_zone_master'
+    },
+
+    // Business Unit ID
+    business_unit_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Foreign key to hrms_business_unit_master'
+    },
+
+    // Channel ID
+    channel_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Foreign key to hrms_channel_master'
+    },
+
+    // Category ID
+    category_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Foreign key to hrms_category_master'
+    },
+
+    // Grade ID
+    grade_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Foreign key to hrms_grades'
+    },
+
+    // Branch ID
+    branch_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Foreign key to hrms_branch_master'
+    },
+
+    // Location ID
+    location_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Foreign key to hrms_location_master'
+    },
+
+    // ==================
+    // END ORGANIZATIONAL HIERARCHY FIELDS
+    // ==================
+
     // Shift ID
     shift_id: {
         type: DataTypes.INTEGER,
@@ -280,6 +358,36 @@ const HrmsEmployee = sequelize.define('HrmsEmployee', {
             fields: ['leave_policy_id']
         },
         {
+            fields: ['cost_center_id']
+        },
+        {
+            fields: ['division_id']
+        },
+        {
+            fields: ['region_id']
+        },
+        {
+            fields: ['zone_id']
+        },
+        {
+            fields: ['business_unit_id']
+        },
+        {
+            fields: ['channel_id']
+        },
+        {
+            fields: ['category_id']
+        },
+        {
+            fields: ['grade_id']
+        },
+        {
+            fields: ['branch_id']
+        },
+        {
+            fields: ['location_id']
+        },
+        {
             fields: ['shift_id']
         },
         {
@@ -341,6 +449,77 @@ HrmsEmployee.associate = (models) => {
         foreignKey: 'leave_policy_id',
         as: 'leavePolicy'
     });
+
+    // Organizational hierarchy associations
+    if (models.HrmsCostCenterMaster) {
+        HrmsEmployee.belongsTo(models.HrmsCostCenterMaster, {
+            foreignKey: 'cost_center_id',
+            as: 'costCenter'
+        });
+    }
+
+    if (models.HrmsDivisionMaster) {
+        HrmsEmployee.belongsTo(models.HrmsDivisionMaster, {
+            foreignKey: 'division_id',
+            as: 'division'
+        });
+    }
+
+    if (models.HrmsRegionMaster) {
+        HrmsEmployee.belongsTo(models.HrmsRegionMaster, {
+            foreignKey: 'region_id',
+            as: 'region'
+        });
+    }
+
+    if (models.HrmsZoneMaster) {
+        HrmsEmployee.belongsTo(models.HrmsZoneMaster, {
+            foreignKey: 'zone_id',
+            as: 'zone'
+        });
+    }
+
+    if (models.HrmsBusinessUnitMaster) {
+        HrmsEmployee.belongsTo(models.HrmsBusinessUnitMaster, {
+            foreignKey: 'business_unit_id',
+            as: 'businessUnit'
+        });
+    }
+
+    if (models.HrmsChannelMaster) {
+        HrmsEmployee.belongsTo(models.HrmsChannelMaster, {
+            foreignKey: 'channel_id',
+            as: 'channel'
+        });
+    }
+
+    if (models.HrmsCategoryMaster) {
+        HrmsEmployee.belongsTo(models.HrmsCategoryMaster, {
+            foreignKey: 'category_id',
+            as: 'category'
+        });
+    }
+
+    if (models.HrmsGrade) {
+        HrmsEmployee.belongsTo(models.HrmsGrade, {
+            foreignKey: 'grade_id',
+            as: 'grade'
+        });
+    }
+
+    if (models.HrmsBranchMaster) {
+        HrmsEmployee.belongsTo(models.HrmsBranchMaster, {
+            foreignKey: 'branch_id',
+            as: 'branch'
+        });
+    }
+
+    if (models.HrmsLocationMaster) {
+        HrmsEmployee.belongsTo(models.HrmsLocationMaster, {
+            foreignKey: 'location_id',
+            as: 'location'
+        });
+    }
 
     // Employee belongs to shift
     HrmsEmployee.belongsTo(models.HrmsShiftMaster, {

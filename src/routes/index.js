@@ -25,6 +25,9 @@ const attendanceRequestRoutes = require('./attendanceRequest.routes');
 const workflowRoutes = require('./workflow.routes');
 const shiftRoutes = require('./shift.routes');
 const holidayRoutes = require('./holiday.routes');
+const rosterRoutes = require('./roster.routes');
+const rotatingShiftRoutes = require('./rotatingShift.routes');
+const shiftSwapRoutes = require('./shiftSwap.routes');
 
 // Health check endpoint
 router.get('/health', (req, res) => {
@@ -85,5 +88,14 @@ router.use('/shifts', shiftRoutes);
 
 // Holiday management routes (holiday bank + holiday policy)
 router.use('/holiday', holidayRoutes);
+
+// Roster management routes (roster creation and employee assignment)
+router.use('/roster', rosterRoutes);
+
+// Rotating shift routes (frequency-based rotation patterns)
+router.use('/rotating-shift', rotatingShiftRoutes);
+
+// Shift swap routes (employee-to-employee shift swap with workflow)
+router.use('/shift-swap', shiftSwapRoutes);
 
 module.exports = router;

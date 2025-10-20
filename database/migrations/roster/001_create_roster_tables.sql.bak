@@ -1,0 +1,299 @@
+-- =====================================================
+-- HRMS Roster Management System - Database Migration
+-- =====================================================
+-- Version: 1.0
+-- Created: 2025-01-20
+-- Description: Complete roster, rotating shift, and shift swap system
+--
+-- Tables Created:
+--   1. hrms_roster_assignments - Date-based roster shift assignments
+--   2. hrms_rotating_shift_patterns - Frequency-based rotation patterns
+--   3. hrms_rotating_shift_applicability - Applicability rules for rotation patterns (like workflow)
+--   4. hrms_shift_swap_requests - Employee shift swap requests with workflow
+-- =====================================================
+
+-- =====================================================
+-- TABLE 1: hrms_roster_assignments
+-- =====================================================
+-- Purpose: Date-based roster shift assignment
+-- Admin assigns different shift to employee on specific date
+-- Overrides employee's primary shift for that date only
+
+CREATE TABLE IF NOT EXISTS hrms_roster_assignments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    company_id INT NOT NULL,
+
+    -- Employee
+    employee_id INT NOT NULL COMMENT 'Employee for this roster assignment',
+
+    -- Single Date
+    roster_date DATE NOT NULL COMMENT 'Specific date for roster shift',
+
+    -- Roster Shift (overrides primary shift)
+    shift_id INT NOT NULL COMMENT 'Shift to assign on this date (overrides employee primary shift)',
+
+    -- Optional notes
+    notes TEXT DEFAULT NULL COMMENT 'Admin notes for this roster',
+
+    -- Status
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
+
+    -- Audit
+    created_by INT DEFAULT NULL,
+    updated_by INT DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL DEFAULT NULL,
+
+    -- Indexes
+    INDEX idx_company_id (company_id),
+    INDEX idx_employee_id (employee_id),
+    INDEX idx_roster_date (roster_date),
+    INDEX idx_shift_id (shift_id),
+    INDEX idx_is_active (is_active),
+    INDEX idx_employee_date (employee_id, roster_date),
+    UNIQUE KEY unique_employee_date (employee_id, roster_date, deleted_at),
+
+    -- Foreign Keys
+    CONSTRAINT fk_roster_company FOREIGN KEY (company_id)
+        REFERENCES hrms_companies(id) ON DELETE CASCADE,
+    CONSTRAINT fk_roster_employee FOREIGN KEY (employee_id)
+        REFERENCES hrms_employees(id) ON DELETE CASCADE,
+    CONSTRAINT fk_roster_shift FOREIGN KEY (shift_id)
+        REFERENCES hrms_shift_master(id) ON DELETE CASCADE
+
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Date-based roster shift assignments - each date gets separate entry';
+
+-- =====================================================
+-- TABLE 2: hrms_rotating_shift_patterns
+-- =====================================================
+-- Purpose: Frequency-based shift rotation patterns
+-- Admin creates rotation pattern with shift order and frequency
+--
+-- Example 1: Daily rotation
+--   shift_order = [1, 2, 3] (Morning, Evening, Night)
+--   frequency = 'daily'
+--   Result: Day 1=Morning, Day 2=Evening, Day 3=Night, Day 4=Morning...
+--
+-- Example 2: Weekly rotation
+--   shift_order = [1, 2, 3]
+--   frequency = 'weekly'
+--   Result: Week 1=Morning, Week 2=Evening, Week 3=Night, Week 4=Morning...
+
+CREATE TABLE IF NOT EXISTS hrms_rotating_shift_patterns (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    company_id INT NOT NULL,
+
+    -- Pattern Name
+    pattern_name VARCHAR(200) NOT NULL COMMENT 'Name of rotation pattern',
+    pattern_description TEXT DEFAULT NULL,
+
+    -- Shift Order (JSON array)
+    shift_order JSON NOT NULL COMMENT 'Array of shift IDs in rotation order: [1, 2, 3]',
+
+    -- Frequency
+    frequency ENUM('daily', 'weekly', 'bi-weekly', 'monthly') NOT NULL DEFAULT 'weekly'
+        COMMENT 'daily=change every day, weekly=change every week, bi-weekly=every 2 weeks, monthly=every month',
+
+    -- Date Range
+    start_date DATE NOT NULL COMMENT 'When rotation pattern starts',
+    end_date DATE DEFAULT NULL COMMENT 'When rotation ends (NULL = ongoing)',
+
+    -- Status
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
+
+    -- Audit
+    created_by INT DEFAULT NULL,
+    updated_by INT DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL DEFAULT NULL,
+
+    -- Indexes
+    INDEX idx_company_id (company_id),
+    INDEX idx_start_date (start_date),
+    INDEX idx_end_date (end_date),
+    INDEX idx_frequency (frequency),
+    INDEX idx_is_active (is_active),
+
+    -- Foreign Keys
+    CONSTRAINT fk_rotating_pattern_company FOREIGN KEY (company_id)
+        REFERENCES hrms_companies(id) ON DELETE CASCADE
+
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Frequency-based shift rotation patterns';
+
+-- =====================================================
+-- TABLE 3: hrms_rotating_shift_applicability
+-- =====================================================
+-- Purpose: Define where rotating shift pattern applies
+-- Same structure as hrms_workflow_applicability
+
+CREATE TABLE IF NOT EXISTS hrms_rotating_shift_applicability (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    pattern_id INT NOT NULL COMMENT 'Foreign key to hrms_rotating_shift_patterns',
+
+    -- Primary Applicability
+    applicability_type ENUM(
+        'company',
+        'department',
+        'sub_department',
+        'designation',
+        'branch',
+        'location',
+        'employee_type',
+        'grade',
+        'level',
+        'employee'
+    ) NOT NULL COMMENT 'Primary applicability type',
+
+    applicability_value TEXT DEFAULT NULL
+        COMMENT 'Comma-separated IDs for primary applicability (e.g., "1,2,3" for departments)',
+
+    company_id INT DEFAULT NULL COMMENT 'Specific company (inherited from pattern)',
+
+    is_excluded TINYINT(1) NOT NULL DEFAULT 0
+        COMMENT '1 = exclude this criteria, 0 = include',
+
+    -- Advanced Applicability
+    advanced_applicability_type VARCHAR(50) DEFAULT 'none'
+        COMMENT 'Advanced filter: none, employee_type, branch, region, zone, etc.',
+
+    advanced_applicability_value TEXT DEFAULT NULL
+        COMMENT 'Comma-separated IDs for advanced applicability filter',
+
+    -- Priority
+    priority INT NOT NULL DEFAULT 1
+        COMMENT 'Priority if multiple patterns match (lower = higher priority)',
+
+    -- Status
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
+
+    -- Audit
+    created_by INT DEFAULT NULL,
+    updated_by INT DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL DEFAULT NULL,
+
+    -- Indexes
+    INDEX idx_pattern_id (pattern_id),
+    INDEX idx_applicability_type (applicability_type),
+    INDEX idx_company_id (company_id),
+    INDEX idx_applicability_value (applicability_value(255)),
+    INDEX idx_advanced_applicability_type (advanced_applicability_type),
+    INDEX idx_advanced_applicability_value (advanced_applicability_value(255)),
+    INDEX idx_priority (priority),
+    INDEX idx_is_active (is_active),
+
+    -- Foreign Keys
+    CONSTRAINT fk_rotating_applicability_pattern FOREIGN KEY (pattern_id)
+        REFERENCES hrms_rotating_shift_patterns(id) ON DELETE CASCADE
+
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Rotating shift pattern applicability rules (like workflow applicability)';
+
+-- =====================================================
+-- TABLE 4: hrms_shift_swap_requests
+-- =====================================================
+-- Purpose: Employee-to-employee shift swap requests
+-- Employee requests to swap shift with another employee on specific date
+-- Goes through workflow approval process
+--
+-- Flow:
+-- 1. Requester creates swap request
+-- 2. Target employee gives consent (0=Pending, 1=Approved, 2=Rejected)
+-- 3. If approved, workflow request created
+-- 4. Workflow approver approves/rejects (approval_status: 0=Pending, 1=Approved, 2=Rejected)
+
+CREATE TABLE IF NOT EXISTS hrms_shift_swap_requests (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    company_id INT NOT NULL,
+
+    -- Requestor (employee who wants to swap)
+    requester_employee_id INT NOT NULL COMMENT 'Employee requesting the swap',
+
+    -- Target (employee to swap with)
+    target_employee_id INT NOT NULL COMMENT 'Employee with whom swap is requested',
+
+    -- Swap Date
+    swap_date DATE NOT NULL COMMENT 'Date for which shift swap is requested',
+
+    -- Current shifts on swap_date
+    requester_current_shift_id INT NOT NULL COMMENT 'Requester current shift on swap date',
+    target_current_shift_id INT NOT NULL COMMENT 'Target employee current shift on swap date',
+
+    -- Reason
+    swap_reason TEXT DEFAULT NULL COMMENT 'Reason for swap request',
+
+    -- Target Consent (0=Pending, 1=Approved, 2=Rejected)
+    target_consent TINYINT NOT NULL DEFAULT 0
+        COMMENT '0=Pending consent, 1=Approved by target, 2=Rejected by target',
+    target_consent_at TIMESTAMP NULL DEFAULT NULL,
+    target_rejection_reason TEXT DEFAULT NULL COMMENT 'Reason if target rejects',
+
+    -- Workflow Integration
+    workflow_config_id INT DEFAULT NULL COMMENT 'Foreign key to hrms_workflow_configs',
+    workflow_request_id INT DEFAULT NULL COMMENT 'Foreign key to hrms_workflow_requests',
+
+    -- Approval Status (0=Pending, 1=Approved, 2=Rejected by workflow)
+    approval_status TINYINT NOT NULL DEFAULT 0
+        COMMENT '0=Pending workflow approval, 1=Approved by workflow, 2=Rejected by workflow',
+    approved_by INT DEFAULT NULL COMMENT 'User who approved (from workflow)',
+    approved_at TIMESTAMP NULL DEFAULT NULL,
+    rejection_reason TEXT DEFAULT NULL COMMENT 'Rejection reason from workflow approver',
+
+    -- Status
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
+
+    -- Audit
+    created_by INT DEFAULT NULL,
+    updated_by INT DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL DEFAULT NULL,
+
+    -- Indexes
+    INDEX idx_company_id (company_id),
+    INDEX idx_requester (requester_employee_id),
+    INDEX idx_target (target_employee_id),
+    INDEX idx_swap_date (swap_date),
+    INDEX idx_approval_status (approval_status),
+    INDEX idx_target_consent (target_consent),
+    INDEX idx_workflow_config (workflow_config_id),
+    INDEX idx_workflow_request (workflow_request_id),
+    INDEX idx_is_active (is_active),
+
+    -- Foreign Keys
+    CONSTRAINT fk_swap_company FOREIGN KEY (company_id)
+        REFERENCES hrms_companies(id) ON DELETE CASCADE,
+    CONSTRAINT fk_swap_requester FOREIGN KEY (requester_employee_id)
+        REFERENCES hrms_employees(id) ON DELETE CASCADE,
+    CONSTRAINT fk_swap_target FOREIGN KEY (target_employee_id)
+        REFERENCES hrms_employees(id) ON DELETE CASCADE,
+    CONSTRAINT fk_swap_requester_shift FOREIGN KEY (requester_current_shift_id)
+        REFERENCES hrms_shift_master(id) ON DELETE CASCADE,
+    CONSTRAINT fk_swap_target_shift FOREIGN KEY (target_current_shift_id)
+        REFERENCES hrms_shift_master(id) ON DELETE CASCADE
+
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Employee shift swap requests with workflow approval';
+
+-- =====================================================
+-- END OF MIGRATION
+-- =====================================================
+-- Migration completed successfully
+--
+-- Summary:
+-- ✅ 4 tables created for roster management
+-- ✅ Date-based roster assignments
+-- ✅ Frequency-based rotating shifts
+-- ✅ Shift swap requests with workflow
+--
+-- Next steps:
+-- 1. Run this migration
+-- 2. Test with sample data
+-- 3. Create service layer for shift calculation logic
+-- 4. Create API endpoints
+-- =====================================================

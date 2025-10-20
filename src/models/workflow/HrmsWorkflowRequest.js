@@ -70,6 +70,21 @@ const HrmsWorkflowRequest = sequelize.define('HrmsWorkflowRequest', {
         allowNull: true,
         comment: 'Complete request data (leave dates, claim details, etc.)'
     },
+    leave_type: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: true,
+        comment: 'FK to hrms_leave_master (for leave workflow)'
+    },
+    from_date: {
+        type: DataTypes.DATEONLY,
+        allowNull: true,
+        comment: 'Start date (leave/onduty/wfh)'
+    },
+    to_date: {
+        type: DataTypes.DATEONLY,
+        allowNull: true,
+        comment: 'End date (leave/onduty/wfh)'
+    },
     submitted_at: {
         type: DataTypes.DATE,
         allowNull: true,
@@ -138,6 +153,18 @@ const HrmsWorkflowRequest = sequelize.define('HrmsWorkflowRequest', {
         {
             name: 'idx_sla_due_date',
             fields: ['sla_due_date']
+        },
+        {
+            name: 'idx_leave_type',
+            fields: ['leave_type']
+        },
+        {
+            name: 'idx_from_date',
+            fields: ['from_date']
+        },
+        {
+            name: 'idx_to_date',
+            fields: ['to_date']
         }
     ]
 });
@@ -153,6 +180,12 @@ HrmsWorkflowRequest.associate = (models) => {
     HrmsWorkflowRequest.belongsTo(models.HrmsWorkflowMaster, {
         foreignKey: 'workflow_master_id',
         as: 'workflowMaster'
+    });
+
+    // Belongs to Leave Master (for leave workflow)
+    HrmsWorkflowRequest.belongsTo(models.HrmsLeaveMaster, {
+        foreignKey: 'leave_type',
+        as: 'leaveMaster'
     });
 
     // Belongs to Current Stage

@@ -29,6 +29,9 @@ ALTER TABLE hrms_employees
     ADD INDEX idx_location_id (location_id);
 
 -- Add foreign key constraints (SET NULL on delete to keep employee records)
+-- Note: Only add FK if the referenced table exists
+-- Skip grade_id FK for now if hrms_grades table doesn't exist or has incompatible column type
+
 ALTER TABLE hrms_employees
     ADD CONSTRAINT fk_employee_cost_center FOREIGN KEY (cost_center_id)
         REFERENCES hrms_cost_center_master (id) ON DELETE SET NULL ON UPDATE CASCADE,
@@ -44,9 +47,13 @@ ALTER TABLE hrms_employees
         REFERENCES hrms_channel_master (id) ON DELETE SET NULL ON UPDATE CASCADE,
     ADD CONSTRAINT fk_employee_category FOREIGN KEY (category_id)
         REFERENCES hrms_category_master (id) ON DELETE SET NULL ON UPDATE CASCADE,
-    ADD CONSTRAINT fk_employee_grade FOREIGN KEY (grade_id)
-        REFERENCES hrms_grades (id) ON DELETE SET NULL ON UPDATE CASCADE,
     ADD CONSTRAINT fk_employee_branch FOREIGN KEY (branch_id)
         REFERENCES hrms_branch_master (id) ON DELETE SET NULL ON UPDATE CASCADE,
     ADD CONSTRAINT fk_employee_location FOREIGN KEY (location_id)
         REFERENCES hrms_location_master (id) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- Add grade FK separately (in case it fails due to table not existing or type mismatch)
+-- Uncomment this line once hrms_grades table is created with matching id type:
+-- ALTER TABLE hrms_employees
+--     ADD CONSTRAINT fk_employee_grade FOREIGN KEY (grade_id)
+--         REFERENCES hrms_grades (id) ON DELETE SET NULL ON UPDATE CASCADE;
