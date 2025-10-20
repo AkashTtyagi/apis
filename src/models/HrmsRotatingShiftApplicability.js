@@ -114,9 +114,7 @@ const HrmsRotatingShiftApplicability = sequelize.define('HrmsRotatingShiftApplic
         { fields: ['pattern_id'] },
         { fields: ['applicability_type'] },
         { fields: ['company_id'] },
-        { fields: ['applicability_value'] },
         { fields: ['advanced_applicability_type'] },
-        { fields: ['advanced_applicability_value'] },
         { fields: ['priority'] },
         { fields: ['is_active'] }
     ]

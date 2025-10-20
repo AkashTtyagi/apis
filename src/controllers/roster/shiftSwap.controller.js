@@ -4,7 +4,6 @@
  */
 
 const shiftSwapService = require('../../services/roster/shiftSwap.service');
-const { successResponse, errorResponse } = require('../../utils/responseHandler');
 
 /**
  * Create shift swap request
@@ -17,11 +16,18 @@ const createShiftSwapRequest = async (req, res) => {
 
         const result = await shiftSwapService.createShiftSwapRequest(swapData, requester_employee_id);
 
-        return successResponse(res, result.data, result.message, 201);
+        return res.status(201).json({
+            success: true,
+            message: result.message,
+            data: result.data
+        });
 
     } catch (error) {
         console.error('Error in createShiftSwapRequest controller:', error);
-        return errorResponse(res, error.message, 400);
+        return res.status(400).json({
+            success: false,
+            message: error.message
+        });
     }
 };
 
@@ -49,11 +55,18 @@ const respondToSwapRequest = async (req, res) => {
             rejection_reason
         );
 
-        return successResponse(res, result.data, result.message);
+        return res.status(200).json({
+            success: true,
+            message: result.message,
+            data: result.data
+        });
 
     } catch (error) {
         console.error('Error in respondToSwapRequest controller:', error);
-        return errorResponse(res, error.message, 400);
+        return res.status(400).json({
+            success: false,
+            message: error.message
+        });
     }
 };
 
@@ -78,11 +91,18 @@ const handleWorkflowApproval = async (req, res) => {
             rejection_reason
         );
 
-        return successResponse(res, result.data, result.message);
+        return res.status(200).json({
+            success: true,
+            message: result.message,
+            data: result.data
+        });
 
     } catch (error) {
         console.error('Error in handleWorkflowApproval controller:', error);
-        return errorResponse(res, error.message, 400);
+        return res.status(400).json({
+            success: false,
+            message: error.message
+        });
     }
 };
 
@@ -100,7 +120,10 @@ const getSwapRequestById = async (req, res) => {
 
     } catch (error) {
         console.error('Error in getSwapRequestById controller:', error);
-        return errorResponse(res, error.message, 404);
+        return res.status(404).json({
+            success: false,
+            message: error.message
+        });
     }
 };
 
@@ -129,7 +152,10 @@ const getSwapRequests = async (req, res) => {
 
     } catch (error) {
         console.error('Error in getSwapRequests controller:', error);
-        return errorResponse(res, error.message, 400);
+        return res.status(400).json({
+            success: false,
+            message: error.message
+        });
     }
 };
 
@@ -148,7 +174,10 @@ const cancelSwapRequest = async (req, res) => {
 
     } catch (error) {
         console.error('Error in cancelSwapRequest controller:', error);
-        return errorResponse(res, error.message, 400);
+        return res.status(400).json({
+            success: false,
+            message: error.message
+        });
     }
 };
 
@@ -166,7 +195,10 @@ const getPendingSwapRequestsForTarget = async (req, res) => {
 
     } catch (error) {
         console.error('Error in getPendingSwapRequestsForTarget controller:', error);
-        return errorResponse(res, error.message, 400);
+        return res.status(400).json({
+            success: false,
+            message: error.message
+        });
     }
 };
 

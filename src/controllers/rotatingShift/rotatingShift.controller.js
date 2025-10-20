@@ -4,7 +4,6 @@
  */
 
 const rotatingShiftService = require('../../services/rotatingShift/rotatingShift.service');
-const { successResponse, errorResponse } = require('../../utils/responseHandler');
 
 /**
  * Create rotating shift pattern
@@ -17,11 +16,18 @@ const createRotatingShiftPattern = async (req, res) => {
 
         const result = await rotatingShiftService.createRotatingShiftPattern(patternData, user_id);
 
-        return successResponse(res, result.data, result.message, 201);
+        return res.status(201).json({
+            success: true,
+            message: result.message,
+            data: result.data
+        });
 
     } catch (error) {
         console.error('Error in createRotatingShiftPattern controller:', error);
-        return errorResponse(res, error.message, 400);
+        return res.status(400).json({
+            success: false,
+            message: error.message
+        });
     }
 };
 
@@ -35,16 +41,26 @@ const updateRotatingShiftPattern = async (req, res) => {
         const { pattern_id, ...updateData } = req.body;
 
         if (!pattern_id) {
-            return errorResponse(res, 'pattern_id is required', 400);
+            return res.status(400).json({
+                success: false,
+                message: 'pattern_id is required'
+            });
         }
 
         const result = await rotatingShiftService.updateRotatingShiftPattern(pattern_id, updateData, user_id);
 
-        return successResponse(res, result.data, result.message);
+        return res.status(200).json({
+            success: true,
+            message: result.message,
+            data: result.data
+        });
 
     } catch (error) {
         console.error('Error in updateRotatingShiftPattern controller:', error);
-        return errorResponse(res, error.message, 400);
+        return res.status(400).json({
+            success: false,
+            message: error.message
+        });
     }
 };
 
@@ -57,7 +73,10 @@ const getRotatingShiftPatternById = async (req, res) => {
         const { pattern_id } = req.body;
 
         if (!pattern_id) {
-            return errorResponse(res, 'pattern_id is required', 400);
+            return res.status(400).json({
+                success: false,
+                message: 'pattern_id is required'
+            });
         }
 
         const result = await rotatingShiftService.getRotatingShiftPatternById(pattern_id);
@@ -66,7 +85,10 @@ const getRotatingShiftPatternById = async (req, res) => {
 
     } catch (error) {
         console.error('Error in getRotatingShiftPatternById controller:', error);
-        return errorResponse(res, error.message, 404);
+        return res.status(404).json({
+            success: false,
+            message: error.message
+        });
     }
 };
 
@@ -92,7 +114,10 @@ const getRotatingShiftPatterns = async (req, res) => {
 
     } catch (error) {
         console.error('Error in getRotatingShiftPatterns controller:', error);
-        return errorResponse(res, error.message, 400);
+        return res.status(400).json({
+            success: false,
+            message: error.message
+        });
     }
 };
 
@@ -106,7 +131,10 @@ const deleteRotatingShiftPattern = async (req, res) => {
         const { pattern_id } = req.body;
 
         if (!pattern_id) {
-            return errorResponse(res, 'pattern_id is required', 400);
+            return res.status(400).json({
+                success: false,
+                message: 'pattern_id is required'
+            });
         }
 
         const result = await rotatingShiftService.deleteRotatingShiftPattern(pattern_id, user_id);
@@ -115,7 +143,10 @@ const deleteRotatingShiftPattern = async (req, res) => {
 
     } catch (error) {
         console.error('Error in deleteRotatingShiftPattern controller:', error);
-        return errorResponse(res, error.message, 400);
+        return res.status(400).json({
+            success: false,
+            message: error.message
+        });
     }
 };
 
