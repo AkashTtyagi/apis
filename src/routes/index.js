@@ -30,6 +30,10 @@ const rotatingShiftRoutes = require('./rotatingShift.routes');
 const shiftSwapRoutes = require('./shiftSwap.routes');
 const skillRoutes = require('./skill.routes');
 
+// Policy routes (Admin & ESS)
+const adminPolicyRoutes = require('./policy/admin.policy.routes');
+const essPolicyRoutes = require('./policy/ess.policy.routes');
+
 // Organizational routes
 const channelRoutes = require('./organizational/channel.routes');
 const businessUnitRoutes = require('./organizational/businessUnit.routes');
@@ -110,6 +114,12 @@ router.use('/shift-swap', shiftSwapRoutes);
 
 // Skill management routes
 router.use('/skills', skillRoutes);
+
+// Admin Policy routes
+router.use('/admin/policy', adminPolicyRoutes);
+
+// ESS Policy routes
+router.use('/ess/policy', essPolicyRoutes);
 
 // Organizational structure routes
 router.use('/channels', channelRoutes);

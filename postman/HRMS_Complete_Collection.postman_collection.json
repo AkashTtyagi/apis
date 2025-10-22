@@ -5217,6 +5217,836 @@
           }
         }
       ]
+    },
+    {
+      "name": "Admin - Policy Management",
+      "item": [
+        {
+          "name": "Policy Categories",
+          "item": [
+            {
+              "name": "Create Policy Category",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"company_id\": {{company_id}},\n  \"category_name\": \"HR Policies\",\n  \"category_slug\": \"hr_policies\",\n  \"category_description\": \"Human Resources related policies\",\n  \"display_order\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/policy/categories/create",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "policy",
+                    "categories",
+                    "create"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "List Policy Categories",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"company_id\": {{company_id}},\n  \"include_inactive\": false\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/policy/categories/list",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "policy",
+                    "categories",
+                    "list"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update Policy Category",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"category_id\": 1,\n  \"category_name\": \"HR Policies Updated\",\n  \"category_description\": \"Updated description\",\n  \"display_order\": 2,\n  \"is_active\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/policy/categories/update",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "policy",
+                    "categories",
+                    "update"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete Policy Category",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"category_id\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/policy/categories/delete",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "policy",
+                    "categories",
+                    "delete"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Policy CRUD",
+          "item": [
+            {
+              "name": "Create Policy",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"company_id\": {{company_id}},\n  \"category_id\": 1,\n  \"policy_title\": \"Leave Policy 2025\",\n  \"policy_slug\": \"leave_policy_2025\",\n  \"policy_description\": \"Company leave policy for year 2025\",\n  \"requires_acknowledgment\": true,\n  \"force_acknowledgment\": true,\n  \"grace_period_days\": 7,\n  \"send_notifications\": true,\n  \"notification_channels\": [\"email\", \"in_app\"],\n  \"reminder_frequency_days\": 3,\n  \"effective_from\": \"2025-01-01\",\n  \"expires_on\": \"2025-12-31\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/policy/create",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "policy",
+                    "create"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "List Policies",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"company_id\": {{company_id}},\n  \"category_id\": 1,\n  \"requires_acknowledgment\": true,\n  \"is_active\": 1,\n  \"search\": \"leave\",\n  \"page\": 1,\n  \"limit\": 50\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/policy/list",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "policy",
+                    "list"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Policy Details",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"policy_id\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/policy/details",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "policy",
+                    "details"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update Policy",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"policy_id\": 1,\n  \"policy_title\": \"Leave Policy 2025 - Updated\",\n  \"policy_description\": \"Updated leave policy description\",\n  \"force_acknowledgment\": true,\n  \"grace_period_days\": 5,\n  \"is_active\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/policy/update",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "policy",
+                    "update"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete Policy",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"policy_id\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/policy/delete",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "policy",
+                    "delete"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Policy Versions",
+          "item": [
+            {
+              "name": "Create Policy Version",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"policy_id\": 1,\n  \"version_title\": \"Leave Policy v2.0\",\n  \"version_description\": \"Updated leave policy with new rules\",\n  \"policy_content\": \"<h1>Leave Policy</h1><p>Policy content goes here...</p>\",\n  \"change_summary\": \"Added WFH leave provisions\",\n  \"publish_immediately\": false\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/policy/version/create",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "policy",
+                    "version",
+                    "create"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Publish Policy Version",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"version_id\": 2\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/policy/version/publish",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "policy",
+                    "version",
+                    "publish"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Rollback Policy Version",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"policy_id\": 1,\n  \"target_version_number\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/policy/version/rollback",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "policy",
+                    "version",
+                    "rollback"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get All Versions",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"policy_id\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/policy/version/list",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "policy",
+                    "version",
+                    "list"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Policy Applicability",
+          "item": [
+            {
+              "name": "Set Applicability - Company Level",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"policy_id\": 1,\n  \"applicability_rules\": [\n    {\n      \"applicability_type\": \"company\",\n      \"applicability_value\": \"1\",\n      \"is_excluded\": false,\n      \"priority\": 1\n    }\n  ]\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/policy/applicability/set",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "policy",
+                    "applicability",
+                    "set"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Set Applicability - Department with Exclusions",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"policy_id\": 1,\n  \"applicability_rules\": [\n    {\n      \"applicability_type\": \"company\",\n      \"applicability_value\": \"1\",\n      \"is_excluded\": false,\n      \"priority\": 1\n    },\n    {\n      \"applicability_type\": \"department\",\n      \"applicability_value\": \"5\",\n      \"is_excluded\": true,\n      \"priority\": 2\n    }\n  ]\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/policy/applicability/set",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "policy",
+                    "applicability",
+                    "set"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Policy Applicability",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"policy_id\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/policy/applicability/get",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "policy",
+                    "applicability",
+                    "get"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Policy Assignment",
+          "item": [
+            {
+              "name": "Assign Policy to Employees",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"policy_id\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/policy/assign",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "policy",
+                    "assign"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Analytics & Reports",
+          "item": [
+            {
+              "name": "Get Policy Stats",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"policy_id\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/policy/analytics/stats",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "policy",
+                    "analytics",
+                    "stats"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Pending Employees",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"policy_id\": 1,\n  \"page\": 1,\n  \"limit\": 50\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/policy/analytics/pending-employees",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "policy",
+                    "analytics",
+                    "pending-employees"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Send Manual Reminder",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"acknowledgment_id\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/policy/send-reminder",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "policy",
+                    "send-reminder"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ESS - Policy Management",
+      "item": [
+        {
+          "name": "Policy Viewing",
+          "item": [
+            {
+              "name": "Get All Assigned Policies",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"employee_id\": {{employee_id}},\n  \"page\": 1,\n  \"limit\": 50\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/ess/policy/list",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "ess",
+                    "policy",
+                    "list"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Pending Policies",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"employee_id\": {{employee_id}}\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/ess/policy/pending",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "ess",
+                    "policy",
+                    "pending"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Acknowledged Policies",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"employee_id\": {{employee_id}},\n  \"page\": 1,\n  \"limit\": 50\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/ess/policy/acknowledged",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "ess",
+                    "policy",
+                    "acknowledged"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Policy Details",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"employee_id\": {{employee_id}},\n  \"acknowledgment_id\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/ess/policy/details",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "ess",
+                    "policy",
+                    "details"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Policy Acknowledgment",
+          "item": [
+            {
+              "name": "Acknowledge Policy",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"acknowledgment_id\": 1,\n  \"employee_id\": {{employee_id}},\n  \"acknowledgment_comments\": \"I have read and understood the policy\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/ess/policy/acknowledge",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "ess",
+                    "policy",
+                    "acknowledge"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "ESS Access",
+          "item": [
+            {
+              "name": "Check ESS Block Status",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"employee_id\": {{employee_id}}\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/ess/policy/check-block",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "ess",
+                    "policy",
+                    "check-block"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get ESS Access Summary",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"employee_id\": {{employee_id}}\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/ess/policy/access-summary",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "ess",
+                    "policy",
+                    "access-summary"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Policy Categories",
+          "item": [
+            {
+              "name": "Get Active Categories",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"company_id\": {{company_id}}\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/ess/policy/categories/list",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "ess",
+                    "policy",
+                    "categories",
+                    "list"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }
