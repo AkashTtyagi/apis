@@ -28,6 +28,11 @@ const HrmsCompanyDepartments = sequelize.define('HrmsCompanyDepartments', {
         allowNull: true,
         comment: 'Company-specific department name (NULL if using master department name)'
     },
+    department_code: {
+        type: DataTypes.STRING(50),
+        allowNull: true,
+        comment: 'Department code (for custom departments)'
+    },
     department_head_id: {
         type: DataTypes.INTEGER.UNSIGNED,
         allowNull: true,
@@ -73,6 +78,10 @@ const HrmsCompanyDepartments = sequelize.define('HrmsCompanyDepartments', {
         {
             name: 'idx_company_department_name',
             fields: ['company_department_name']
+        },
+        {
+            name: 'idx_department_code',
+            fields: ['department_code']
         }
     ],
     comment: 'Company departments table - maps departments to companies'

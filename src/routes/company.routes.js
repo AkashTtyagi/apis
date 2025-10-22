@@ -42,4 +42,39 @@ router.post('/update-company-details', companyController.updateCompanyDetails);
  */
 router.post('/details', companyController.getCompanyDetails);
 
+/**
+ * Create entity (sub-company)
+ * POST /api/company/entities/create
+ *
+ * Body:
+ * {
+ *   "org_name": "Entity Name",
+ *   "country_id": 1,
+ *   "currency_id": 1,
+ *   "org_industry": 1,
+ *   "registered_address": "123 Street",
+ *   "pin_code": "110001",
+ *   "state_id": 12,
+ *   "city_id": 345,
+ *   "phone_number": "+91-11-12345678",
+ *   "fax_number": "+91-11-12345679",
+ *   "timezone_id": 15
+ * }
+ */
+router.post('/entities/create', companyController.createEntity);
+
+/**
+ * Get all entities for company
+ * POST /api/company/entities/list
+ *
+ * Body (all optional):
+ * {
+ *   "country_id": 1,
+ *   "state_id": 12,
+ *   "city_id": 345,
+ *   "search": "search term"
+ * }
+ */
+router.post('/entities/list', companyController.getEntitiesByCompany);
+
 module.exports = router;

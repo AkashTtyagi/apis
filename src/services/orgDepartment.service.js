@@ -13,7 +13,7 @@ const { HrmsDepartmentMaster } = require('../models/HrmsDepartmentMaster');
  * @returns {Object} Created department mapping
  */
 const createOrgDepartment = async (departmentData) => {
-    const { org_id, department_id, company_department_name, department_head_id, user_id } = departmentData;
+    const { org_id, department_id, company_department_name, department_code, department_head_id, is_active, user_id } = departmentData;
 
     // Validate: Either department_id OR company_department_name must be provided
     if (!department_id && !company_department_name) {
@@ -43,12 +43,28 @@ const createOrgDepartment = async (departmentData) => {
         throw new Error(`${deptName} is already assigned to the organization`);
     }
 
+    // Check if department_code already exists for this company (if provided)
+    if (department_code) {
+        const existingCode = await HrmsCompanyDepartments.findOne({
+            where: {
+                company_id: org_id,
+                department_code: department_code
+            },
+            raw: true
+        });
+
+        if (existingCode) {
+            throw new Error(`Department code '${department_code}' already exists for this company`);
+        }
+    }
+
     const orgDepartment = await HrmsCompanyDepartments.create({
         org_id,
         department_id: department_id || null,
         company_department_name: company_department_name || null,
+        department_code: department_code || null,
         department_head_id: department_head_id || null,
-        is_active: true,
+        is_active: is_active !== undefined ? is_active : true, // Default to true if not provided
         created_by: user_id || null
     });
 
@@ -124,7 +140,7 @@ const getOrgDepartments = async (companyId, activeOnly = true) => {
             company_id: deptObj.company_id,
             department_id: deptObj.department_id,
             department_name: deptObj.company_department_name || deptObj.department?.department_name || null,
-            department_code: deptObj.department?.department_code || null,
+            department_code: deptObj.department_code || deptObj.department?.department_code || null,
             description: deptObj.department?.description || null,
             is_custom: deptObj.company_department_name ? true : false,
             department_head_id: deptObj.department_head_id,

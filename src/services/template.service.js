@@ -10,14 +10,18 @@ const { HrmsTemplateField } = require('../models/HrmsTemplateField');
 const { Op } = require('sequelize');
 
 /**
- * Get template with all sections and fields for a company
- * Falls back to default sections/fields if company hasn't customized
+ * Get template with all sections and fields for a company/entity
+ * Logic: entity_id = company_id means company-level, otherwise entity-specific
  *
  * @param {string} template_slug - Template identifier (employee_template, candidate_template)
  * @param {number} company_id - Company ID
+ * @param {number} entity_id - Entity ID (defaults to company_id for company-level)
  * @returns {Object} Template with sections and fields
  */
-const getTemplateBySlug = async (template_slug, company_id = null) => {
+const getTemplateBySlug = async (template_slug, company_id = null, entity_id = null) => {
+    // If entity_id not provided, use company_id (company-level template)
+    const finalEntityId = entity_id || company_id;
+
     // Get template
     const template = await HrmsTemplate.findOne({
         where: {
@@ -31,16 +35,13 @@ const getTemplateBySlug = async (template_slug, company_id = null) => {
         throw new Error(`Template '${template_slug}' not found`);
     }
 
-    // Get sections (company-specific + defaults)
+    // Get sections for entity (company_id + entity_id match)
     const sections = await HrmsTemplateSection.findAll({
         where: {
             template_id: template.id,
             is_active: true,
-            company_id: company_id
-            // [Op.or]: [
-            //     { company_id: company_id },
-            //     { company_id: null }
-            // ]
+            company_id: company_id,
+            entity_id: finalEntityId
         },
         order: [['section_order', 'ASC']],
         raw: true
@@ -49,15 +50,13 @@ const getTemplateBySlug = async (template_slug, company_id = null) => {
     // Get all section IDs
     const sectionIds = sections.map(s => s.id);
 
-    // Get fields for all sections (company-specific + defaults)
+    // Get fields for all sections (entity-specific)
     const fields = await HrmsTemplateField.findAll({
         where: {
             section_id: { [Op.in]: sectionIds },
             is_active: true,
-            [Op.or]: [
-                { company_id: company_id },
-                { company_id: null }
-            ]
+            company_id: company_id,
+            entity_id: finalEntityId
         },
         order: [['display_order', 'ASC']],
         raw: true
@@ -91,20 +90,23 @@ const getAllTemplates = async () => {
 };
 
 /**
- * Create a new section for a company
+ * Create a new section for a company/entity
  *
  * @param {Object} sectionData - Section data
  * @param {number} company_id - Company ID from logged-in user (if needed to override)
+ * @param {number} entity_id - Entity ID (defaults to company_id for company-level)
  * @returns {Object} Created section
  */
-const createSection = async (sectionData, company_id = null) => {
+const createSection = async (sectionData, company_id = null, entity_id = null) => {
     const { template_id, section_slug, section_name, section_description, section_order, is_collapsible, created_by } = sectionData;
     const finalCompanyId = company_id || sectionData.company_id;
+    const finalEntityId = entity_id || sectionData.entity_id || finalCompanyId;
 
-    // Check if section already exists for this company
+    // Check if section already exists for this company+entity
     const existingSection = await HrmsTemplateSection.findOne({
         where: {
             company_id: finalCompanyId,
+            entity_id: finalEntityId,
             template_id: template_id,
             section_slug: section_slug
         },
@@ -112,12 +114,13 @@ const createSection = async (sectionData, company_id = null) => {
     });
 
     if (existingSection) {
-        throw new Error(`Section '${section_slug}' already exists for this company and template`);
+        throw new Error(`Section '${section_slug}' already exists for this entity and template`);
     }
 
     // Create section
     const section = await HrmsTemplateSection.create({
         company_id: finalCompanyId,
+        entity_id: finalEntityId,
         template_id,
         section_slug,
         section_name,
@@ -173,13 +176,14 @@ const deleteSection = async (section_id) => {
 };
 
 /**
- * Create a new field for a company
+ * Create a new field for a company/entity
  *
  * @param {Object} fieldData - Field data
  * @param {number} company_id - Company ID from logged-in user (if needed to override)
+ * @param {number} entity_id - Entity ID (defaults to company_id for company-level)
  * @returns {Object} Created field
  */
-const createField = async (fieldData, company_id = null) => {
+const createField = async (fieldData, company_id = null, entity_id = null) => {
     const {
         template_id,
         section_id,
@@ -200,18 +204,18 @@ const createField = async (fieldData, company_id = null) => {
         help_text,
         display_order,
         field_width,
-        is_default_field,
-        is_direct_field,
         allowed_file_types,
         max_file_size,
         created_by
     } = fieldData;
     const finalCompanyId = company_id || fieldData.company_id;
+    const finalEntityId = entity_id || fieldData.entity_id || finalCompanyId;
 
-    // Check if field already exists for this company
+    // Check if field already exists for this company+entity
     const existingField = await HrmsTemplateField.findOne({
         where: {
             company_id: finalCompanyId,
+            entity_id: finalEntityId,
             template_id: template_id,
             section_id: section_id,
             field_slug: field_slug
@@ -220,7 +224,7 @@ const createField = async (fieldData, company_id = null) => {
     });
 
     if (existingField) {
-        throw new Error(`Field '${field_slug}' already exists for this company, template and section`);
+        throw new Error(`Field '${field_slug}' already exists for this entity, template and section`);
     }
 
     // Create field
@@ -228,6 +232,7 @@ const createField = async (fieldData, company_id = null) => {
     // is_direct_field = true only for system default fields (stored in entity table)
     const field = await HrmsTemplateField.create({
         company_id: finalCompanyId,
+        entity_id: finalEntityId,
         template_id,
         section_id,
         field_slug,
@@ -347,6 +352,110 @@ const deleteField = async (field_id) => {
     return { deletedRows };
 };
 
+/**
+ * Copy company-level templates to a new entity
+ * Copies all sections and fields from company_id=entity_id to company_id=entity_id(new)
+ *
+ * @param {number} company_id - Parent company ID
+ * @param {number} new_entity_id - New entity ID
+ * @param {number} created_by - User ID who is creating
+ * @returns {Object} Copy result
+ */
+const copyTemplatesToEntity = async (company_id, new_entity_id, created_by) => {
+    try {
+        // Get all company-level sections (where company_id = entity_id)
+        const companySections = await HrmsTemplateSection.findAll({
+            where: {
+                company_id: company_id,
+                entity_id: company_id,
+                is_active: true
+            },
+            raw: true
+        });
+
+        if (companySections.length === 0) {
+            return { message: 'No company-level templates to copy', sectionsCopied: 0, fieldsCopied: 0 };
+        }
+
+        let sectionsCopied = 0;
+        let fieldsCopied = 0;
+
+        // Copy each section
+        for (const section of companySections) {
+            // Create new section for entity
+            const newSection = await HrmsTemplateSection.create({
+                company_id: company_id,
+                entity_id: new_entity_id,
+                template_id: section.template_id,
+                section_slug: section.section_slug,
+                section_name: section.section_name,
+                section_description: section.section_description,
+                section_order: section.section_order,
+                is_collapsible: section.is_collapsible,
+                is_active: true,
+                created_by: created_by
+            });
+
+            sectionsCopied++;
+
+            // Get all fields for this section (company-level)
+            const sectionFields = await HrmsTemplateField.findAll({
+                where: {
+                    section_id: section.id,
+                    company_id: company_id,
+                    entity_id: company_id,
+                    is_active: true
+                },
+                raw: true
+            });
+
+            // Copy each field
+            for (const field of sectionFields) {
+                await HrmsTemplateField.create({
+                    company_id: company_id,
+                    entity_id: new_entity_id,
+                    template_id: field.template_id,
+                    section_id: newSection.id, // Use new section ID
+                    field_slug: field.field_slug,
+                    field_label: field.field_label,
+                    field_type: field.field_type,
+                    field_options: field.field_options,
+                    master_slug: field.master_slug,
+                    is_required: field.is_required,
+                    min_length: field.min_length,
+                    max_length: field.max_length,
+                    min_value: field.min_value,
+                    max_value: field.max_value,
+                    regex_pattern: field.regex_pattern,
+                    data_type: field.data_type,
+                    default_value: field.default_value,
+                    placeholder: field.placeholder,
+                    help_text: field.help_text,
+                    display_order: field.display_order,
+                    field_width: field.field_width,
+                    is_default_field: field.is_default_field,
+                    is_direct_field: field.is_direct_field,
+                    allowed_file_types: field.allowed_file_types,
+                    max_file_size: field.max_file_size,
+                    is_active: true,
+                    created_by: created_by
+                });
+
+                fieldsCopied++;
+            }
+        }
+
+        return {
+            message: 'Templates copied successfully',
+            sectionsCopied,
+            fieldsCopied
+        };
+    } catch (error) {
+        console.error('Error copying templates to entity:', error.message);
+        throw error;
+    }
+};
+
 module.exports = {
     getTemplateBySlug,
     getAllTemplates,
@@ -355,5 +464,6 @@ module.exports = {
     deleteSection,
     createField,
     updateField,
-    deleteField
+    deleteField,
+    copyTemplatesToEntity
 };

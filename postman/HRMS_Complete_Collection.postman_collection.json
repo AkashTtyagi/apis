@@ -339,7 +339,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"employee_code\": \"EMP001\",\n  \"first_name\": \"Jane\",\n  \"middle_name\": \"M\",\n  \"last_name\": \"Smith\",\n  \"email\": \"jane.smith@example.com\",\n  \"phone\": \"+1234567891\",\n  \"date_of_birth\": \"1990-05-15\",\n  \"gender\": \"female\",\n  \"date_of_joining\": \"2024-01-01\",\n  \"department_id\": 1,\n  \"sub_department_id\": 1,\n  \"designation_id\": 1,\n  \"reporting_manager_id\": null,\n  \"leave_policy_id\": 1,\n  \"employment_type\": \"full_time\",\n  \"status\": 0\n}"
+              "raw": "{\n  \"directFields\": {\n    \"entity_id\": 1,\n    \"employee_code\": \"EMP001\",\n    \"first_name\": \"Jane\",\n    \"middle_name\": \"M\",\n    \"last_name\": \"Smith\",\n    \"email\": \"jane.smith@example.com\",\n    \"phone\": \"+1234567891\",\n    \"date_of_birth\": \"1990-05-15\",\n    \"gender\": \"female\",\n    \"date_of_joining\": \"2024-01-01\",\n    \"department_id\": 1,\n    \"sub_department_id\": 1,\n    \"designation_id\": 1,\n    \"reporting_manager_id\": null,\n    \"leave_policy_id\": 1,\n    \"employee_type_id\": 1,\n    \"status\": 0\n  },\n  \"templateFields\": {},\n  \"template_id\": 1\n}"
             },
             "url": {
               "raw": "{{base_url}}/employees",
@@ -365,7 +365,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"first_name\": \"Jane\",\n  \"last_name\": \"Smith Updated\",\n  \"phone\": \"+1234567892\",\n  \"department_id\": 2\n}"
+              "raw": "{\n  \"directFields\": {\n    \"entity_id\": 2,\n    \"first_name\": \"Jane\",\n    \"last_name\": \"Smith Updated\",\n    \"phone\": \"+1234567892\",\n    \"department_id\": 2\n  },\n  \"templateFields\": {},\n  \"template_id\": 1\n}"
             },
             "url": {
               "raw": "{{base_url}}/employees/{{employee_id}}",
@@ -477,7 +477,7 @@
           "response": []
         },
         {
-          "name": "Get Template by Slug",
+          "name": "Get Template by Slug (Company-level)",
           "request": {
             "method": "GET",
             "header": [],
@@ -489,13 +489,39 @@
               "path": [
                 "templates",
                 "employee_template"
+              ],
+              "query": []
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Template by Slug (Entity-specific)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/templates/employee_template?entity_id=5",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "templates",
+                "employee_template"
+              ],
+              "query": [
+                {
+                  "key": "entity_id",
+                  "value": "5",
+                  "description": "Entity ID (optional, defaults to company_id for company-level templates)"
+                }
               ]
             }
           },
           "response": []
         },
         {
-          "name": "Create Section",
+          "name": "Create Section (Company-level)",
           "request": {
             "method": "POST",
             "header": [
@@ -506,7 +532,34 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"company_id\": 1,\n  \"template_id\": 1,\n  \"section_slug\": \"personal_details\",\n  \"section_name\": \"Personal Details\",\n  \"section_description\": \"Employee personal information\",\n  \"section_order\": 1,\n  \"is_collapsible\": false,\n  \"is_active\": true\n}"
+              "raw": "{\n  \"company_id\": 1,\n  \"entity_id\": 1,\n  \"template_id\": 1,\n  \"section_slug\": \"personal_details\",\n  \"section_name\": \"Personal Details\",\n  \"section_description\": \"Employee personal information\",\n  \"section_order\": 1,\n  \"is_collapsible\": false,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/templates/sections",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "templates",
+                "sections"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Section (Entity-specific)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": 1,\n  \"entity_id\": 5,\n  \"template_id\": 1,\n  \"section_slug\": \"entity_specific_section\",\n  \"section_name\": \"Entity Specific Section\",\n  \"section_description\": \"Section specific to Entity Y\",\n  \"section_order\": 10,\n  \"is_collapsible\": false,\n  \"is_active\": true\n}"
             },
             "url": {
               "raw": "{{base_url}}/templates/sections",
@@ -569,7 +622,7 @@
           "response": []
         },
         {
-          "name": "Create Field",
+          "name": "Create Field (Company-level)",
           "request": {
             "method": "POST",
             "header": [
@@ -580,7 +633,34 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"company_id\": 1,\n  \"template_id\": 1,\n  \"section_id\": 1,\n  \"field_slug\": \"blood_group\",\n  \"field_label\": \"Blood Group\",\n  \"field_type\": \"select\",\n  \"field_options\": [\"A+\", \"A-\", \"B+\", \"B-\", \"O+\", \"O-\", \"AB+\", \"AB-\"],\n  \"is_required\": false,\n  \"data_type\": \"string\",\n  \"display_order\": 1,\n  \"field_width\": \"half\",\n  \"is_active\": true\n}"
+              "raw": "{\n  \"company_id\": 1,\n  \"entity_id\": 1,\n  \"template_id\": 1,\n  \"section_id\": 1,\n  \"field_slug\": \"blood_group\",\n  \"field_label\": \"Blood Group\",\n  \"field_type\": \"select\",\n  \"field_options\": [\"A+\", \"A-\", \"B+\", \"B-\", \"O+\", \"O-\", \"AB+\", \"AB-\"],\n  \"is_required\": false,\n  \"data_type\": \"string\",\n  \"display_order\": 1,\n  \"field_width\": \"half\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/templates/fields",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "templates",
+                "fields"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Field (Entity-specific)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": 1,\n  \"entity_id\": 5,\n  \"template_id\": 1,\n  \"section_id\": 10,\n  \"field_slug\": \"entity_custom_field\",\n  \"field_label\": \"Entity Custom Field\",\n  \"field_type\": \"text\",\n  \"is_required\": false,\n  \"data_type\": \"string\",\n  \"display_order\": 1,\n  \"field_width\": \"full\",\n  \"is_active\": true\n}"
             },
             "url": {
               "raw": "{{base_url}}/templates/fields",
@@ -675,7 +755,7 @@
           "response": []
         },
         {
-          "name": "Create Custom Department",
+          "name": "Create Custom Department (Active)",
           "request": {
             "method": "POST",
             "header": [
@@ -686,7 +766,34 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"company_department_name\": \"Digital Marketing\",\n  \"department_head_id\": null\n}"
+              "raw": "{\n  \"company_department_name\": \"Digital Marketing\",\n  \"department_code\": \"DM001\",\n  \"department_head_id\": null,\n  \"is_active\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/departments/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "departments",
+                "create"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Custom Department (Inactive)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_department_name\": \"HR Department\",\n  \"department_code\": \"HR001\",\n  \"department_head_id\": null,\n  \"is_active\": 0\n}"
             },
             "url": {
               "raw": "{{base_url}}/departments/create",
@@ -2756,6 +2863,68 @@
               "path": [
                 "company",
                 "details"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Entity",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"org_name\": \"North Branch Entity\",\n  \"country_id\": 1,\n  \"currency_id\": 1,\n  \"org_industry\": 1,\n  \"registered_address\": \"123 North Street\",\n  \"pin_code\": \"110001\",\n  \"state_id\": 12,\n  \"city_id\": 345,\n  \"phone_number\": \"+91-11-12345678\",\n  \"fax_number\": \"+91-11-12345679\",\n  \"timezone_id\": 15\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/company/entities/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "company",
+                "entities",
+                "create"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Entities by Company",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"search\": \"\",\n  \"country_id\": null,\n  \"state_id\": null,\n  \"city_id\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/company/entities/list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "company",
+                "entities",
+                "list"
               ]
             }
           }

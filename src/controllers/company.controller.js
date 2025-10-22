@@ -4,7 +4,7 @@
  */
 
 const companyService = require('../services/company.service');
-const { sendSuccess } = require('../utils/response');
+const { sendSuccess, sendCreated } = require('../utils/response');
 
 /**
  * Update company details
@@ -80,7 +80,65 @@ const getCompanyDetails = async (req, res, next) => {
     }
 };
 
+/**
+ * Create entity (sub-company)
+ * POST /api/company/entities/create
+ */
+const createEntity = async (req, res, next) => {
+    try {
+        const parent_enterprise_id = req.user.company_id;
+        const user_id = req.user.id;
+
+        const entityData = {
+            parent_enterprise_id,
+            org_name: req.body.org_name,
+            country_id: req.body.country_id,
+            currency_id: req.body.currency_id,
+            org_industry: req.body.org_industry,
+            registered_address: req.body.registered_address,
+            pin_code: req.body.pin_code,
+            state_id: req.body.state_id,
+            city_id: req.body.city_id,
+            phone_number: req.body.phone_number,
+            fax_number: req.body.fax_number,
+            timezone_id: req.body.timezone_id,
+            user_id
+        };
+
+        const entity = await companyService.createEntity(entityData);
+
+        return sendCreated(res, 'Entity created successfully', { entity });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Get all entities for company
+ * POST /api/company/entities/list
+ */
+const getEntitiesByCompany = async (req, res, next) => {
+    try {
+        const parent_company_id = req.user.company_id;
+
+        const filters = {
+            country_id: req.body.country_id,
+            state_id: req.body.state_id,
+            city_id: req.body.city_id,
+            search: req.body.search
+        };
+
+        const entities = await companyService.getEntitiesByCompany(parent_company_id, filters);
+
+        return sendSuccess(res, 'Entities retrieved successfully', { entities });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     updateCompanyDetails,
-    getCompanyDetails
+    getCompanyDetails,
+    createEntity,
+    getEntitiesByCompany
 };

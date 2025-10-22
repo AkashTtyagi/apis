@@ -84,6 +84,7 @@ const getEmployeesByCompany = async (req, res, next) => {
             status: req.query.status,
             department_id: req.query.department_id ? parseInt(req.query.department_id) : undefined,
             designation_id: req.query.designation_id ? parseInt(req.query.designation_id) : undefined,
+            entity_id: req.query.entity_id ? parseInt(req.query.entity_id) : undefined,
             is_active: req.query.is_active !== undefined ? req.query.is_active === 'true' : undefined
         };
 

@@ -65,6 +65,7 @@ const createEmployee = async (employeeData) => {
         const employee = await HrmsEmployee.create(
             {
                 company_id: company_id,
+                entity_id: directFields.entity_id || null,
                 user_id: userDetails.id,
                 employee_code: directFields.employee_code,
                 first_name: directFields.first_name,
@@ -172,6 +173,7 @@ const updateEmployee = async (employee_id, updateData) => {
         // Update employee record
         await HrmsEmployee.update(
             {
+                ...(directFields.entity_id !== undefined && { entity_id: directFields.entity_id }),
                 ...(directFields.employee_code !== undefined && { employee_code: directFields.employee_code }),
                 ...(directFields.first_name !== undefined && { first_name: directFields.first_name }),
                 ...(directFields.middle_name !== undefined && { middle_name: directFields.middle_name }),
@@ -349,6 +351,10 @@ const getEmployeesByCompany = async (company_id, filters = {}) => {
 
     if (filters.designation_id) {
         whereClause.designation_id = filters.designation_id;
+    }
+
+    if (filters.entity_id) {
+        whereClause.entity_id = filters.entity_id;
     }
 
     if (filters.is_deleted !== undefined) {

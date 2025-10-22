@@ -29,6 +29,13 @@ const HrmsEmployee = sequelize.define('HrmsEmployee', {
         comment: 'Foreign key to hrms_companies'
     },
 
+    // Entity ID (generic entity reference)
+    entity_id: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: true,
+        comment: 'Generic entity reference'
+    },
+
     // User ID (link to hrms_user_details)
     user_id: {
         type: DataTypes.INTEGER,
@@ -327,6 +334,9 @@ const HrmsEmployee = sequelize.define('HrmsEmployee', {
     indexes: [
         {
             fields: ['company_id']
+        },
+        {
+            fields: ['entity_id']
         },
         {
             fields: ['user_id']

@@ -12,7 +12,7 @@ const { sendSuccess, sendCreated } = require('../utils/response');
  */
 const createOrgDepartment = async (req, res, next) => {
     try {
-        const { department_id, company_department_name, department_head_id } = req.body;
+        const { department_id, company_department_name, department_code, department_head_id, is_active } = req.body;
         const user_id = req.user.id;
         const org_id = req.user.company_id;
 
@@ -20,7 +20,9 @@ const createOrgDepartment = async (req, res, next) => {
             org_id,
             department_id,
             company_department_name,
+            department_code,
             department_head_id,
+            is_active,
             user_id
         });
 

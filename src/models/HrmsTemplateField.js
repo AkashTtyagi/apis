@@ -23,6 +23,13 @@ const HrmsTemplateField = sequelize.define('HrmsTemplateField', {
         comment: 'Foreign key to hrms_companies, NULL for default fields'
     },
 
+    // Entity ID (same as company_id for company-level, different for entity-specific)
+    entity_id: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: true,
+        comment: 'Entity ID (same as company_id for company-level templates, different for entity-specific, NULL for default templates)'
+    },
+
     // Template ID
     template_id: {
         type: DataTypes.INTEGER,
