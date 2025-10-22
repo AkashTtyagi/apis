@@ -62,10 +62,10 @@ const updateOrgDepartment = async (req, res, next) => {
  */
 const getOrgDepartments = async (req, res, next) => {
     try {
-        const org_id = req.user.company_id;
+        const companyId = req.user.company_id;
         const { activeOnly } = req.body;
 
-        const orgDepartments = await orgDepartmentService.getOrgDepartments(org_id, activeOnly !== false);
+        const orgDepartments = await orgDepartmentService.getOrgDepartments(companyId, activeOnly !== false);
 
         return sendSuccess(res, 'Organization departments retrieved successfully', { departments: orgDepartments });
     } catch (error) {

@@ -93,8 +93,8 @@ const updateOrgDepartment = async (org_dept_id, updateData) => {
  * @param {boolean} activeOnly - Get only active departments
  * @returns {Array} List of organization departments with details
  */
-const getOrgDepartments = async (org_id, activeOnly = true) => {
-    const whereClause = { org_id };
+const getOrgDepartments = async (companyId, activeOnly = true) => {
+    const whereClause = { company_id :companyId };
 
     if (activeOnly) {
         whereClause.is_active = true;
