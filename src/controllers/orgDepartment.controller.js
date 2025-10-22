@@ -12,18 +12,23 @@ const { sendSuccess, sendCreated } = require('../utils/response');
  */
 const createOrgDepartment = async (req, res, next) => {
     try {
-        const { department_id, department_head_id } = req.body;
+        const { department_id, company_department_name, department_head_id } = req.body;
         const user_id = req.user.id;
         const org_id = req.user.company_id;
 
         const orgDepartment = await orgDepartmentService.createOrgDepartment({
             org_id,
             department_id,
+            company_department_name,
             department_head_id,
             user_id
         });
 
-        return sendCreated(res, 'Department assigned to organization successfully', { orgDepartment });
+        const message = company_department_name
+            ? 'Custom department created successfully'
+            : 'Department assigned to organization successfully';
+
+        return sendCreated(res, message, { orgDepartment });
     } catch (error) {
         next(error);
     }

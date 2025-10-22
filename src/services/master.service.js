@@ -35,6 +35,8 @@ const { Sequelize, Op } = require('sequelize');
  * Master table configuration
  * Maps master_slug to table details and query structure
  */
+const { HrmsDepartmentMaster } = require('../models/HrmsDepartmentMaster');
+
 const MASTER_CONFIG = {
     // Timezone Master (NOT company scoped)
     timezone: {
@@ -122,10 +124,13 @@ const MASTER_CONFIG = {
         table: 'hrms_company_departments',
         fields: {
             id: 'id',
-            code: 'department_code',
-            name: 'department_name'
+            code: null,  // Will be handled specially
+            name: null   // Will be handled specially (company_department_name OR master.department_name)
         },
-        companyScoped: true
+        companyScoped: true,
+        requiresJoin: true,  // Special flag for department join logic
+        joinModel: HrmsDepartmentMaster,
+        joinAs: 'department'
     },
     sub_department: {
         model: HrmsCompanySubDepartment,
@@ -454,7 +459,36 @@ const getMasterDataBySlug = async (masterSlug, companyId = null, filters = {}, s
     // Determine order
     const orderBy = config.orderBy || [[config.fields.name, 'ASC']];
 
-    // Execute query using Sequelize model
+    // Special handling for department (requires JOIN with department_master)
+    if (masterSlug === 'department') {
+        const departments = await config.model.findAll({
+            where: whereClause,
+            include: [
+                {
+                    model: config.joinModel,
+                    as: config.joinAs,
+                    attributes: ['department_name', 'department_code', 'description'],
+                    required: false  // LEFT JOIN - custom departments won't have master
+                }
+            ],
+            raw: false,
+            nest: true
+        });
+
+        // Format response: Use company_department_name if present, else use master name
+        return departments.map(dept => {
+            const deptObj = dept.toJSON();
+            return {
+                id: deptObj.id,
+                code: deptObj.department?.department_code || null,
+                name: deptObj.company_department_name || deptObj.department?.department_name || null,
+                is_custom: deptObj.company_department_name ? true : false,
+                department_id: deptObj.department_id
+            };
+        });
+    }
+
+    // Execute query using Sequelize model (for all other masters)
     const records = await config.model.findAll({
         attributes: selectFields,
         where: whereClause,

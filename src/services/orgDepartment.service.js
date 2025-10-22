@@ -13,24 +13,40 @@ const { HrmsDepartmentMaster } = require('../models/HrmsDepartmentMaster');
  * @returns {Object} Created department mapping
  */
 const createOrgDepartment = async (departmentData) => {
-    const { org_id, department_id, department_head_id, user_id } = departmentData;
+    const { org_id, department_id, company_department_name, department_head_id, user_id } = departmentData;
+
+    // Validate: Either department_id OR company_department_name must be provided
+    if (!department_id && !company_department_name) {
+        throw new Error('Either department_id (for master) or company_department_name (for custom) is required');
+    }
+
+    if (department_id && company_department_name) {
+        throw new Error('Provide either department_id OR company_department_name, not both');
+    }
 
     // Check if mapping already exists
+    const whereClause = { org_id };
+
+    if (department_id) {
+        whereClause.department_id = department_id;
+    } else {
+        whereClause.company_department_name = company_department_name;
+    }
+
     const existing = await HrmsCompanyDepartments.findOne({
-        where: {
-            org_id,
-            department_id
-        },
+        where: whereClause,
         raw: true
     });
 
     if (existing) {
-        throw new Error('This department is already assigned to the organization');
+        const deptName = department_id ? 'This department' : company_department_name;
+        throw new Error(`${deptName} is already assigned to the organization`);
     }
 
     const orgDepartment = await HrmsCompanyDepartments.create({
         org_id,
-        department_id,
+        department_id: department_id || null,
+        company_department_name: company_department_name || null,
         department_head_id: department_head_id || null,
         is_active: true,
         created_by: user_id || null
@@ -90,7 +106,8 @@ const getOrgDepartments = async (org_id, activeOnly = true) => {
             {
                 model: HrmsDepartmentMaster,
                 as: 'department',
-                attributes: ['department_id', 'department_name', 'department_code', 'description']
+                attributes: ['department_id', 'department_name', 'department_code', 'description'],
+                required: false  // LEFT JOIN - because custom departments won't have master
             }
         ],
         order: [['id', 'ASC']],
@@ -98,7 +115,26 @@ const getOrgDepartments = async (org_id, activeOnly = true) => {
         nest: true
     });
 
-    return orgDepartments;
+    // Format response: Use company_department_name if present, else use master department name
+    const formattedDepartments = orgDepartments.map(dept => {
+        const deptObj = dept.toJSON();
+
+        return {
+            id: deptObj.id,
+            company_id: deptObj.company_id,
+            department_id: deptObj.department_id,
+            department_name: deptObj.company_department_name || deptObj.department?.department_name || null,
+            department_code: deptObj.department?.department_code || null,
+            description: deptObj.department?.description || null,
+            is_custom: deptObj.company_department_name ? true : false,
+            department_head_id: deptObj.department_head_id,
+            is_active: deptObj.is_active,
+            created_at: deptObj.created_at,
+            updated_at: deptObj.updated_at
+        };
+    });
+
+    return formattedDepartments;
 };
 
 module.exports = {

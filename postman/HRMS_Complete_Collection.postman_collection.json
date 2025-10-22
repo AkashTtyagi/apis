@@ -675,6 +675,33 @@
           "response": []
         },
         {
+          "name": "Create Custom Department",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_department_name\": \"Digital Marketing\",\n  \"department_head_id\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/departments/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "departments",
+                "create"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "Update Organization Department",
           "request": {
             "method": "POST",
@@ -1230,6 +1257,34 @@
                 "data"
               ]
             }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Departments (Shows Custom + Master)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"master_type\": \"department\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/master/data",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "master",
+                "data"
+              ]
+            },
+            "description": "Returns all departments with custom and master departments.\nResponse includes:\n- id: Department ID\n- code: Department code (NULL for custom)\n- name: company_department_name OR master department_name\n- is_custom: true/false flag\n- department_id: Master department ID (NULL for custom)"
           },
           "response": []
         },
