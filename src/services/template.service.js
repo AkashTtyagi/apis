@@ -201,6 +201,7 @@ const createField = async (fieldData, company_id = null) => {
         display_order,
         field_width,
         is_default_field,
+        is_direct_field,
         allowed_file_types,
         max_file_size,
         created_by
@@ -223,6 +224,8 @@ const createField = async (fieldData, company_id = null) => {
     }
 
     // Create field
+    // Note: is_direct_field will be false for admin custom fields (set in route)
+    // is_direct_field = true only for system default fields (stored in entity table)
     const field = await HrmsTemplateField.create({
         company_id: finalCompanyId,
         template_id,
@@ -244,7 +247,8 @@ const createField = async (fieldData, company_id = null) => {
         help_text: help_text || null,
         display_order: display_order || 0,
         field_width: field_width || 'full',
-        is_default_field: is_default_field || false,
+        is_default_field: false,
+        is_direct_field: false,  // Always false for admin custom fields
         allowed_file_types: allowed_file_types || null,
         max_file_size: max_file_size || null,
         is_active: true,
@@ -256,6 +260,7 @@ const createField = async (fieldData, company_id = null) => {
 
 /**
  * Update a field
+ * Note: is_direct_field and is_default_field cannot be updated (system-controlled)
  *
  * @param {number} field_id - Field ID
  * @param {Object} updateData - Update data
