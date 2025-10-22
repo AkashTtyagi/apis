@@ -5353,7 +5353,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"company_id\": {{company_id}},\n  \"category_id\": 1,\n  \"policy_title\": \"Leave Policy 2025\",\n  \"policy_slug\": \"leave_policy_2025\",\n  \"policy_description\": \"Company leave policy for year 2025\",\n  \"requires_acknowledgment\": true,\n  \"force_acknowledgment\": true,\n  \"grace_period_days\": 7,\n  \"send_notifications\": true,\n  \"notification_channels\": [\"email\", \"in_app\"],\n  \"reminder_frequency_days\": 3,\n  \"effective_from\": \"2025-01-01\",\n  \"expires_on\": \"2025-12-31\"\n}"
+                  "raw": "{\n  \"company_id\": {{company_id}},\n  \"category_id\": 1,\n  \"policy_title\": \"Leave Policy 2025\",\n  \"policy_slug\": \"leave_policy_2025\",\n  \"policy_description\": \"Company leave policy for year 2025\",\n  \"requires_acknowledgment\": true,\n  \"force_acknowledgment\": true,\n  \"grace_period_days\": 7,\n  \"send_notifications\": true,\n  \"notification_channels\": [\"email\", \"in_app\"],\n  \"reminder_frequency_days\": 3,\n  \"effective_from\": \"2025-01-01\",\n  \"expires_on\": \"2025-12-31\",\n  \"version_title\": \"Leave Policy 2025 - Version 1.0\",\n  \"version_description\": \"Initial version with all leave types\",\n  \"policy_content\": \"<h1>Leave Policy 2025</h1><h2>1. Annual Leave</h2><p>20 days per year</p><h2>2. Sick Leave</h2><p>12 days per year</p>\",\n  \"applicability_rules\": [\n    {\n      \"applicability_type\": \"company\",\n      \"applicability_value\": \"{{company_id}}\",\n      \"is_excluded\": false,\n      \"priority\": 1\n    }\n  ]\n}"
                 },
                 "url": {
                   "raw": "{{base_url}}/admin/policy/create",

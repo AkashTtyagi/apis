@@ -108,7 +108,7 @@ const deletePolicyCategory = async (category_id, user_id) => {
 // =====================================================
 
 /**
- * Create new policy
+ * Create new policy with version, content, and applicability in one step
  */
 const createPolicy = async (policyData, transaction = null) => {
     const {
@@ -125,6 +125,12 @@ const createPolicy = async (policyData, transaction = null) => {
         reminder_frequency_days,
         effective_from,
         expires_on,
+        // Version data
+        version_title,
+        version_description,
+        policy_content,
+        // Applicability rules
+        applicability_rules,
         user_id
     } = policyData;
 
@@ -141,7 +147,7 @@ const createPolicy = async (policyData, transaction = null) => {
             throw new Error('Policy slug already exists for this company');
         }
 
-        // Create policy
+        // 1. Create policy
         const policy = await HrmsPolicy.create({
             company_id,
             category_id,
@@ -161,8 +167,57 @@ const createPolicy = async (policyData, transaction = null) => {
             created_by: user_id
         }, { transaction: t });
 
+        // 2. Create initial version (if content provided)
+        if (version_title || policy_content) {
+            await HrmsPolicyVersion.create({
+                policy_id: policy.id,
+                version_number: 1,
+                version_title: version_title || `${policy_title} - Version 1.0`,
+                version_description: version_description || 'Initial version',
+                policy_content: policy_content || '',
+                is_current_version: true,
+                published_at: new Date(),
+                published_by: user_id,
+                change_summary: 'Initial version',
+                created_by: user_id
+            }, { transaction: t });
+        }
+
+        // 3. Create applicability rules (if provided)
+        if (applicability_rules && Array.isArray(applicability_rules) && applicability_rules.length > 0) {
+            const rules = applicability_rules.map(rule => ({
+                policy_id: policy.id,
+                applicability_type: rule.applicability_type,
+                applicability_value: rule.applicability_value,
+                company_id: policy.company_id,
+                is_excluded: rule.is_excluded || false,
+                advanced_applicability_type: rule.advanced_applicability_type || 'none',
+                advanced_applicability_value: rule.advanced_applicability_value || null,
+                priority: rule.priority || 1,
+                is_active: true,
+                created_by: user_id
+            }));
+
+            await HrmsPolicyApplicability.bulkCreate(rules, { transaction: t });
+        }
+
         if (!transaction) await t.commit();
-        return policy;
+
+        // Return policy with version and applicability
+        const policyWithDetails = await HrmsPolicy.findByPk(policy.id, {
+            include: [
+                {
+                    model: HrmsPolicyVersion,
+                    as: 'versions'
+                },
+                {
+                    model: HrmsPolicyApplicability,
+                    as: 'applicability'
+                }
+            ]
+        });
+
+        return policyWithDetails;
     } catch (error) {
         if (!transaction) await t.rollback();
         throw error;
@@ -490,6 +545,8 @@ const getPolicyVersions = async (policy_id) => {
 
 /**
  * Set policy applicability rules
+ * Note: Applicability rules define who should see/acknowledge the policy
+ * The actual employee assignment happens when admin explicitly calls the assign endpoint
  */
 const setPolicyApplicability = async (policy_id, applicabilityRules, user_id) => {
     const t = await sequelize.transaction();
@@ -523,7 +580,10 @@ const setPolicyApplicability = async (policy_id, applicabilityRules, user_id) =>
         const createdRules = await HrmsPolicyApplicability.bulkCreate(rules, { transaction: t });
 
         await t.commit();
-        return createdRules;
+        return {
+            rules: createdRules,
+            message: 'Applicability rules updated successfully. Use assign endpoint to apply to employees.'
+        };
     } catch (error) {
         await t.rollback();
         throw error;
@@ -548,6 +608,7 @@ const getPolicyApplicability = async (policy_id) => {
 
 /**
  * Assign policy to employees based on applicability rules
+ * Matches employees using applicability_type and advanced_applicability_type
  */
 const assignPolicyToEmployees = async (policy_id, user_id) => {
     const t = await sequelize.transaction();
@@ -576,10 +637,36 @@ const assignPolicyToEmployees = async (policy_id, user_id) => {
         }
 
         const currentVersion = policy.versions[0];
+        const applicabilityRules = policy.applicability;
 
-        // TODO: Implement employee matching logic based on applicability rules
-        // This would query hrms_employees and match against applicability_type and applicability_value
-        const employeeIds = []; // Placeholder
+        // Match employees based on applicability rules
+        const matchedEmployeeIds = new Set();
+        const excludedEmployeeIds = new Set();
+
+        for (const rule of applicabilityRules) {
+            const ids = await matchEmployeesForRule(rule, policy.company_id, t);
+
+            if (rule.is_excluded) {
+                // Add to exclusion list
+                ids.forEach(id => excludedEmployeeIds.add(id));
+            } else {
+                // Add to inclusion list
+                ids.forEach(id => matchedEmployeeIds.add(id));
+            }
+        }
+
+        // Remove excluded employees from matched list
+        excludedEmployeeIds.forEach(id => matchedEmployeeIds.delete(id));
+
+        const employeeIds = Array.from(matchedEmployeeIds);
+
+        if (employeeIds.length === 0) {
+            await t.commit();
+            return {
+                message: 'No employees matched the applicability rules',
+                count: 0
+            };
+        }
 
         // Create acknowledgment records
         const acknowledgments = [];
@@ -612,12 +699,144 @@ const assignPolicyToEmployees = async (policy_id, user_id) => {
         await t.commit();
         return {
             message: `Policy assigned to ${createdAcknowledgments.length} employees`,
-            count: createdAcknowledgments.length
+            count: createdAcknowledgments.length,
+            assigned_employee_ids: employeeIds
         };
     } catch (error) {
         await t.rollback();
         throw error;
     }
+};
+
+/**
+ * Match employees for a single applicability rule
+ * Handles both primary applicability_type and advanced_applicability_type
+ */
+const matchEmployeesForRule = async (rule, company_id, transaction) => {
+    const { HrmsEmployee } = require('../models/HrmsEmployee');
+
+    // Build WHERE clause for primary applicability
+    const whereClause = {
+        company_id: company_id,
+        is_active: true
+    };
+
+    // Parse comma-separated values
+    const primaryValues = rule.applicability_value ? rule.applicability_value.split(',').map(v => v.trim()) : [];
+
+    // Apply primary applicability filter
+    switch (rule.applicability_type) {
+        case 'company':
+            // All employees in company (already filtered by company_id)
+            break;
+
+        case 'entity':
+            if (primaryValues.length > 0) {
+                whereClause.entity_id = { [Op.in]: primaryValues };
+            }
+            break;
+
+        case 'department':
+            if (primaryValues.length > 0) {
+                whereClause.department_id = { [Op.in]: primaryValues };
+            }
+            break;
+
+        case 'sub_department':
+            if (primaryValues.length > 0) {
+                whereClause.sub_department_id = { [Op.in]: primaryValues };
+            }
+            break;
+
+        case 'designation':
+            if (primaryValues.length > 0) {
+                whereClause.designation_id = { [Op.in]: primaryValues };
+            }
+            break;
+
+        case 'level':
+            if (primaryValues.length > 0) {
+                whereClause.level_id = { [Op.in]: primaryValues };
+            }
+            break;
+
+        case 'location':
+            if (primaryValues.length > 0) {
+                whereClause.location_id = { [Op.in]: primaryValues };
+            }
+            break;
+
+        case 'grade':
+            if (primaryValues.length > 0) {
+                whereClause.grade_id = { [Op.in]: primaryValues };
+            }
+            break;
+
+        case 'employee':
+            if (primaryValues.length > 0) {
+                whereClause.id = { [Op.in]: primaryValues };
+            }
+            break;
+
+        default:
+            throw new Error(`Unknown applicability_type: ${rule.applicability_type}`);
+    }
+
+    // Apply advanced applicability filter (secondary filter)
+    if (rule.advanced_applicability_type && rule.advanced_applicability_type !== 'none' && rule.advanced_applicability_value) {
+        const advancedValues = rule.advanced_applicability_value.split(',').map(v => v.trim());
+
+        switch (rule.advanced_applicability_type) {
+            case 'entity':
+                whereClause.entity_id = { [Op.in]: advancedValues };
+                break;
+
+            case 'department':
+                whereClause.department_id = { [Op.in]: advancedValues };
+                break;
+
+            case 'sub_department':
+                whereClause.sub_department_id = { [Op.in]: advancedValues };
+                break;
+
+            case 'designation':
+                whereClause.designation_id = { [Op.in]: advancedValues };
+                break;
+
+            case 'level':
+                whereClause.level_id = { [Op.in]: advancedValues };
+                break;
+
+            case 'location':
+                whereClause.location_id = { [Op.in]: advancedValues };
+                break;
+
+            case 'grade':
+                whereClause.grade_id = { [Op.in]: advancedValues };
+                break;
+
+            case 'employee_type':
+                whereClause.employee_type = { [Op.in]: advancedValues };
+                break;
+
+            case 'branch':
+                whereClause.branch_id = { [Op.in]: advancedValues };
+                break;
+
+            case 'region':
+                whereClause.region_id = { [Op.in]: advancedValues };
+                break;
+        }
+    }
+
+    // Query employees
+    const employees = await HrmsEmployee.findAll({
+        where: whereClause,
+        attributes: ['id'],
+        transaction
+    });
+
+    return employees.map(emp => emp.id);
 };
 
 // =====================================================

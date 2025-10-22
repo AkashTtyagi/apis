@@ -152,7 +152,7 @@ const deletePolicyCategory = async (req, res) => {
 // =====================================================
 
 /**
- * Create policy
+ * Create policy with version and applicability in one step
  * POST /api/admin/policy/create
  */
 const createPolicy = async (req, res) => {
@@ -170,7 +170,13 @@ const createPolicy = async (req, res) => {
             notification_channels,
             reminder_frequency_days,
             effective_from,
-            expires_on
+            expires_on,
+            // Version data (optional)
+            version_title,
+            version_description,
+            policy_content,
+            // Applicability rules (optional)
+            applicability_rules
         } = req.body;
         const user_id = req.user?.id;
 
@@ -195,12 +201,16 @@ const createPolicy = async (req, res) => {
             reminder_frequency_days,
             effective_from,
             expires_on,
+            version_title,
+            version_description,
+            policy_content,
+            applicability_rules,
             user_id
         });
 
         res.status(201).json({
             success: true,
-            message: 'Policy created successfully',
+            message: 'Policy created successfully with version and applicability',
             data: policy
         });
     } catch (error) {
