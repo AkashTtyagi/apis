@@ -30,6 +30,14 @@ const HrmsTemplateField = sequelize.define('HrmsTemplateField', {
         comment: 'Entity ID (same as company_id for company-level templates, different for entity-specific, NULL for default templates)'
     },
 
+    // Country ID (0 = global/all countries, >0 = country-specific)
+    country_id: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: false,
+        defaultValue: 0,
+        comment: 'Country ID (0 = global/all countries, >0 = country-specific)'
+    },
+
     // Template ID
     template_id: {
         type: DataTypes.INTEGER,
@@ -259,6 +267,12 @@ const HrmsTemplateField = sequelize.define('HrmsTemplateField', {
             fields: ['company_id']
         },
         {
+            fields: ['entity_id']
+        },
+        {
+            fields: ['country_id']
+        },
+        {
             fields: ['template_id']
         },
         {
@@ -289,9 +303,17 @@ const HrmsTemplateField = sequelize.define('HrmsTemplateField', {
             fields: ['deleted_at']
         },
         {
+            fields: ['company_id', 'entity_id', 'template_id'],
+            name: 'idx_company_entity_template'
+        },
+        {
+            fields: ['company_id', 'country_id', 'template_id'],
+            name: 'idx_company_country_template'
+        },
+        {
             unique: true,
-            fields: ['company_id', 'template_id', 'section_id', 'field_slug'],
-            name: 'unique_company_template_section_field'
+            fields: ['company_id', 'country_id', 'template_id', 'section_id', 'field_slug'],
+            name: 'unique_company_country_template_section_field'
         }
     ]
 });

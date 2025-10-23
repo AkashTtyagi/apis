@@ -361,27 +361,28 @@ const deleteField = async (field_id) => {
  * @param {number} created_by - User ID who is creating
  * @returns {Object} Copy result
  */
-const copyTemplatesToEntity = async (company_id, new_entity_id, created_by) => {
+const copyTemplatesToEntity = async (company_id, new_entity_id, entity_country_id, created_by) => {
     try {
-        // Get all company-level sections (where company_id = entity_id)
-        const companySections = await HrmsTemplateSection.findAll({
+        // Get all default sections (where company_id IS NULL and entity_id IS NULL)
+        // We copy from default templates to new entity
+        const defaultSections = await HrmsTemplateSection.findAll({
             where: {
-                company_id: company_id,
-                entity_id: company_id,
+                company_id: null,
+                entity_id: null,
                 is_active: true
             },
             raw: true
         });
 
-        if (companySections.length === 0) {
-            return { message: 'No company-level templates to copy', sectionsCopied: 0, fieldsCopied: 0 };
+        if (defaultSections.length === 0) {
+            return { message: 'No default templates to copy', sectionsCopied: 0, fieldsCopied: 0 };
         }
 
         let sectionsCopied = 0;
         let fieldsCopied = 0;
 
         // Copy each section
-        for (const section of companySections) {
+        for (const section of defaultSections) {
             // Create new section for entity
             const newSection = await HrmsTemplateSection.create({
                 company_id: company_id,
@@ -398,12 +399,15 @@ const copyTemplatesToEntity = async (company_id, new_entity_id, created_by) => {
 
             sectionsCopied++;
 
-            // Get all fields for this section (company-level)
+            // Get all fields for this section with country_id = 0 OR entity's country_id
             const sectionFields = await HrmsTemplateField.findAll({
                 where: {
                     section_id: section.id,
-                    company_id: company_id,
-                    entity_id: company_id,
+                    company_id: null,
+                    entity_id: null,
+                    country_id: {
+                        [Op.or]: [0, entity_country_id]
+                    },
                     is_active: true
                 },
                 raw: true
@@ -414,6 +418,7 @@ const copyTemplatesToEntity = async (company_id, new_entity_id, created_by) => {
                 await HrmsTemplateField.create({
                     company_id: company_id,
                     entity_id: new_entity_id,
+                    country_id: field.country_id,
                     template_id: field.template_id,
                     section_id: newSection.id, // Use new section ID
                     field_slug: field.field_slug,

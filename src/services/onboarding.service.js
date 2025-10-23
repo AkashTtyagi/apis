@@ -280,7 +280,7 @@ const onboardCompanyAndUser = async (data) => {
         // Step 13: Copy all default templates to company (INSIDE transaction)
         console.log(`Copying default templates to company...`);
         const templateCopyResult = await copyAllTemplatesToCompany(
-            company_id, user_id,
+            company_id, user_id, country_id,
             dbTrans.trans_id  // Pass Sequelize transaction
         );
         console.log(`✓ Templates copied: ${templateCopyResult.templates_copied} templates, ${templateCopyResult.total_sections} sections, ${templateCopyResult.total_fields} fields`);

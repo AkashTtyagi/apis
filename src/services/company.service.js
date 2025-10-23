@@ -193,6 +193,7 @@ const createEntity = async (entityData) => {
             const copyResult = await templateService.copyTemplatesToEntity(
                 parent_enterprise_id,
                 entity.id,
+                country_id,
                 user_id
             );
             console.log(`Templates copied to entity ${entity.id}:`, copyResult);

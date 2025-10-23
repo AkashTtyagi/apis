@@ -435,6 +435,8 @@ CREATE TABLE IF NOT EXISTS `hrms_template_sections` (
 CREATE TABLE IF NOT EXISTS `hrms_template_fields` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `company_id` INT DEFAULT NULL COMMENT 'Foreign key to hrms_companies, NULL for default fields',
+  `entity_id` INT UNSIGNED NULL COMMENT 'Entity ID (same as company_id for company-level, different for entity-specific)',
+  `country_id` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Country ID (0 = global/all countries, >0 = country-specific)',
   `template_id` INT NOT NULL COMMENT 'Foreign key to hrms_templates',
   `section_id` INT NOT NULL COMMENT 'Foreign key to hrms_template_sections',
   `field_slug` VARCHAR(100) NOT NULL COMMENT 'Unique identifier: blood_group, emergency_contact, father_name',
@@ -466,6 +468,8 @@ CREATE TABLE IF NOT EXISTS `hrms_template_fields` (
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   INDEX `idx_company_id` (`company_id`),
+  INDEX `idx_entity_id` (`entity_id`),
+  INDEX `idx_country_id` (`country_id`),
   INDEX `idx_template_id` (`template_id`),
   INDEX `idx_section_id` (`section_id`),
   INDEX `idx_field_slug` (`field_slug`),
@@ -476,7 +480,9 @@ CREATE TABLE IF NOT EXISTS `hrms_template_fields` (
   INDEX `idx_created_by` (`created_by`),
   INDEX `idx_updated_by` (`updated_by`),
   INDEX `idx_deleted_at` (`deleted_at`),
-  UNIQUE INDEX `unique_company_template_section_field` (`company_id`, `template_id`, `section_id`, `field_slug`),
+  INDEX `idx_company_entity_template` (`company_id`, `entity_id`, `template_id`),
+  INDEX `idx_company_country_template` (`company_id`, `country_id`, `template_id`),
+  UNIQUE INDEX `unique_company_country_template_section_field` (`company_id`, `country_id`, `template_id`, `section_id`, `field_slug`),
   CONSTRAINT `fk_field_template` FOREIGN KEY (`template_id`) REFERENCES `hrms_templates` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_field_section` FOREIGN KEY (`section_id`) REFERENCES `hrms_template_sections` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

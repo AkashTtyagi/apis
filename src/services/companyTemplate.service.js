@@ -13,10 +13,11 @@ const { HrmsTemplateField } = require('../models/HrmsTemplateField');
  * @param {Object} template - Template object
  * @param {number} company_id - Company ID
  * @param {number} user_id - User ID who created the company
+ * @param {number} company_country_id - Company's country ID
  * @param {Object} transaction - Sequelize transaction object
  * @returns {Promise<Object>} - Summary of copied template
  */
-const copySingleTemplateToCompany = async (template, company_id, user_id, transaction = null) => {
+const copySingleTemplateToCompany = async (template, company_id, user_id, company_country_id, transaction = null) => {
     try {
         console.log(`  → Copying template: ${template.template_name} (${template.template_slug})`);
 
@@ -65,17 +66,22 @@ const copySingleTemplateToCompany = async (template, company_id, user_id, transa
         console.log(`    ✓ Copied ${defaultSections.length} sections`);
 
         // Step 3: Copy all fields for all sections
+        // Copy fields with country_id = 0 (global) OR country_id = company's country_id
         let totalFieldsCopied = 0;
 
         for (const oldSectionId of Object.keys(sectionMapping)) {
             const newSectionId = sectionMapping[oldSectionId];
 
-            // Get all fields for this section
+            // Get all fields for this section with country_id = 0 OR company's country_id
+            const { Op } = require('sequelize');
             const sectionFields = await HrmsTemplateField.findAll({
                 where: {
                     template_id: template.id,
                     section_id: oldSectionId,
                     company_id: null,
+                    country_id: {
+                        [Op.or]: [0, company_country_id]
+                    },
                     is_active: true
                 },
                 order: [['display_order', 'ASC']],
@@ -86,6 +92,8 @@ const copySingleTemplateToCompany = async (template, company_id, user_id, transa
             for (const field of sectionFields) {
                 await HrmsTemplateField.create({
                     company_id: company_id,
+                    entity_id: company_id,
+                    country_id: field.country_id,
                     template_id: template.id,
                     section_id: newSectionId,
                     field_slug: field.field_slug,
@@ -137,13 +145,15 @@ const copySingleTemplateToCompany = async (template, company_id, user_id, transa
  * Copy ALL default templates to a new company
  * This is called during company onboarding
  * Copies all templates with company_id = NULL to the new company
+ * Copies fields with country_id = 0 (global) and country_id = company's country_id
  *
  * @param {number} company_id - Company ID
  * @param {number} user_id - User ID who created the company
+ * @param {number} company_country_id - Company's country ID
  * @param {Object} transaction - Sequelize transaction object
  * @returns {Promise<Object>} - Summary of all copied templates
  */
-const copyAllTemplatesToCompany = async (company_id, user_id, transaction = null) => {
+const copyAllTemplatesToCompany = async (company_id, user_id, company_country_id, transaction = null) => {
     try {
         console.log(`\n╔════════════════════════════════════════════════════╗`);
         console.log(`║  Copying All Default Templates to Company ${company_id.toString().padEnd(7)}║`);
@@ -180,7 +190,7 @@ const copyAllTemplatesToCompany = async (company_id, user_id, transaction = null
         let templatesSkipped = 0;
 
         for (const template of allTemplates) {
-            const result = await copySingleTemplateToCompany(template, company_id, user_id, transaction);
+            const result = await copySingleTemplateToCompany(template, company_id, user_id, company_country_id, transaction);
             results.push(result);
 
             if (result.skipped) {

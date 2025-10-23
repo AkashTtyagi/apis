@@ -16,7 +16,7 @@
 
 -- Cost Center (Direct Field - Optional)
 INSERT INTO hrms_template_fields (
-    company_id, country_id, template_id, section_id,
+    company_id, template_id, section_id,
     field_slug, field_label, field_type, master_slug,
     is_required, data_type, placeholder, help_text,
     display_order, field_width,
@@ -24,7 +24,7 @@ INSERT INTO hrms_template_fields (
     created_at, updated_at
 )
 VALUES (
-    NULL, 0, 1, 4,
+    NULL, 1, 4,
     'cost_center_id', 'Cost Center', 'master_select', 'cost_center',
     0, 'integer', 'Select cost center', 'Cost center for budgeting and expense tracking',
     20, 'half',
@@ -34,7 +34,7 @@ VALUES (
 
 -- Division (Direct Field - Optional)
 INSERT INTO hrms_template_fields (
-    company_id, country_id, template_id, section_id,
+    company_id, template_id, section_id,
     field_slug, field_label, field_type, master_slug,
     is_required, data_type, placeholder, help_text,
     display_order, field_width,
@@ -42,7 +42,7 @@ INSERT INTO hrms_template_fields (
     created_at, updated_at
 )
 VALUES (
-    NULL, 0, 1, 4,
+    NULL, 1, 4,
     'division_id', 'Division', 'master_select', 'division',
     0, 'integer', 'Select division', 'Business division or vertical',
     21, 'half',
@@ -52,7 +52,7 @@ VALUES (
 
 -- Region (Direct Field - Optional)
 INSERT INTO hrms_template_fields (
-    company_id, country_id, template_id, section_id,
+    company_id, template_id, section_id,
     field_slug, field_label, field_type, master_slug,
     is_required, data_type, placeholder, help_text,
     display_order, field_width,
@@ -60,7 +60,7 @@ INSERT INTO hrms_template_fields (
     created_at, updated_at
 )
 VALUES (
-    NULL, 0, 1, 4,
+    NULL, 1, 4,
     'region_id', 'Region', 'master_select', 'region',
     0, 'integer', 'Select region', 'Geographical region',
     22, 'half',
@@ -70,7 +70,7 @@ VALUES (
 
 -- Zone (Direct Field - Optional)
 INSERT INTO hrms_template_fields (
-    company_id, country_id, template_id, section_id,
+    company_id, template_id, section_id,
     field_slug, field_label, field_type, master_slug,
     is_required, data_type, placeholder, help_text,
     display_order, field_width,
@@ -78,7 +78,7 @@ INSERT INTO hrms_template_fields (
     created_at, updated_at
 )
 VALUES (
-    NULL, 0, 1, 4,
+    NULL, 1, 4,
     'zone_id', 'Zone', 'master_select', 'zone',
     0, 'integer', 'Select zone', 'Geographical zone within region',
     23, 'half',
@@ -88,7 +88,7 @@ VALUES (
 
 -- Business Unit (Direct Field - Optional)
 INSERT INTO hrms_template_fields (
-    company_id, country_id, template_id, section_id,
+    company_id, template_id, section_id,
     field_slug, field_label, field_type, master_slug,
     is_required, data_type, placeholder, help_text,
     display_order, field_width,
@@ -96,7 +96,7 @@ INSERT INTO hrms_template_fields (
     created_at, updated_at
 )
 VALUES (
-    NULL, 0, 1, 4,
+    NULL, 1, 4,
     'business_unit_id', 'Business Unit', 'master_select', 'business_unit',
     0, 'integer', 'Select business unit', 'Strategic business unit',
     24, 'half',
@@ -106,7 +106,7 @@ VALUES (
 
 -- Channel (Direct Field - Optional)
 INSERT INTO hrms_template_fields (
-    company_id, country_id, template_id, section_id,
+    company_id, template_id, section_id,
     field_slug, field_label, field_type, master_slug,
     is_required, data_type, placeholder, help_text,
     display_order, field_width,
@@ -114,7 +114,7 @@ INSERT INTO hrms_template_fields (
     created_at, updated_at
 )
 VALUES (
-    NULL, 0, 1, 4,
+    NULL, 1, 4,
     'channel_id', 'Channel', 'master_select', 'channel',
     0, 'integer', 'Select channel', 'Sales or distribution channel',
     25, 'half',
@@ -124,7 +124,7 @@ VALUES (
 
 -- Category (Direct Field - Optional)
 INSERT INTO hrms_template_fields (
-    company_id, country_id, template_id, section_id,
+    company_id, template_id, section_id,
     field_slug, field_label, field_type, master_slug,
     is_required, data_type, placeholder, help_text,
     display_order, field_width,
@@ -132,7 +132,7 @@ INSERT INTO hrms_template_fields (
     created_at, updated_at
 )
 VALUES (
-    NULL, 0, 1, 4,
+    NULL, 1, 4,
     'category_id', 'Category', 'master_select', 'category',
     0, 'integer', 'Select category', 'Employee category or classification',
     26, 'half',
@@ -142,7 +142,7 @@ VALUES (
 
 -- Grade (Direct Field - Optional)
 INSERT INTO hrms_template_fields (
-    company_id, country_id, template_id, section_id,
+    company_id, template_id, section_id,
     field_slug, field_label, field_type, master_slug,
     is_required, data_type, placeholder, help_text,
     display_order, field_width,
@@ -150,7 +150,7 @@ INSERT INTO hrms_template_fields (
     created_at, updated_at
 )
 VALUES (
-    NULL, 0, 1, 4,
+    NULL, 1, 4,
     'grade_id', 'Grade', 'master_select', 'grade',
     0, 'integer', 'Select grade', 'Employee grade or level',
     27, 'half',
@@ -160,7 +160,7 @@ VALUES (
 
 -- Branch (Direct Field - Optional)
 INSERT INTO hrms_template_fields (
-    company_id, country_id, template_id, section_id,
+    company_id, template_id, section_id,
     field_slug, field_label, field_type, master_slug,
     is_required, data_type, placeholder, help_text,
     display_order, field_width,
@@ -168,7 +168,7 @@ INSERT INTO hrms_template_fields (
     created_at, updated_at
 )
 VALUES (
-    NULL, 0, 1, 4,
+    NULL, 1, 4,
     'branch_id', 'Branch', 'master_select', 'branch',
     0, 'integer', 'Select branch', 'Office branch or location',
     28, 'half',
@@ -178,7 +178,7 @@ VALUES (
 
 -- Location (Direct Field - Optional)
 INSERT INTO hrms_template_fields (
-    company_id, country_id, template_id, section_id,
+    company_id, template_id, section_id,
     field_slug, field_label, field_type, master_slug,
     is_required, data_type, placeholder, help_text,
     display_order, field_width,
@@ -186,7 +186,7 @@ INSERT INTO hrms_template_fields (
     created_at, updated_at
 )
 VALUES (
-    NULL, 0, 1, 4,
+    NULL, 1, 4,
     'location_id', 'Location', 'master_select', 'location',
     0, 'integer', 'Select location', 'Specific work location within branch',
     29, 'half',
