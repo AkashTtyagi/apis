@@ -43,6 +43,12 @@ const locationRoutes = require('./organizational/location.routes');
 const zoneRoutes = require('./organizational/zone.routes');
 const costCenterRoutes = require('./organizational/costCenter.routes');
 
+// Role & Permission routes
+const rolePermissionRoutes = require('./role_permission');
+
+// Package routes
+const packageManagementRoutes = require('./package');
+
 // Health check endpoint
 router.get('/health', (req, res) => {
     res.status(200).json({
@@ -129,5 +135,19 @@ router.use('/branches', branchRoutes);
 router.use('/locations', locationRoutes);
 router.use('/zones', zoneRoutes);
 router.use('/cost-centers', costCenterRoutes);
+
+// Document management routes
+const documentRoutes = require('./document');
+router.use('/documents', documentRoutes);
+
+// Storage routes (Signed URLs for file upload/download)
+const signedUrlRoutes = require('./storage/signedUrl.routes');
+router.use('/storage', signedUrlRoutes);
+
+// Role & Permission Management routes
+router.use('/role-permission', rolePermissionRoutes);
+
+// Package Management routes
+router.use('/package', packageManagementRoutes);
 
 module.exports = router;

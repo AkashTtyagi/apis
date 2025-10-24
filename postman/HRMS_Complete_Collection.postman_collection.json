@@ -6047,6 +6047,2306 @@
           ]
         }
       ]
+    },
+    {
+      "name": "Document Management",
+      "item": [
+        {
+          "name": "Document Folders",
+          "item": [
+            {
+              "name": "Get All Folders",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"company_id\": {{company_id}},\n  \"is_active\": true,\n  \"search\": \"\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/document-folders/get-all",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "document-folders",
+                    "get-all"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Folder",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"company_id\": {{company_id}},\n  \"folder_name\": \"Tax Documents\",\n  \"folder_description\": \"All tax related documents\",\n  \"display_order\": 7,\n  \"permissions\": [\n    {\n      \"role_type\": \"employee\",\n      \"can_view\": true,\n      \"can_add\": true,\n      \"can_update\": true,\n      \"can_delete\": false\n    },\n    {\n      \"role_type\": \"hr\",\n      \"can_view\": true,\n      \"can_add\": true,\n      \"can_update\": true,\n      \"can_delete\": true\n    }\n  ]\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/document-folders/create",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "document-folders",
+                    "create"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Folder",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"folder_id\": 1,\n  \"company_id\": {{company_id}},\n  \"folder_name\": \"Updated Folder Name\",\n  \"folder_description\": \"Updated description\",\n  \"display_order\": 1,\n  \"is_active\": true,\n  \"permissions\": [\n    {\n      \"role_type\": \"employee\",\n      \"can_view\": true,\n      \"can_add\": true,\n      \"can_update\": true,\n      \"can_delete\": false\n    }\n  ]\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/document-folders/update",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "document-folders",
+                    "update"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Folder",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"folder_id\": 7,\n  \"company_id\": {{company_id}}\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/document-folders/delete",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "document-folders",
+                    "delete"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Document Types",
+          "item": [
+            {
+              "name": "Get Document Type by ID",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"document_type_id\": 1,\n  \"company_id\": {{company_id}}\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/document-types/get-by-id",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "document-types",
+                    "get-by-id"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Document Type",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"company_id\": {{company_id}},\n  \"folder_id\": 1,\n  \"document_type_code\": \"AADHAAR\",\n  \"document_type_name\": \"Aadhaar Card\",\n  \"document_description\": \"Indian Government issued unique identification document\",\n  \"allow_single_document\": true,\n  \"allow_multiple_documents\": false,\n  \"is_mandatory\": true,\n  \"allow_not_applicable\": false,\n  \"require_expiry_date\": false,\n  \"allowed_file_types\": \"pdf,jpg,jpeg,png\",\n  \"max_file_size_mb\": 5.00,\n  \"display_order\": 1,\n  \"fields\": [\n    {\n      \"field_name\": \"aadhaar_number\",\n      \"field_label\": \"Aadhaar Number\",\n      \"field_type\": \"text\",\n      \"placeholder\": \"XXXX XXXX XXXX\",\n      \"is_required\": true,\n      \"display_order\": 1,\n      \"help_text\": \"Enter 12-digit Aadhaar number\"\n    },\n    {\n      \"field_name\": \"name_on_aadhaar\",\n      \"field_label\": \"Name on Aadhaar\",\n      \"field_type\": \"text\",\n      \"placeholder\": \"Full name as per Aadhaar\",\n      \"is_required\": true,\n      \"display_order\": 2\n    }\n  ]\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/document-types/create",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "document-types",
+                    "create"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Document Type",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"document_type_id\": 1,\n  \"company_id\": {{company_id}},\n  \"document_type_name\": \"Updated Document Type\",\n  \"document_description\": \"Updated description\",\n  \"is_mandatory\": false,\n  \"is_active\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/document-types/update",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "document-types",
+                    "update"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Document Type",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"document_type_id\": 10,\n  \"company_id\": {{company_id}}\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/document-types/delete",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "document-types",
+                    "delete"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Add Field to Document Type",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"document_type_id\": 1,\n  \"field_name\": \"address\",\n  \"field_label\": \"Address\",\n  \"field_type\": \"textarea\",\n  \"placeholder\": \"Enter full address\",\n  \"is_required\": false,\n  \"display_order\": 3\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/document-types/add-field",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "document-types",
+                    "add-field"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Field",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"field_id\": 1,\n  \"field_label\": \"Updated Label\",\n  \"is_required\": false,\n  \"display_order\": 5\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/document-types/update-field",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "document-types",
+                    "update-field"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Field",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"field_id\": 10\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/document-types/delete-field",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "document-types",
+                    "delete-field"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Document Types with File Count",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"company_id\": {{company_id}},\n  \"folder_id\": 1,\n  \"is_active\": true,\n  \"employee_search\": \"\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/document-types/get-types-with-file-count",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "document-types",
+                    "get-types-with-file-count"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get All Document Files",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"company_id\": {{company_id}},\n  \"folder_id\": 1,\n  \"document_type_id\": 1,\n  \"is_active\": true,\n  \"employee_search\": \"\",\n  \"from_date\": \"2024-01-01\",\n  \"to_date\": \"2024-12-31\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/document-types/get-all-files",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "document-types",
+                    "get-all-files"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Employee Documents",
+          "item": [
+            {
+              "name": "Get Document by ID",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"document_id\": 1,\n  \"company_id\": {{company_id}}\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/employee-documents/get-by-id",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "employee-documents",
+                    "get-by-id"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Upload Document",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"company_id\": {{company_id}},\n  \"employee_id\": {{employee_id}},\n  \"folder_id\": 1,\n  \"document_type_id\": 1,\n  \"document_number\": \"1234 5678 9012\",\n  \"document_title\": \"Aadhaar Card\",\n  \"file_name\": \"aadhaar.pdf\",\n  \"file_path\": \"/uploads/documents/aadhaar.pdf\",\n  \"file_size_kb\": 250.5,\n  \"file_type\": \"application/pdf\",\n  \"file_extension\": \"pdf\",\n  \"issue_date\": \"2020-01-15\",\n  \"field_values\": [\n    {\n      \"field_id\": 1,\n      \"field_value\": \"1234 5678 9012\"\n    },\n    {\n      \"field_id\": 2,\n      \"field_value\": \"John Doe\"\n    }\n  ]\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/employee-documents/upload",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "employee-documents",
+                    "upload"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Document",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"document_id\": 1,\n  \"company_id\": {{company_id}},\n  \"document_number\": \"Updated Number\",\n  \"document_title\": \"Updated Title\",\n  \"expiry_date\": \"2025-12-31\",\n  \"field_values\": [\n    {\n      \"field_id\": 1,\n      \"field_value\": \"Updated Value\"\n    }\n  ]\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/employee-documents/update",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "employee-documents",
+                    "update"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Document",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"document_id\": 1,\n  \"company_id\": {{company_id}}\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/employee-documents/delete",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "employee-documents",
+                    "delete"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Mark Document as Not Applicable",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"employee_id\": {{employee_id}},\n  \"document_type_id\": 3,\n  \"company_id\": {{company_id}},\n  \"folder_id\": 1,\n  \"not_applicable_reason\": \"Don't have passport\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/employee-documents/mark-na",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "employee-documents",
+                    "mark-na"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Employee Folders with File Count",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"is_active\": true,\n  \"search\": \"\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/employee-documents/get-folders-with-count",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "employee-documents",
+                    "get-folders-with-count"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Document Types by Folder with File Count",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"folder_id\": 1,\n  \"is_active\": true,\n  \"search\": \"\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/employee-documents/get-types-by-folder",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "employee-documents",
+                    "get-types-by-folder"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Employee Documents by Type ID",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"document_type_id\": 1,\n  \"is_active\": true,\n  \"search\": \"\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/employee-documents/get-documents-by-type-id",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "employee-documents",
+                    "get-documents-by-type-id"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Storage Management",
+      "item": [
+        {
+          "name": "Generate Upload URL",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": 1,\n  \"employee_id\": 1,\n  \"folder_id\": 1,\n  \"document_type_id\": 1,\n  \"file_name\": \"passport.pdf\",\n  \"file_type\": \"application/pdf\",\n  \"file_size_kb\": 256\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/storage/generate-upload-url",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "storage",
+                "generate-upload-url"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Download URL",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"file_key\": \"company_1/employee_1/folder_1/type_1/1738123456789_a1b2c3d4e5f6g7h8_passport.pdf\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/storage/generate-download-url",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "storage",
+                "generate-download-url"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Batch Download URLs",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"file_keys\": [\n    \"company_1/employee_1/folder_1/type_1/1738123456789_a1b2c3d4e5f6g7h8_passport.pdf\",\n    \"company_1/employee_1/folder_2/type_2/1738123456790_h8g7f6e5d4c3b2a1_aadhar.pdf\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/storage/generate-batch-download-urls",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "storage",
+                "generate-batch-download-urls"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete File",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"file_key\": \"company_1/employee_1/folder_1/type_1/1738123456789_a1b2c3d4e5f6g7h8_passport.pdf\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/storage/delete-file",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "storage",
+                "delete-file"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Role & Permission Management",
+      "item": [
+        {
+          "name": "Role Masters",
+          "item": [
+            {
+              "name": "Get All Role Masters",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"is_active\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/roles/masters/get-all",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "roles",
+                    "masters",
+                    "get-all"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Role Master by ID",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"role_master_id\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/roles/masters/get-by-id",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "roles",
+                    "masters",
+                    "get-by-id"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Role Master",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"role_code\": \"MANAGER\",\n  \"role_name\": \"Manager\",\n  \"role_description\": \"Department Manager\",\n  \"is_system_role\": false\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/roles/masters/create",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "roles",
+                    "masters",
+                    "create"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Role Master",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"role_master_id\": 1,\n  \"role_name\": \"Updated Role Name\",\n  \"role_description\": \"Updated description\",\n  \"is_active\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/roles/masters/update",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "roles",
+                    "masters",
+                    "update"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Role Master",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"role_master_id\": 5\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/roles/masters/delete",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "roles",
+                    "masters",
+                    "delete"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Company Roles",
+          "item": [
+            {
+              "name": "Get Company Roles",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"company_id\": {{company_id}},\n  \"is_active\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/roles/get-company-roles",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "roles",
+                    "get-company-roles"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Role by ID",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"role_id\": 1,\n  \"company_id\": {{company_id}}\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/roles/get-by-id",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "roles",
+                    "get-by-id"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Role from Master",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"company_id\": {{company_id}},\n  \"role_master_id\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/roles/create-from-master",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "roles",
+                    "create-from-master"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Custom Role",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"company_id\": {{company_id}},\n  \"role_code\": \"TEAM_LEAD\",\n  \"role_name\": \"Team Lead\",\n  \"role_description\": \"Team leader with specific permissions\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/roles/create-custom",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "roles",
+                    "create-custom"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Role",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"role_id\": 1,\n  \"company_id\": {{company_id}},\n  \"role_name\": \"Updated Role Name\",\n  \"role_description\": \"Updated description\",\n  \"is_active\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/roles/update",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "roles",
+                    "update"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Role",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"role_id\": 5,\n  \"company_id\": {{company_id}}\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/roles/delete",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "roles",
+                    "delete"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Role Permissions",
+          "item": [
+            {
+              "name": "Assign Permissions to Role",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"role_id\": 1,\n  \"company_id\": {{company_id}},\n  \"permission_ids\": [1, 2, 3, 4]\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/roles/assign-permissions",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "roles",
+                    "assign-permissions"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Revoke Permissions from Role",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"role_id\": 1,\n  \"company_id\": {{company_id}},\n  \"permission_ids\": [2, 3]\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/roles/revoke-permissions",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "roles",
+                    "revoke-permissions"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Role Permissions",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"role_id\": 1,\n  \"company_id\": {{company_id}}\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/roles/get-permissions",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "roles",
+                    "get-permissions"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Permission Masters",
+          "item": [
+            {
+              "name": "Get All Permissions",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"module_id\": 1,\n  \"is_active\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/permissions/get-all",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "permissions",
+                    "get-all"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Permission by ID",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"permission_id\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/permissions/get-by-id",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "permissions",
+                    "get-by-id"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Permission by Code",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"permission_code\": \"USER_CREATE\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/permissions/get-by-code",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "permissions",
+                    "get-by-code"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Permission",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"module_id\": 1,\n  \"permission_code\": \"USER_DELETE\",\n  \"permission_name\": \"Delete User\",\n  \"permission_description\": \"Can delete users from system\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/permissions/create",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "permissions",
+                    "create"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Permission",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"permission_id\": 1,\n  \"permission_name\": \"Updated Permission Name\",\n  \"permission_description\": \"Updated description\",\n  \"is_active\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/permissions/update",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "permissions",
+                    "update"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Permission",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"permission_id\": 5\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/permissions/delete",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "permissions",
+                    "delete"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "User Role Assignment",
+          "item": [
+            {
+              "name": "Assign Role to User",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"user_id\": {{user_id}},\n  \"role_id\": 1,\n  \"company_id\": {{company_id}}\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/permissions/users/assign-role",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "permissions",
+                    "users",
+                    "assign-role"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Revoke Role from User",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"user_id\": {{user_id}},\n  \"role_id\": 1,\n  \"company_id\": {{company_id}}\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/permissions/users/revoke-role",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "permissions",
+                    "users",
+                    "revoke-role"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get User Roles",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"user_id\": {{user_id}},\n  \"company_id\": {{company_id}}\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/permissions/users/get-roles",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "permissions",
+                    "users",
+                    "get-roles"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "User Permission Overrides",
+          "item": [
+            {
+              "name": "Grant Permission to User",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"user_id\": {{user_id}},\n  \"permission_id\": 1,\n  \"company_id\": {{company_id}},\n  \"granted_reason\": \"Special access for this user\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/permissions/users/grant-permission",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "permissions",
+                    "users",
+                    "grant-permission"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Revoke Permission from User",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"user_id\": {{user_id}},\n  \"permission_id\": 1,\n  \"company_id\": {{company_id}},\n  \"revoked_reason\": \"Access no longer needed\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/permissions/users/revoke-permission",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "permissions",
+                    "users",
+                    "revoke-permission"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Remove User Permission Override",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"user_id\": {{user_id}},\n  \"permission_id\": 1,\n  \"company_id\": {{company_id}}\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/permissions/users/remove-override",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "permissions",
+                    "users",
+                    "remove-override"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get User Permission Overrides",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"user_id\": {{user_id}},\n  \"company_id\": {{company_id}}\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/permissions/users/get-overrides",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "permissions",
+                    "users",
+                    "get-overrides"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Bulk Grant Permissions to User",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"user_id\": {{user_id}},\n  \"permission_ids\": [1, 2, 3, 4],\n  \"company_id\": {{company_id}},\n  \"granted_reason\": \"Bulk assignment for new responsibilities\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/permissions/users/bulk-grant",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "permissions",
+                    "users",
+                    "bulk-grant"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Bulk Revoke Permissions from User",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"user_id\": {{user_id}},\n  \"permission_ids\": [2, 3],\n  \"company_id\": {{company_id}},\n  \"revoked_reason\": \"Responsibilities changed\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/permissions/users/bulk-revoke",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "permissions",
+                    "users",
+                    "bulk-revoke"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get User Permission Audit Logs",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"user_id\": {{user_id}},\n  \"company_id\": {{company_id}},\n  \"limit\": 50,\n  \"offset\": 0\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/permissions/users/audit-logs",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "permissions",
+                    "users",
+                    "audit-logs"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Menus",
+          "item": [
+            {
+              "name": "Get Menus by Application",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"application_id\": 1,\n  \"is_active\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/menus/get-by-application",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "role-permission",
+                    "menus",
+                    "get-by-application"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Menu by ID",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"menu_id\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/menus/get-by-id",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "role-permission",
+                    "menus",
+                    "get-by-id"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Menu",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"application_id\": 1,\n  \"menu_name\": \"Dashboard\",\n  \"menu_label\": \"Dashboard\",\n  \"menu_url\": \"/dashboard\",\n  \"menu_icon\": \"dashboard\",\n  \"parent_menu_id\": null,\n  \"display_order\": 1,\n  \"is_active\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/menus/create",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "role-permission",
+                    "menus",
+                    "create"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Menu",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"menu_id\": 1,\n  \"menu_name\": \"Dashboard\",\n  \"menu_label\": \"Dashboard\",\n  \"menu_url\": \"/dashboard\",\n  \"menu_icon\": \"dashboard\",\n  \"parent_menu_id\": null,\n  \"display_order\": 1,\n  \"is_active\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/menus/update",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "role-permission",
+                    "menus",
+                    "update"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Menu",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"menu_id\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/menus/delete",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "role-permission",
+                    "menus",
+                    "delete"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get User Menus",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"user_id\": {{user_id}},\n  \"application_id\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/menus/get-user-menus",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "role-permission",
+                    "menus",
+                    "get-user-menus"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get User Screen Permissions",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"user_id\": {{user_id}},\n  \"menu_id\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/role-permission/menus/get-user-screen-permissions",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "role-permission",
+                    "menus",
+                    "get-user-screen-permissions"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Package & Module Management",
+      "item": [
+        {
+          "name": "Packages",
+          "item": [
+            {
+              "name": "Get All Packages",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"is_active\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/package/packages/get-all",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "packages",
+                    "get-all"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Package by ID",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"package_id\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/package/packages/get-by-id",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "packages",
+                    "get-by-id"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Package",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"package_code\": \"BASIC\",\n  \"package_name\": \"Basic Package\",\n  \"package_description\": \"Basic features for small companies\",\n  \"price_monthly\": 999.00,\n  \"price_yearly\": 9999.00\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/package/packages/create",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "packages",
+                    "create"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Package",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"package_id\": 1,\n  \"package_name\": \"Updated Package Name\",\n  \"package_description\": \"Updated description\",\n  \"price_monthly\": 1499.00,\n  \"is_active\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/package/packages/update",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "packages",
+                    "update"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Package",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"package_id\": 5\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/package/packages/delete",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "packages",
+                    "delete"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Assign Modules to Package",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"package_id\": 1,\n  \"module_ids\": [1, 2, 3, 4]\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/package/packages/assign-modules",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "packages",
+                    "assign-modules"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Remove Module from Package",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"package_id\": 1,\n  \"module_id\": 2\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/package/packages/remove-module",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "packages",
+                    "remove-module"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Package Modules",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"package_id\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/package/packages/get-modules",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "packages",
+                    "get-modules"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Modules",
+          "item": [
+            {
+              "name": "Get All Modules",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"is_active\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/package/modules/get-all",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "modules",
+                    "get-all"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Module by ID",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"module_id\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/package/modules/get-by-id",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "modules",
+                    "get-by-id"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Module",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"module_code\": \"ATTENDANCE\",\n  \"module_name\": \"Attendance Management\",\n  \"module_description\": \"Manage employee attendance\",\n  \"module_icon\": \"calendar\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/package/modules/create",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "modules",
+                    "create"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Module",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"module_id\": 1,\n  \"module_name\": \"Updated Module Name\",\n  \"module_description\": \"Updated description\",\n  \"is_active\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/package/modules/update",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "modules",
+                    "update"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Module",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"module_id\": 5\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/package/modules/delete",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "modules",
+                    "delete"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Company Packages",
+          "item": [
+            {
+              "name": "Assign Package to Company",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"company_id\": {{company_id}},\n  \"package_id\": 1,\n  \"start_date\": \"2025-01-01\",\n  \"end_date\": \"2025-12-31\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/package/company-packages/assign",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "package",
+                    "company-packages",
+                    "assign"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Active Company Package",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"company_id\": {{company_id}}\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/package/company-packages/get-active",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "package",
+                    "company-packages",
+                    "get-active"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Company Package History",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"company_id\": {{company_id}}\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/package/company-packages/get-history",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "package",
+                    "company-packages",
+                    "get-history"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Company Package",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"company_package_id\": 1,\n  \"end_date\": \"2026-12-31\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/package/company-packages/update",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "package",
+                    "company-packages",
+                    "update"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Company Modules",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"company_id\": {{company_id}}\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/package/company-packages/get-modules",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "package",
+                    "company-packages",
+                    "get-modules"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Check Module Access",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"company_id\": {{company_id}},\n  \"module_code\": \"LEAVE_MANAGEMENT\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/package/company-packages/check-module-access",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "package",
+                    "company-packages",
+                    "check-module-access"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
     }
   ]
 }
