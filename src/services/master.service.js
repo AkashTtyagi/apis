@@ -149,14 +149,14 @@ const MASTER_CONFIG = {
     },
     sub_department: {
         model: HrmsCompanySubDepartment,
-        table: 'hrms_company_sub_departments',
+        table: 'hrms_sub_departments',
         fields: {
             id: 'id',
             code: 'sub_department_code',
             name: 'sub_department_name'
         },
         companyScoped: true,
-        additionalFields: ['department_id']
+        additionalFields: ['org_dept_id']
     },
     grade: {
         model: HrmsGrade,
@@ -471,6 +471,14 @@ const getMasterDataBySlug = async (masterSlug, companyId = null, filters = {}, s
         });
     }
 
+    // Add is_active field for all masters except employee
+    if (masterSlug !== 'employee') {
+        selectFields.push('is_active');
+    } else {
+        // For employee, add is_deleted field
+        selectFields.push('is_deleted');
+    }
+
     // Determine order
     const orderBy = config.orderBy || [[config.fields.name, 'ASC']];
 
@@ -498,7 +506,8 @@ const getMasterDataBySlug = async (masterSlug, companyId = null, filters = {}, s
                 code: deptObj.department?.department_code || null,
                 name: deptObj.company_department_name || deptObj.department?.department_name || null,
                 is_custom: deptObj.company_department_name ? true : false,
-                department_id: deptObj.department_id
+                department_id: deptObj.department_id,
+                is_active: deptObj.is_active
             };
         });
     }
