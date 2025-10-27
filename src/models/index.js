@@ -65,10 +65,9 @@ const initializeModels = async () => {
 
     console.log('✓ Model associations initialized');
 
-    // Sync all models with the database
-    // alter: false means it won't modify existing tables
-    // Set to true in development if you want auto-schema updates
-    await sequelize.sync({ alter: false });
+    // Sync disabled - tables already exist in database
+    // If you need to sync models, use migrations instead
+    // await sequelize.sync({ alter: false });
 
     console.log('✓ All models initialized successfully');
     console.log(`✓ Total models loaded: ${Object.keys(models).length}`);
