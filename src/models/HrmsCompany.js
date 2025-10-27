@@ -257,16 +257,18 @@ HrmsCompany.associate = (models) => {
     as: 'timezone'
   });
 
-  // Creator (created_by user)
-  HrmsCompany.belongsTo(models.HrmsUserDetails, {
+  // Creator Employee (created_by -> user_id in employees)
+  HrmsCompany.belongsTo(models.HrmsEmployee, {
     foreignKey: 'created_by',
-    as: 'creator'
+    targetKey: 'user_id',
+    as: 'creatorEmployee'
   });
 
-  // Updater (updated_by user)
-  HrmsCompany.belongsTo(models.HrmsUserDetails, {
+  // Updater Employee (updated_by -> user_id in employees)
+  HrmsCompany.belongsTo(models.HrmsEmployee, {
     foreignKey: 'updated_by',
-    as: 'updater'
+    targetKey: 'user_id',
+    as: 'updaterEmployee'
   });
 };
 

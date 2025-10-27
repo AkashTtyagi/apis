@@ -11,7 +11,6 @@ const { HrmsCityMaster } = require('../models/HrmsCityMaster');
 const { HrmsCurrencyMaster } = require('../models/HrmsCurrencyMaster');
 const { HrmsIndustryMaster } = require('../models/HrmsIndustryMaster');
 const { HrmsTimezoneMaster } = require('../models/HrmsTimezoneMaster');
-const { HrmsUserDetails } = require('../models/HrmsUserDetails');
 const templateService = require('./template.service');
 
 /**
@@ -318,15 +317,15 @@ const getEntitiesByCompany = async (parent_company_id, filters = {}) => {
                     required: false
                 },
                 {
-                    model: HrmsUserDetails,
-                    as: 'creator',
-                    attributes: ['id', 'user_name', 'email'],
+                    model: HrmsEmployee,
+                    as: 'creatorEmployee',
+                    attributes: ['id', 'first_name', 'middle_name', 'last_name', 'email', 'employee_code'],
                     required: false
                 },
                 {
-                    model: HrmsUserDetails,
-                    as: 'updater',
-                    attributes: ['id', 'user_name', 'email'],
+                    model: HrmsEmployee,
+                    as: 'updaterEmployee',
+                    attributes: ['id', 'first_name', 'middle_name', 'last_name', 'email', 'employee_code'],
                     required: false
                 }
             ],
