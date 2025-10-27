@@ -36,8 +36,23 @@ const { Sequelize, Op } = require('sequelize');
  * Maps master_slug to table details and query structure
  */
 const { HrmsDepartmentMaster } = require('../models/HrmsDepartmentMaster');
+const { HrmsIndustryMaster } = require('../models/HrmsIndustryMaster');
 
 const MASTER_CONFIG = {
+    // Industry Master (NOT company scoped)
+    industry: {
+        model: HrmsIndustryMaster,
+        table: 'hrms_industry_master',
+        fields: {
+            id: 'industry_id',
+            code: 'industry_code',
+            name: 'industry_name'
+        },
+        companyScoped: false,
+        additionalFields: ['description'],
+        orderBy: [['industry_name', 'ASC']]
+    },
+
     // Timezone Master (NOT company scoped)
     timezone: {
         model: HrmsTimezoneMaster,
