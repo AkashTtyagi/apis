@@ -50,6 +50,7 @@ const copySingleTemplateToCompany = async (template, company_id, user_id, compan
         for (const section of defaultSections) {
             const newSection = await HrmsTemplateSection.create({
                 company_id: company_id,
+                entity_id: company_id,
                 template_id: template.id,
                 section_slug: section.section_slug,
                 section_name: section.section_name,

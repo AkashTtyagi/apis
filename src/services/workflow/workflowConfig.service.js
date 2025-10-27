@@ -994,7 +994,7 @@ const createDefaultWorkflows = async (companyId, userId, transaction = null) => 
                     pending_after_days: 7,
                     escalate_to_stage_id: null,
                     on_approve_next_stage_id: null,
-                    on_reject_action: 'reject',
+                    on_reject_action: 'final_reject',
                     on_reject_stage_id: null,
                     is_active: true
                 }, { transaction });
