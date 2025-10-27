@@ -12,7 +12,7 @@ const {
 } = require('../../models/document');
 const HrmsEmployee = require('../../models/HrmsEmployee');
 const { Op } = require('sequelize');
-const sequelize = require('../../config/database');
+const { sequelize } = require('../../utils/database');
 
 /**
  * Get document type by ID

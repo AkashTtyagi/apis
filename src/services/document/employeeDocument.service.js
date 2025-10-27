@@ -12,7 +12,7 @@ const {
     HrmsDocumentAuditLog
 } = require('../../models/document');
 const { Op } = require('sequelize');
-const sequelize = require('../../config/database');
+const { sequelize } = require('../../utils/database');
 
 /**
  * Get document by ID

@@ -11,7 +11,7 @@ const {
     HrmsPermissionMaster,
     HrmsRolePermissionAuditLog
 } = require('../../models/role_permission');
-const sequelize = require('../../config/database');
+const { sequelize } = require('../../utils/database');
 const { Op } = require('sequelize');
 
 /**

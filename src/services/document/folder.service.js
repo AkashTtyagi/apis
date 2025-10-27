@@ -10,7 +10,7 @@ const {
     HrmsEmployeeDocument
 } = require('../../models/document');
 const { Op } = require('sequelize');
-const sequelize = require('../../config/database');
+const { sequelize } = require('../../utils/database');
 
 /**
  * Get all folders for a company with document counts

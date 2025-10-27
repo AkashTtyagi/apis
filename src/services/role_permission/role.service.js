@@ -13,7 +13,7 @@ const {
     HrmsRolePermissionAuditLog
 } = require('../../models/role_permission');
 const { Op } = require('sequelize');
-const sequelize = require('../../config/database');
+const { sequelize } = require('../../utils/database');
 
 /**
  * Get all role masters (global templates)
