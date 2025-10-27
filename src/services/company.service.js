@@ -5,6 +5,13 @@
 
 const { HrmsCompany } = require('../models/HrmsCompany');
 const { HrmsEmployee } = require('../models/HrmsEmployee');
+const { HrmsCountryMaster } = require('../models/HrmsCountryMaster');
+const { HrmsStateMaster } = require('../models/HrmsStateMaster');
+const { HrmsCityMaster } = require('../models/HrmsCityMaster');
+const { HrmsCurrencyMaster } = require('../models/HrmsCurrencyMaster');
+const { HrmsIndustryMaster } = require('../models/HrmsIndustryMaster');
+const { HrmsTimezoneMaster } = require('../models/HrmsTimezoneMaster');
+const { HrmsUserDetails } = require('../models/HrmsUserDetails');
 const templateService = require('./template.service');
 
 /**
@@ -217,6 +224,9 @@ const createEntity = async (entityData) => {
  */
 const getEntitiesByCompany = async (parent_company_id, filters = {}) => {
     try {
+        const { Op } = require('sequelize');
+        const { sequelize } = require('../utils/database');
+
         const whereClause = {
             parent_enterprise_id: parent_company_id,
             is_parent_company: 0
@@ -235,7 +245,6 @@ const getEntitiesByCompany = async (parent_company_id, filters = {}) => {
         }
 
         if (filters.search) {
-            const { Op } = require('sequelize');
             whereClause.org_name = {
                 [Op.like]: `%${filters.search}%`
             };
@@ -259,7 +268,67 @@ const getEntitiesByCompany = async (parent_company_id, filters = {}) => {
                 'fax_number',
                 'timezone_id',
                 'created_at',
-                'updated_at'
+                'updated_at',
+                'created_by',
+                'updated_by',
+                // Entity master names from includes
+                [sequelize.literal('`country`.`country_name`'), 'country_name'],
+                [sequelize.literal('`state`.`state_name`'), 'state_name'],
+                [sequelize.literal('`city`.`city_name`'), 'city_name'],
+                [sequelize.literal('`currency`.`currency_name`'), 'currency_name'],
+                [sequelize.literal('`currency`.`currency_symbol`'), 'currency_symbol'],
+                [sequelize.literal('`industry`.`industry_name`'), 'industry_name'],
+                [sequelize.literal('`timezone`.`timezone_name`'), 'timezone_name']
+            ],
+            include: [
+                {
+                    model: HrmsCountryMaster,
+                    as: 'country',
+                    attributes: [],
+                    required: false
+                },
+                {
+                    model: HrmsStateMaster,
+                    as: 'state',
+                    attributes: [],
+                    required: false
+                },
+                {
+                    model: HrmsCityMaster,
+                    as: 'city',
+                    attributes: [],
+                    required: false
+                },
+                {
+                    model: HrmsCurrencyMaster,
+                    as: 'currency',
+                    attributes: [],
+                    required: false
+                },
+                {
+                    model: HrmsIndustryMaster,
+                    as: 'industry',
+                    attributes: [],
+                    required: false
+                },
+                {
+                    model: HrmsTimezoneMaster,
+                    as: 'timezone',
+                    attributes: [],
+                    required: false
+                },
+                {
+                    model: HrmsUserDetails,
+                    as: 'creator',
+                    attributes: ['id', 'user_name', 'email'],
+                    required: false
+                },
+                {
+                    model: HrmsUserDetails,
+                    as: 'updater',
+                    attributes: ['id', 'user_name', 'email'],
+                    required: false
+                }
             ],
             order: [['org_name', 'ASC']]
         });

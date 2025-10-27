@@ -217,6 +217,59 @@ const HrmsCompany = sequelize.define('HrmsCompany', {
   ]
 });
 
+/**
+ * Define associations
+ */
+HrmsCompany.associate = (models) => {
+  // Country association
+  HrmsCompany.belongsTo(models.HrmsCountryMaster, {
+    foreignKey: 'country_id',
+    as: 'country'
+  });
+
+  // State association
+  HrmsCompany.belongsTo(models.HrmsStateMaster, {
+    foreignKey: 'state_id',
+    as: 'state'
+  });
+
+  // City association
+  HrmsCompany.belongsTo(models.HrmsCityMaster, {
+    foreignKey: 'city_id',
+    as: 'city'
+  });
+
+  // Currency association
+  HrmsCompany.belongsTo(models.HrmsCurrencyMaster, {
+    foreignKey: 'currency_id',
+    as: 'currency'
+  });
+
+  // Industry association
+  HrmsCompany.belongsTo(models.HrmsIndustryMaster, {
+    foreignKey: 'org_industry',
+    as: 'industry'
+  });
+
+  // Timezone association
+  HrmsCompany.belongsTo(models.HrmsTimezoneMaster, {
+    foreignKey: 'timezone_id',
+    as: 'timezone'
+  });
+
+  // Creator (created_by user)
+  HrmsCompany.belongsTo(models.HrmsUserDetails, {
+    foreignKey: 'created_by',
+    as: 'creator'
+  });
+
+  // Updater (updated_by user)
+  HrmsCompany.belongsTo(models.HrmsUserDetails, {
+    foreignKey: 'updated_by',
+    as: 'updater'
+  });
+};
+
 module.exports = {
   HrmsCompany
 };
