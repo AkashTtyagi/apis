@@ -143,11 +143,17 @@ CREATE TABLE hrms_employee_documents (
     not_applicable_reason TEXT,
 
     -- Letter reference (optional - if document is generated from a letter template)
-    letter_id INT UNSIGNED NULL COMMENT 'Reference to generated letter if applicable',
+    letter_id INT UNSIGNED NULL COMMENT 'Reference to letter template if applicable',
+
+    -- Workflow integration (optional - if document requires approval)
+    workflow_request_id INT UNSIGNED NULL COMMENT 'Reference to HrmsWorkflowRequest for approval flow',
+    status ENUM('draft', 'pending_approval', 'approved', 'rejected') DEFAULT 'approved' COMMENT 'Document status - normal uploads are approved by default',
 
     is_active TINYINT(1) DEFAULT 1,
     uploaded_by INT UNSIGNED NOT NULL,
     updated_by INT UNSIGNED NULL,
+    deleted_by INT UNSIGNED NULL COMMENT 'User who deleted/soft-deleted the document',
+    deleted_at TIMESTAMP NULL COMMENT 'When the document was deleted',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -156,7 +162,10 @@ CREATE TABLE hrms_employee_documents (
     INDEX idx_folder (folder_id),
     INDEX idx_document_type (document_type_id),
     INDEX idx_expiry_date (expiry_date),
-    INDEX idx_active (is_active)
+    INDEX idx_active (is_active),
+    INDEX idx_workflow_request (workflow_request_id),
+    INDEX idx_status (status),
+    INDEX idx_letter (letter_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Employee uploaded documents';
 

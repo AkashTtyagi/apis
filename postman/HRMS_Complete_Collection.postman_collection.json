@@ -8347,6 +8347,393 @@
           ]
         }
       ]
+    },
+    {
+      "name": "Letter Management",
+      "item": [
+        {
+          "name": "1. Template Management",
+          "item": [
+            {
+              "name": "Create Letter Template",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Organization-Id",
+                    "value": "{{company_id}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"letter_name\": \"Appointment Letter\",\n  \"letter_code\": \"APPOINT_001\",\n  \"letter_description\": \"Standard appointment letter template\",\n  \"category_id\": 1,\n  \"page_size\": \"A4\",\n  \"orientation\": \"portrait\",\n  \"has_page_margin\": true,\n  \"margin_top\": 2.5,\n  \"margin_left\": 2.0,\n  \"margin_right\": 2.0,\n  \"margin_bottom\": 2.5,\n  \"has_border\": true,\n  \"border_size\": \"1px\",\n  \"has_page_number\": true,\n  \"page_number_position\": \"footer\",\n  \"page_number_alignment\": \"center\",\n  \"has_header\": true,\n  \"header_content\": \"<div style='text-align: center'><h2>Company Name</h2></div>\",\n  \"header_height\": 3.0,\n  \"has_footer\": true,\n  \"footer_content\": \"<div style='text-align: center'>Company Address</div>\",\n  \"footer_height\": 2.0,\n  \"main_content\": \"<p>Dear {{FIRST_NAME}} {{LAST_NAME}},</p><p>We are pleased to offer you the position with employee code {{EMPLOYEE_CODE}}.</p><p>Reference: {{REFERENCE_NUMBER}}</p>\",\n  \"auto_generate_letter_number\": true,\n  \"letter_number_prefix\": \"APT\",\n  \"letter_number_format\": \"{PREFIX}/{YEAR}/{MONTH}/{SEQ}\",\n  \"has_watermark\": true,\n  \"watermark_text\": \"CONFIDENTIAL\",\n  \"watermark_opacity\": 0.10,\n  \"requires_signature\": true,\n  \"signature_position\": \"right\",\n  \"signatory_name\": \"HR Manager\",\n  \"signatory_designation\": \"Human Resources\",\n  \"requires_approval\": true,\n  \"custom_fields\": [\n    {\n      \"field_name\": \"Reference Number\",\n      \"field_slug\": \"REFERENCE_NUMBER\",\n      \"field_type\": \"text\",\n      \"is_required\": true,\n      \"placeholder\": \"Enter reference number\",\n      \"display_order\": 1\n    }\n  ]\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/letters/templates",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "letters",
+                    "templates"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Letter Template",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Organization-Id",
+                    "value": "{{company_id}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"letter_name\": \"Updated Appointment Letter\",\n  \"letter_description\": \"Updated description\",\n  \"main_content\": \"<p>Updated content with {{FIRST_NAME}}</p>\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/letters/templates/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "letters",
+                    "templates",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get All Templates",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "X-Organization-Id",
+                    "value": "{{company_id}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/letters/templates?category_id=1&is_draft=false&search=",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "letters",
+                    "templates"
+                  ],
+                  "query": [
+                    {
+                      "key": "category_id",
+                      "value": "1",
+                      "description": "Filter by category"
+                    },
+                    {
+                      "key": "is_draft",
+                      "value": "false",
+                      "description": "Filter by draft status"
+                    },
+                    {
+                      "key": "search",
+                      "value": "",
+                      "description": "Search by name or code"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Template by ID",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/letters/templates/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "letters",
+                    "templates",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Template",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "X-Organization-Id",
+                    "value": "{{company_id}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/letters/templates/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "letters",
+                    "templates",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get All Categories",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/letters/categories",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "letters",
+                    "categories"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "2. Letter Generation",
+          "item": [
+            {
+              "name": "Generate Letter",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"letter_template_id\": 1,\n  \"employee_id\": {{employee_id}},\n  \"folder_id\": 1,\n  \"document_type_id\": 1,\n  \"document_title\": \"Appointment Letter - John Doe\",\n  \"custom_field_values\": [\n    {\n      \"custom_field_id\": 1,\n      \"field_value\": \"REF-2025-001\"\n    }\n  ],\n  \"issue_date\": \"2025-10-28\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/letters/generate",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "letters",
+                    "generate"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Preview Letter",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"letter_template_id\": 1,\n  \"employee_id\": {{employee_id}},\n  \"custom_field_values\": [\n    {\n      \"custom_field_id\": 1,\n      \"field_value\": \"REF-2025-001\"\n    }\n  ]\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/letters/preview",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "letters",
+                    "preview"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Check Approval Required",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/letters/check-approval/1/{{employee_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "letters",
+                    "check-approval",
+                    "1",
+                    "{{employee_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Employee Letters",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/letters/employee/{{employee_id}}/letters?folder_id=&document_type_id=&status=",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "letters",
+                    "employee",
+                    "{{employee_id}}",
+                    "letters"
+                  ],
+                  "query": [
+                    {
+                      "key": "folder_id",
+                      "value": "",
+                      "description": "Filter by folder"
+                    },
+                    {
+                      "key": "document_type_id",
+                      "value": "",
+                      "description": "Filter by document type"
+                    },
+                    {
+                      "key": "status",
+                      "value": "",
+                      "description": "Filter by status"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Letter Details",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/letters/letters/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "letters",
+                    "letters",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Download Letter PDF",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/letters/download/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "letters",
+                    "download",
+                    "1"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "3. Email Delivery",
+          "item": [
+            {
+              "name": "Send Letter Email",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"employee_document_id\": 1,\n  \"email_template_id\": 1,\n  \"recipients\": [\n    {\n      \"employee_id\": {{employee_id}},\n      \"recipient_type\": \"to\"\n    }\n  ],\n  \"email_cc\": [\"hr@company.com\"],\n  \"email_bcc\": [\"admin@company.com\"],\n  \"email_subject\": \"Your Appointment Letter\",\n  \"preview\": false\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/letters/send-email",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "letters",
+                    "send-email"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Preview Letter Email",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"employee_document_id\": 1,\n  \"email_template_id\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/letters/preview-email",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "letters",
+                    "preview-email"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
     }
   ]
 }

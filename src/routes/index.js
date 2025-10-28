@@ -140,6 +140,10 @@ router.use('/cost-centers', costCenterRoutes);
 const documentRoutes = require('./document');
 router.use('/documents', documentRoutes);
 
+// Letter management routes (template, generation, email)
+const letterRoutes = require('./letter.routes');
+router.use('/letters', letterRoutes);
+
 // Storage routes (Signed URLs for file upload/download)
 const signedUrlRoutes = require('./storage/signedUrl.routes');
 router.use('/storage', signedUrlRoutes);

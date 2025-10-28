@@ -81,7 +81,19 @@ const HrmsEmployeeDocument = sequelize.define('HrmsEmployeeDocument', {
     letter_id: {
         type: DataTypes.INTEGER.UNSIGNED,
         allowNull: true,
-        comment: 'Reference to generated letter if applicable'
+        comment: 'Reference to letter template if applicable'
+    },
+
+    // Workflow integration (optional - if document requires approval)
+    workflow_request_id: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: true,
+        comment: 'Reference to HrmsWorkflowRequest for approval flow'
+    },
+    status: {
+        type: DataTypes.ENUM('draft', 'pending_approval', 'approved', 'rejected'),
+        defaultValue: 'approved',
+        comment: 'Document status - normal uploads are approved by default'
     },
 
     is_active: {
@@ -95,6 +107,16 @@ const HrmsEmployeeDocument = sequelize.define('HrmsEmployeeDocument', {
     updated_by: {
         type: DataTypes.INTEGER.UNSIGNED,
         allowNull: true
+    },
+    deleted_by: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: true,
+        comment: 'User who deleted/soft-deleted the document'
+    },
+    deleted_at: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        comment: 'When the document was deleted'
     }
 }, {
     tableName: 'hrms_employee_documents',
@@ -106,7 +128,10 @@ const HrmsEmployeeDocument = sequelize.define('HrmsEmployeeDocument', {
         { fields: ['folder_id'] },
         { fields: ['document_type_id'] },
         { fields: ['expiry_date'] },
-        { fields: ['is_active'] }
+        { fields: ['is_active'] },
+        { fields: ['workflow_request_id'] },
+        { fields: ['status'] },
+        { fields: ['letter_id'] }
     ]
 });
 
