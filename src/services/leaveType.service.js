@@ -10,7 +10,7 @@ const { sequelize } = require('../utils/database');
 /**
  * Log field changes for audit
  */
-const logFieldChanges = async (leave_type_id, company_id, oldData, newData, user_id, action, ipAddress = null, userAgent = null) => {
+const logFieldChanges = async (leave_type_id, company_id, oldData, newData, user_id, action, ipAddress = null, userAgent = null, transaction = null) => {
     const changes = [];
 
     // For create action, log all fields
@@ -74,7 +74,7 @@ const logFieldChanges = async (leave_type_id, company_id, oldData, newData, user
 
     // Bulk insert audit logs
     if (changes.length > 0) {
-        await HrmsLeaveTypeAuditLog.bulkCreate(changes);
+        await HrmsLeaveTypeAuditLog.bulkCreate(changes, { transaction });
     }
 
     return changes.length;
@@ -109,7 +109,8 @@ const createLeaveType = async (leaveTypeData) => {
             user_id,
             'create',
             ip_address,
-            user_agent
+            user_agent,
+            transaction
         );
 
         await transaction.commit();
@@ -175,7 +176,8 @@ const updateLeaveType = async (leave_type_id, updateData) => {
             user_id,
             'update',
             ip_address,
-            user_agent
+            user_agent,
+            transaction
         );
 
         await transaction.commit();
@@ -279,7 +281,8 @@ const deleteLeaveType = async (leave_type_id, company_id, user_id, ip_address = 
             user_id,
             'delete',
             ip_address,
-            user_agent
+            user_agent,
+            transaction
         );
 
         await transaction.commit();
