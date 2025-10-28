@@ -89,9 +89,23 @@ const logFieldChanges = async (leave_type_id, company_id, oldData, newData, user
 const createLeaveType = async (leaveTypeData) => {
     const { company_id, user_id, ip_address, user_agent, ...leaveData } = leaveTypeData;
 
+    // Check if leave code already exists for this company (before transaction)
+    const existingLeaveType = await HrmsLeaveMaster.findOne({
+        where: {
+            company_id,
+            leave_code: leaveData.leave_code
+        },
+        paranoid: false // Include soft-deleted records
+    });
+
+    if (existingLeaveType) {
+        throw new Error(`Leave type with code '${leaveData.leave_code}' already exists for this company`);
+    }
+
     const transaction = await sequelize.transaction();
 
     try {
+
         // Create leave type
         const leaveType = await HrmsLeaveMaster.create({
             ...leaveData,
