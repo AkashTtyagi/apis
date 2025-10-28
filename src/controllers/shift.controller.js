@@ -12,9 +12,15 @@ const { sendSuccess } = require('../utils/response');
  */
 const createShift = async (req, res, next) => {
     try {
-        const shiftData = req.body;
         const userId = req.user?.id;
+        const companyId = req.user?.company_id;
         const ipAddress = req.ip || req.connection.remoteAddress;
+
+        // Add company_id from req.user to shiftData
+        const shiftData = {
+            ...req.body,
+            company_id: companyId
+        };
 
         const shift = await shiftService.createShift(shiftData, userId, ipAddress);
 
@@ -50,14 +56,11 @@ const getShiftById = async (req, res, next) => {
  */
 const getAllShifts = async (req, res, next) => {
     try {
-        const { company_id, filters = {}, page = 1, limit = 50 } = req.body;
-
-        if (!company_id) {
-            throw new Error('company_id is required');
-        }
+        const companyId = req.user?.company_id;
+        const { filters = {}, page = 1, limit = 50 } = req.body;
 
         const result = await shiftService.getAllShifts(
-            company_id,
+            companyId,
             filters,
             { page, limit }
         );
@@ -76,6 +79,7 @@ const updateShift = async (req, res, next) => {
     try {
         const { shift_id, ...updateData } = req.body;
         const userId = req.user?.id;
+        const companyId = req.user?.company_id;
         const ipAddress = req.ip || req.connection.remoteAddress;
 
         if (!shift_id) {
@@ -86,6 +90,7 @@ const updateShift = async (req, res, next) => {
             parseInt(shift_id, 10),
             updateData,
             userId,
+            companyId,
             ipAddress
         );
 
@@ -103,6 +108,7 @@ const toggleShiftStatus = async (req, res, next) => {
     try {
         const { shift_id, is_active } = req.body;
         const userId = req.user?.id;
+        const companyId = req.user?.company_id;
         const ipAddress = req.ip || req.connection.remoteAddress;
 
         if (!shift_id) {
@@ -117,6 +123,7 @@ const toggleShiftStatus = async (req, res, next) => {
             parseInt(shift_id, 10),
             is_active,
             userId,
+            companyId,
             ipAddress
         );
 

@@ -295,17 +295,24 @@ const getAllShifts = async (companyId, filters = {}, pagination = {}) => {
  * @param {number} shiftId - Shift ID
  * @param {Object} updateData - Data to update
  * @param {number} userId - User ID making the update
+ * @param {number} companyId - Company ID (for validation)
  * @param {string} ipAddress - IP address
  * @returns {Object} Updated shift
  */
-const updateShift = async (shiftId, updateData, userId, ipAddress = null) => {
+const updateShift = async (shiftId, updateData, userId, companyId, ipAddress = null) => {
     const transaction = await sequelize.transaction();
 
     try {
-        // Get existing shift for audit
-        const existingShift = await HrmsShiftMaster.findByPk(shiftId);
+        // Get existing shift for audit and validate company ownership
+        const existingShift = await HrmsShiftMaster.findOne({
+            where: {
+                id: shiftId,
+                company_id: companyId
+            }
+        });
+
         if (!existingShift) {
-            throw new Error('Shift not found');
+            throw new Error('Shift not found or you do not have permission to update this shift');
         }
 
         const oldValues = existingShift.toJSON();
@@ -325,9 +332,12 @@ const updateShift = async (shiftId, updateData, userId, ipAddress = null) => {
         // Set updated_by
         dataToUpdate.updated_by = userId;
 
-        // Update shift master
+        // Update shift master (with company_id validation)
         await HrmsShiftMaster.update(dataToUpdate, {
-            where: { id: shiftId },
+            where: {
+                id: shiftId,
+                company_id: companyId
+            },
             transaction
         });
 
@@ -454,22 +464,35 @@ const deleteShift = async (shiftId, userId, ipAddress = null) => {
  * @param {number} shiftId - Shift ID
  * @param {boolean} isActive - Active status
  * @param {number} userId - User ID
+ * @param {number} companyId - Company ID (for validation)
  * @param {string} ipAddress - IP address
  */
-const toggleShiftStatus = async (shiftId, isActive, userId, ipAddress = null) => {
+const toggleShiftStatus = async (shiftId, isActive, userId, companyId, ipAddress = null) => {
     const transaction = await sequelize.transaction();
 
     try {
-        const shift = await HrmsShiftMaster.findByPk(shiftId);
+        const shift = await HrmsShiftMaster.findOne({
+            where: {
+                id: shiftId,
+                company_id: companyId
+            }
+        });
+
         if (!shift) {
-            throw new Error('Shift not found');
+            throw new Error('Shift not found or you do not have permission to modify this shift');
         }
 
         const oldValues = shift.toJSON();
 
         await HrmsShiftMaster.update(
             { is_active: isActive ? 1 : 0, updated_by: userId },
-            { where: { id: shiftId }, transaction }
+            {
+                where: {
+                    id: shiftId,
+                    company_id: companyId
+                },
+                transaction
+            }
         );
 
         const updatedShift = await HrmsShiftMaster.findByPk(shiftId);
