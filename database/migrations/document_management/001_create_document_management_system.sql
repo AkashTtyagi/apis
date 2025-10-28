@@ -142,6 +142,9 @@ CREATE TABLE hrms_employee_documents (
     is_not_applicable TINYINT(1) DEFAULT 0,
     not_applicable_reason TEXT,
 
+    -- Letter reference (optional - if document is generated from a letter template)
+    letter_id INT UNSIGNED NULL COMMENT 'Reference to generated letter if applicable',
+
     is_active TINYINT(1) DEFAULT 1,
     uploaded_by INT UNSIGNED NOT NULL,
     updated_by INT UNSIGNED NULL,

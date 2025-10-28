@@ -11,6 +11,7 @@ const { HrmsLeavePolicyMapping } = require('../models/HrmsLeavePolicyMapping');
 const { HrmsEmployee } = require('../models/HrmsEmployee');
 const { copyAllTemplatesToCompany } = require('./companyTemplate.service');
 const { createDefaultWorkflows } = require('./workflow/workflowConfig.service');
+const { seedDefaultDocumentStructure } = require('./document/documentSeeder.service');
 
 /**
  * Onboard company and user together in a single transaction
@@ -293,6 +294,14 @@ const onboardCompanyAndUser = async (data) => {
         );
         console.log(`✓ Workflows created: ${workflowResult.created_count} workflows configured`);
 
+        // Step 15: Create default document management structure (INSIDE transaction)
+        console.log(`Creating default document management structure...`);
+        const documentResult = await seedDefaultDocumentStructure(
+            company_id, user_id,
+            dbTrans.trans_id  // Pass Sequelize transaction
+        );
+        console.log(`✓ Document structure created: ${documentResult.folders_created} folders, ${documentResult.document_types_created} document types`);
+
         // Commit the transaction (ALL operations successful)
         await dbTrans.commit();
         console.log(`✓ Transaction committed successfully`);
@@ -316,13 +325,14 @@ const onboardCompanyAndUser = async (data) => {
             // Don't fail the entire onboarding if email fails
         }
 
-        // Return company, user, employee, template, and workflow data
+        // Return company, user, employee, template, workflow, and document data
         return {
             company: company,
             user: user,
             employee: employee,
             templates: templateCopyResult,
-            workflows: workflowResult
+            workflows: workflowResult,
+            documents: documentResult
         };
     } catch (error) {
         // Rollback transaction on any error

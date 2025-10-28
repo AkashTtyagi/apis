@@ -77,6 +77,13 @@ const HrmsEmployeeDocument = sequelize.define('HrmsEmployeeDocument', {
         allowNull: true
     },
 
+    // Letter reference (optional - if document is generated from a letter template)
+    letter_id: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: true,
+        comment: 'Reference to generated letter if applicable'
+    },
+
     is_active: {
         type: DataTypes.BOOLEAN,
         defaultValue: true
