@@ -128,6 +128,19 @@ const createShift = async (shiftData, userId, ipAddress = null) => {
     const transaction = await sequelize.transaction();
 
     try {
+        // Check if shift with same name already exists in the company
+        const existingShift = await HrmsShiftMaster.findOne({
+            where: {
+                company_id: shiftData.company_id,
+                shift_name: shiftData.shift_name,
+                is_active: 1
+            }
+        });
+
+        if (existingShift) {
+            throw new Error(`Shift with name "${shiftData.shift_name}" already exists in this company`);
+        }
+
         // Convert TIME strings to minutes for storage
         const shiftToCreate = { ...shiftData };
 
