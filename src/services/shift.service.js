@@ -98,8 +98,9 @@ const formatShiftForResponse = (shift) => {
  * @param {Object} newValues - New values
  * @param {string} description - Change description
  * @param {string} ipAddress - IP address
+ * @param {Object} transaction - Sequelize transaction
  */
-const logAuditTrail = async (shiftId, actionType, userId, oldValues = null, newValues = null, description = null, ipAddress = null) => {
+const logAuditTrail = async (shiftId, actionType, userId, oldValues = null, newValues = null, description = null, ipAddress = null, transaction = null) => {
     try {
         await HrmsShiftAuditLog.create({
             shift_id: shiftId,
@@ -109,7 +110,7 @@ const logAuditTrail = async (shiftId, actionType, userId, oldValues = null, newV
             new_values: newValues,
             change_description: description,
             ip_address: ipAddress
-        });
+        }, { transaction });
     } catch (error) {
         console.error('Error logging audit trail:', error.message);
         // Don't throw - audit logging failure shouldn't break the main operation
@@ -174,7 +175,7 @@ const createShift = async (shiftData, userId, ipAddress = null) => {
             await HrmsShiftWeeklyOff.bulkCreate(weeklyOffToCreate, { transaction });
         }
 
-        // Log audit trail
+        // Log audit trail (pass transaction to avoid lock timeout)
         await logAuditTrail(
             shift.id,
             'created',
@@ -182,7 +183,8 @@ const createShift = async (shiftData, userId, ipAddress = null) => {
             null,
             shift.toJSON(),
             `Shift created: ${shift.shift_name}`,
-            ipAddress
+            ipAddress,
+            transaction
         );
 
         await transaction.commit();
@@ -391,7 +393,7 @@ const updateShift = async (shiftId, updateData, userId, companyId, ipAddress = n
         // Get updated shift
         const updatedShift = await HrmsShiftMaster.findByPk(shiftId);
 
-        // Log audit trail
+        // Log audit trail (pass transaction to avoid lock timeout)
         await logAuditTrail(
             shiftId,
             'updated',
@@ -399,7 +401,8 @@ const updateShift = async (shiftId, updateData, userId, companyId, ipAddress = n
             oldValues,
             updatedShift.toJSON(),
             `Shift updated: ${updatedShift.shift_name}`,
-            ipAddress
+            ipAddress,
+            transaction
         );
 
         await transaction.commit();
@@ -439,7 +442,7 @@ const deleteShift = async (shiftId, userId, ipAddress = null) => {
         // Soft delete shift
         await shift.destroy({ transaction });
 
-        // Log audit trail
+        // Log audit trail (pass transaction to avoid lock timeout)
         await logAuditTrail(
             shiftId,
             'deleted',
@@ -447,7 +450,8 @@ const deleteShift = async (shiftId, userId, ipAddress = null) => {
             shift.toJSON(),
             null,
             `Shift deleted: ${shift.shift_name}`,
-            ipAddress
+            ipAddress,
+            transaction
         );
 
         await transaction.commit();
@@ -497,7 +501,7 @@ const toggleShiftStatus = async (shiftId, isActive, userId, companyId, ipAddress
 
         const updatedShift = await HrmsShiftMaster.findByPk(shiftId);
 
-        // Log audit trail
+        // Log audit trail (pass transaction to avoid lock timeout)
         await logAuditTrail(
             shiftId,
             isActive ? 'activated' : 'deactivated',
@@ -505,7 +509,8 @@ const toggleShiftStatus = async (shiftId, isActive, userId, companyId, ipAddress
             oldValues,
             updatedShift.toJSON(),
             `Shift ${isActive ? 'activated' : 'deactivated'}: ${shift.shift_name}`,
-            ipAddress
+            ipAddress,
+            transaction
         );
 
         await transaction.commit();
