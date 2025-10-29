@@ -29,6 +29,7 @@ const { HrmsChannelMaster } = require('../models/HrmsChannelMaster');
 const { HrmsCategoryMaster } = require('../models/HrmsCategoryMaster');
 const { HrmsBranchMaster } = require('../models/HrmsBranchMaster');
 const { HrmsLocationMaster } = require('../models/HrmsLocationMaster');
+const { HrmsCompany } = require('../models/HrmsCompany');
 const { Sequelize, Op } = require('sequelize');
 
 /**
@@ -39,6 +40,20 @@ const { HrmsDepartmentMaster } = require('../models/HrmsDepartmentMaster');
 const { HrmsIndustryMaster } = require('../models/HrmsIndustryMaster');
 
 const MASTER_CONFIG = {
+    // Entity Master (Company/Organization - NOT company scoped, includes parent company)
+    entity: {
+        model: HrmsCompany,
+        table: 'hrms_companies',
+        fields: {
+            id: 'id',
+            code: null,  // Companies don't have a code field
+            name: 'org_name'
+        },
+        companyScoped: false,
+        additionalFields: ['parent_enterprise_id', 'is_parent_company', 'country_id', 'currency_id', 'org_industry', 'is_active'],
+        orderBy: [['is_parent_company', 'DESC'], ['org_name', 'ASC']]  // Parent company first, then entities alphabetically
+    },
+
     // Industry Master (NOT company scoped)
     industry: {
         model: HrmsIndustryMaster,
