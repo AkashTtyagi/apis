@@ -32,10 +32,11 @@ const createGrade = async (gradeData) => {
  * Handles update, activate, and deactivate operations
  *
  * @param {number} grade_id - Grade ID
+ * @param {number} company_id - Company ID (for security check)
  * @param {Object} updateData - Update data
  * @returns {Object} Update result
  */
-const updateGrade = async (grade_id, updateData) => {
+const updateGrade = async (grade_id, company_id, updateData) => {
     const { grade_code, grade_name, description, level, is_active, user_id } = updateData;
 
     const [updatedRows] = await HrmsGrade.update(
@@ -49,13 +50,14 @@ const updateGrade = async (grade_id, updateData) => {
         },
         {
             where: {
-                id: grade_id
+                id: grade_id,
+                company_id: company_id  // Ensure user can only update their company's grades
             }
         }
     );
 
     if (updatedRows === 0) {
-        throw new Error('Grade not found');
+        throw new Error('Grade not found or you do not have permission to update it');
     }
 
     return { updatedRows };

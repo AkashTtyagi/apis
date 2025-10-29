@@ -12,7 +12,8 @@ const { sendSuccess, sendCreated } = require('../utils/response');
  */
 const createGrade = async (req, res, next) => {
     try {
-        const { company_id, grade_code, grade_name, description, level } = req.body;
+        const { grade_code, grade_name, description, level } = req.body;
+        const company_id = req.user.company_id;  // Get from authenticated user
         const user_id = req.user.id;
 
         const grade = await gradeService.createGrade({
@@ -38,9 +39,10 @@ const createGrade = async (req, res, next) => {
 const updateGrade = async (req, res, next) => {
     try {
         const { grade_id, grade_code, grade_name, description, level, is_active } = req.body;
+        const company_id = req.user.company_id;  // Get from authenticated user
         const user_id = req.user.id;
 
-        const result = await gradeService.updateGrade(grade_id, {
+        const result = await gradeService.updateGrade(grade_id, company_id, {
             grade_code,
             grade_name,
             description,
@@ -61,7 +63,7 @@ const updateGrade = async (req, res, next) => {
  */
 const getGradesByCompany = async (req, res, next) => {
     try {
-        const { company_id } = req.body;
+        const company_id = req.user.company_id;  // Get from authenticated user
         const activeOnly = req.body.activeOnly !== false;
 
         const grades = await gradeService.getGradesByCompany(company_id, activeOnly);
