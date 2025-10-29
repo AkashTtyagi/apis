@@ -20,6 +20,18 @@ const createLeavePolicy = async (policyData) => {
     const transaction = await sequelize.transaction();
 
     try {
+        // Check if policy name already exists for this company
+        const existingPolicy = await HrmsLeavePolicyMaster.findOne({
+            where: {
+                company_id,
+                policy_name
+            }
+        });
+
+        if (existingPolicy) {
+            throw new Error(`Leave policy with name '${policy_name}' already exists for this company`);
+        }
+
         // Create policy
         const policy = await HrmsLeavePolicyMaster.create({
             company_id,
@@ -49,6 +61,12 @@ const createLeavePolicy = async (policyData) => {
         return completePolicy;
     } catch (error) {
         await transaction.rollback();
+
+        // Handle unique constraint errors
+        if (error.name === 'SequelizeUniqueConstraintError') {
+            throw new Error(`Leave policy with name '${policy_name}' already exists for this company`);
+        }
+
         throw error;
     }
 };
