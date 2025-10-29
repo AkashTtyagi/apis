@@ -232,7 +232,7 @@ const getLeavePolicies = async (company_id, is_active = null, includeInactiveLea
         include: [
             {
                 model: HrmsLeavePolicyMapping,
-                as: 'mappings',
+                as: 'policyMappings',
                 where: mappingWhere,
                 required: false,
                 include: [
@@ -246,7 +246,7 @@ const getLeavePolicies = async (company_id, is_active = null, includeInactiveLea
         ],
         order: [
             ['policy_name', 'ASC'],
-            [{ model: HrmsLeavePolicyMapping, as: 'mappings' }, 'display_order', 'ASC']
+            [{ model: HrmsLeavePolicyMapping, as: 'policyMappings' }, 'display_order', 'ASC']
         ]
     });
 
@@ -272,7 +272,7 @@ const getPolicyById = async (policy_id, company_id, includeInactiveLeaveTypes = 
         include: [
             {
                 model: HrmsLeavePolicyMapping,
-                as: 'mappings',
+                as: 'policyMappings',
                 where: mappingWhere,
                 required: false,
                 include: [
@@ -284,7 +284,7 @@ const getPolicyById = async (policy_id, company_id, includeInactiveLeaveTypes = 
             }
         ],
         order: [
-            [{ model: HrmsLeavePolicyMapping, as: 'mappings' }, 'display_order', 'ASC']
+            [{ model: HrmsLeavePolicyMapping, as: 'policyMappings' }, 'display_order', 'ASC']
         ]
     });
 
