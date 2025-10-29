@@ -401,8 +401,17 @@
         {
           "name": "Get Employees by Company",
           "request": {
-            "method": "GET",
-            "header": [],
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/employees/company",
               "host": [
@@ -412,6 +421,10 @@
                 "employees",
                 "company"
               ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": [\n    0,\n    1,\n    2\n  ],\n  \"department_id\": null,\n  \"designation_id\": null,\n  \"entity_id\": null,\n  \"is_deleted\": 0\n}"
             }
           },
           "response": []
@@ -843,11 +856,15 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"org_id\": 1,\n  \"is_active\": true\n}"
+              "raw": "{\n  \"is_active\": true,\n  \"search\": \"\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/departments/list",
@@ -929,11 +946,15 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"org_dept_id\": 1,\n  \"is_active\": true\n}"
+              "raw": "{\n  \"org_department_id\": null,\n  \"is_active\": true\n}"
             },
             "url": {
               "raw": "{{base_url}}/sub-departments/list",
@@ -1501,7 +1522,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"company_id\": \"{{company_id}}\",\n  \"filters\": {\n    \"is_active\": 1\n  },\n  \"page\": 1,\n  \"limit\": 50\n}"
+              "raw": "{\n  \"filters\": {\n    \"is_active\": 1\n  },\n  \"page\": 1,\n  \"limit\": 50\n}"
             },
             "url": {
               "raw": "{{base_url}}/shifts/list",
@@ -1816,7 +1837,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"is_active\": true,\n  \"limit\": 20,\n  \"offset\": 0\n}"
+              "raw": "{\n  \"filters\": {\n    \"is_active\": 1\n  },\n  \"page\": 1,\n  \"limit\": 50\n}"
             },
             "url": {
               "raw": "{{base_url}}/roster/list",
@@ -2038,7 +2059,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"is_active\": true,\n  \"frequency\": \"weekly\",\n  \"limit\": 20,\n  \"offset\": 0\n}"
+              "raw": "{\n  \"filters\": {\n    \"is_active\": 1\n  }\n}"
             },
             "url": {
               "raw": "{{base_url}}/rotating-shift/list",
@@ -3000,13 +3021,17 @@
             "method": "POST",
             "header": [
               {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
                 "key": "Authorization",
                 "value": "Bearer {{auth_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{}"
+              "raw": "{\n  \"activeOnly\": true\n}"
             },
             "url": {
               "raw": "{{base_url}}/designations/list",
@@ -3091,13 +3116,17 @@
             "method": "POST",
             "header": [
               {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
                 "key": "Authorization",
                 "value": "Bearer {{auth_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{}"
+              "raw": "{\n  \"activeOnly\": true\n}"
             },
             "url": {
               "raw": "{{base_url}}/grades/list",
@@ -3182,13 +3211,17 @@
             "method": "POST",
             "header": [
               {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
                 "key": "Authorization",
                 "value": "Bearer {{auth_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{}"
+              "raw": "{\n  \"activeOnly\": true\n}"
             },
             "url": {
               "raw": "{{base_url}}/levels/list",
@@ -4536,39 +4569,26 @@
             "method": "POST",
             "header": [
               {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
                 "key": "Authorization",
                 "value": "Bearer {{auth_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{}"
+              "raw": "{\n  \"is_active\": true,\n  \"search\": \"\",\n  \"channel_type\": \"offline\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/channels/list?is_active=true",
+              "raw": "{{base_url}}/channels/list",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "channels",
                 "list"
-              ],
-              "query": [
-                {
-                  "key": "is_active",
-                  "value": "true",
-                  "disabled": true
-                },
-                {
-                  "key": "search",
-                  "value": "",
-                  "disabled": true
-                },
-                {
-                  "key": "channel_type",
-                  "value": "",
-                  "disabled": true
-                }
               ]
             }
           }
@@ -4645,13 +4665,17 @@
             "method": "POST",
             "header": [
               {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
                 "key": "Authorization",
                 "value": "Bearer {{auth_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{}"
+              "raw": "{\n  \"is_active\": true,\n  \"search\": \"\",\n  \"division_id\": null\n}"
             },
             "url": {
               "raw": "{{base_url}}/business-units/list",
@@ -4737,13 +4761,17 @@
             "method": "POST",
             "header": [
               {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
                 "key": "Authorization",
                 "value": "Bearer {{auth_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{}"
+              "raw": "{\n  \"is_active\": true,\n  \"search\": \"\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/categories/list",
@@ -4829,13 +4857,17 @@
             "method": "POST",
             "header": [
               {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
                 "key": "Authorization",
                 "value": "Bearer {{auth_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{}"
+              "raw": "{\n  \"is_active\": true,\n  \"search\": \"\",\n  \"branch_type\": \"regional\",\n  \"region_id\": null,\n  \"zone_id\": null\n}"
             },
             "url": {
               "raw": "{{base_url}}/branches/list",
@@ -4921,13 +4953,17 @@
             "method": "POST",
             "header": [
               {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
                 "key": "Authorization",
                 "value": "Bearer {{auth_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{}"
+              "raw": "{\n  \"is_active\": true,\n  \"search\": \"\",\n  \"location_type\": \"warehouse\",\n  \"branch_id\": null\n}"
             },
             "url": {
               "raw": "{{base_url}}/locations/list",
@@ -5013,13 +5049,17 @@
             "method": "POST",
             "header": [
               {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
                 "key": "Authorization",
                 "value": "Bearer {{auth_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{}"
+              "raw": "{\n  \"is_active\": true,\n  \"search\": \"\",\n  \"region_id\": null\n}"
             },
             "url": {
               "raw": "{{base_url}}/zones/list",
@@ -5105,13 +5145,17 @@
             "method": "POST",
             "header": [
               {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
                 "key": "Authorization",
                 "value": "Bearer {{auth_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{}"
+              "raw": "{\n  \"is_active\": true,\n  \"search\": \"\",\n  \"parent_cost_center_id\": null\n}"
             },
             "url": {
               "raw": "{{base_url}}/cost-centers/list",
@@ -5196,13 +5240,17 @@
             "method": "POST",
             "header": [
               {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
                 "key": "Authorization",
                 "value": "Bearer {{auth_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{}"
+              "raw": "{\n  \"activeOnly\": true\n}"
             },
             "url": {
               "raw": "{{base_url}}/skills/list",
