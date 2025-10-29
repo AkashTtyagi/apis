@@ -12,7 +12,7 @@ const { HrmsLevel } = require('../models/HrmsLevel');
  * @returns {Object} Created level
  */
 const createLevel = async (levelData) => {
-    const { company_id, level_code, level_name, description, hierarchy_order, user_id } = levelData;
+    const { company_id, level_code, level_name, description, hierarchy_order, is_active, user_id } = levelData;
 
     const level = await HrmsLevel.create({
         company_id,
@@ -20,7 +20,7 @@ const createLevel = async (levelData) => {
         level_name,
         description: description || null,
         hierarchy_order: hierarchy_order || 0,
-        is_active: true,
+        is_active: is_active !== undefined ? is_active : true,
         created_by: user_id || null
     });
 
@@ -68,13 +68,24 @@ const updateLevel = async (level_id, updateData) => {
  * @param {boolean} activeOnly - Get only active levels
  * @returns {Array} List of levels
  */
-const getLevelsByCompany = async (company_id, activeOnly = true) => {
+const getLevelsByCompany = async (company_id, filters = {}) => {
+    const { Op } = require('sequelize');
     const whereClause = {
         company_id
     };
 
-    if (activeOnly) {
-        whereClause.is_active = true;
+    // If is_active is explicitly true or false, filter by it
+    // If is_active is null/undefined, return both active and inactive
+    if (filters.is_active !== null && filters.is_active !== undefined) {
+        whereClause.is_active = filters.is_active;
+    }
+
+    // Search in level_code or level_name
+    if (filters.search) {
+        whereClause[Op.or] = [
+            { level_code: { [Op.like]: `%${filters.search}%` } },
+            { level_name: { [Op.like]: `%${filters.search}%` } }
+        ];
     }
 
     const levels = await HrmsLevel.findAll({

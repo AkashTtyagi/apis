@@ -67,10 +67,10 @@ const list = async (req, res) => {
     try {
         const { company_id } = req.user;
         const filters = {
-            is_active: req.query.is_active,
-            search: req.query.search,
-            channel_type: req.query.channel_type,
-            id: req.query.id
+            is_active: req.body.is_active,
+            search: req.body.search,
+            channel_type: req.body.channel_type,
+            id: req.body.id
         };
 
         const channels = await channelService.getChannels(company_id, filters);

@@ -67,10 +67,10 @@ const list = async (req, res) => {
     try {
         const { company_id } = req.user;
         const filters = {
-            is_active: req.query.is_active,
-            search: req.query.search,
-            region_id: req.query.region_id,
-            id: req.query.id
+            is_active: req.body.is_active,
+            search: req.body.search,
+            region_id: req.body.region_id,
+            id: req.body.id
         };
 
         const zones = await zoneService.getZones(company_id, filters);

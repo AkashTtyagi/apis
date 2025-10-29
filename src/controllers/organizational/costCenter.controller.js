@@ -67,10 +67,10 @@ const list = async (req, res) => {
     try {
         const { company_id } = req.user;
         const filters = {
-            is_active: req.query.is_active,
-            search: req.query.search,
-            parent_cost_center_id: req.query.parent_cost_center_id,
-            id: req.query.id
+            is_active: req.body.is_active,
+            search: req.body.search,
+            parent_cost_center_id: req.body.parent_cost_center_id,
+            id: req.body.id
         };
 
         const costCenters = await costCenterService.getCostCenters(company_id, filters);

@@ -12,7 +12,7 @@ const { sendSuccess, sendCreated } = require('../utils/response');
  */
 const createLevel = async (req, res, next) => {
     try {
-        const { company_id, level_code, level_name, description, hierarchy_order } = req.body;
+        const { company_id, level_code, level_name, description, hierarchy_order, is_active } = req.body;
         const user_id = req.user.id;
 
         const level = await levelService.createLevel({
@@ -21,6 +21,7 @@ const createLevel = async (req, res, next) => {
             level_name,
             description,
             hierarchy_order,
+            is_active,
             user_id
         });
 
@@ -61,10 +62,14 @@ const updateLevel = async (req, res, next) => {
  */
 const getLevelsByCompany = async (req, res, next) => {
     try {
-        const { company_id } = req.body;
-        const activeOnly = req.body.activeOnly !== false;
+        const { company_id, is_active, search } = req.body;
 
-        const levels = await levelService.getLevelsByCompany(company_id, activeOnly);
+        const filters = {
+            is_active,
+            search
+        };
+
+        const levels = await levelService.getLevelsByCompany(company_id, filters);
 
         return sendSuccess(res, 'Levels retrieved successfully', { levels });
     } catch (error) {

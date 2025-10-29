@@ -67,12 +67,12 @@ const list = async (req, res) => {
     try {
         const { company_id } = req.user;
         const filters = {
-            is_active: req.query.is_active,
-            search: req.query.search,
-            branch_type: req.query.branch_type,
-            region_id: req.query.region_id,
-            zone_id: req.query.zone_id,
-            id: req.query.id
+            is_active: req.body.is_active,
+            search: req.body.search,
+            branch_type: req.body.branch_type,
+            region_id: req.body.region_id,
+            zone_id: req.body.zone_id,
+            id: req.body.id
         };
 
         const branches = await branchService.getBranches(company_id, filters);

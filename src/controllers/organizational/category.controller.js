@@ -67,9 +67,9 @@ const list = async (req, res) => {
     try {
         const { company_id } = req.user;
         const filters = {
-            is_active: req.query.is_active,
-            search: req.query.search,
-            id: req.query.id
+            is_active: req.body.is_active,
+            search: req.body.search,
+            id: req.body.id
         };
 
         const categories = await categoryService.getCategories(company_id, filters);

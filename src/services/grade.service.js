@@ -12,7 +12,7 @@ const { HrmsGrade } = require('../models/HrmsGrade');
  * @returns {Object} Created grade
  */
 const createGrade = async (gradeData) => {
-    const { company_id, grade_code, grade_name, description, level, user_id } = gradeData;
+    const { company_id, grade_code, grade_name, description, level, is_active, user_id } = gradeData;
 
     const grade = await HrmsGrade.create({
         company_id,
@@ -20,7 +20,7 @@ const createGrade = async (gradeData) => {
         grade_name,
         description: description || null,
         level: level || 0,
-        is_active: true,
+        is_active: is_active !== undefined ? is_active : true,
         created_by: user_id || null
     });
 
@@ -70,13 +70,24 @@ const updateGrade = async (grade_id, company_id, updateData) => {
  * @param {boolean} activeOnly - Get only active grades
  * @returns {Array} List of grades
  */
-const getGradesByCompany = async (company_id, activeOnly = true) => {
+const getGradesByCompany = async (company_id, filters = {}) => {
+    const { Op } = require('sequelize');
     const whereClause = {
         company_id
     };
 
-    if (activeOnly) {
-        whereClause.is_active = true;
+    // If is_active is explicitly true or false, filter by it
+    // If is_active is null/undefined, return both active and inactive
+    if (filters.is_active !== null && filters.is_active !== undefined) {
+        whereClause.is_active = filters.is_active;
+    }
+
+    // Search in grade_code or grade_name
+    if (filters.search) {
+        whereClause[Op.or] = [
+            { grade_code: { [Op.like]: `%${filters.search}%` } },
+            { grade_name: { [Op.like]: `%${filters.search}%` } }
+        ];
     }
 
     const grades = await HrmsGrade.findAll({

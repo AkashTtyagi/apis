@@ -67,10 +67,10 @@ const list = async (req, res) => {
     try {
         const { company_id } = req.user;
         const filters = {
-            is_active: req.query.is_active,
-            search: req.query.search,
-            division_id: req.query.division_id,
-            id: req.query.id
+            is_active: req.body.is_active,
+            search: req.body.search,
+            division_id: req.body.division_id,
+            id: req.body.id
         };
 
         const businessUnits = await businessUnitService.getBusinessUnits(company_id, filters);

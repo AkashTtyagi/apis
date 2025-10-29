@@ -67,11 +67,11 @@ const list = async (req, res) => {
     try {
         const { company_id } = req.user;
         const filters = {
-            is_active: req.query.is_active,
-            search: req.query.search,
-            location_type: req.query.location_type,
-            branch_id: req.query.branch_id,
-            id: req.query.id
+            is_active: req.body.is_active,
+            search: req.body.search,
+            location_type: req.body.location_type,
+            branch_id: req.body.branch_id,
+            id: req.body.id
         };
 
         const locations = await locationService.getLocations(company_id, filters);

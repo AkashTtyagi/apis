@@ -2971,7 +2971,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"designation_name\": \"Senior Software Engineer\",\n  \"description\": \"Senior development role\"\n}"
+              "raw": "{\n  \"designation_name\": \"Senior Software Engineer\",\n  \"description\": \"Senior development role\",\n  \"is_active\": true\n}"
             },
             "url": {
               "raw": "{{base_url}}/designations/create",
@@ -3031,7 +3031,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"activeOnly\": true\n}"
+              "raw": "{\n  \"activeOnly\": true,\n  \"is_active\": true,\n  \"search\": \"\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/designations/list",
@@ -3066,7 +3066,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"grade_name\": \"Grade A\",\n  \"description\": \"Top grade\"\n}"
+              "raw": "{\n  \"grade_name\": \"Grade A\",\n  \"description\": \"Top grade\",\n  \"is_active\": true\n}"
             },
             "url": {
               "raw": "{{base_url}}/grades/create",
@@ -3126,7 +3126,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"activeOnly\": true\n}"
+              "raw": "{\n  \"activeOnly\": true,\n  \"is_active\": true,\n  \"search\": \"\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/grades/list",
@@ -3161,7 +3161,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"level_name\": \"L1\",\n  \"description\": \"Entry level\"\n}"
+              "raw": "{\n  \"level_name\": \"L1\",\n  \"description\": \"Entry level\",\n  \"is_active\": true\n}"
             },
             "url": {
               "raw": "{{base_url}}/levels/create",
@@ -3221,7 +3221,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"activeOnly\": true\n}"
+              "raw": "{\n  \"activeOnly\": true,\n  \"is_active\": true,\n  \"search\": \"\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/levels/list",
@@ -5250,7 +5250,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"activeOnly\": true\n}"
+              "raw": "{\n  \"activeOnly\": true,\n  \"search\": \"\",\n  \"is_active\": true\n}"
             },
             "url": {
               "raw": "{{base_url}}/skills/list",

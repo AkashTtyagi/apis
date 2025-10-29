@@ -12,7 +12,7 @@ const { sendSuccess, sendCreated } = require('../utils/response');
  */
 const createGrade = async (req, res, next) => {
     try {
-        const { grade_code, grade_name, description, level } = req.body;
+        const { grade_code, grade_name, description, level, is_active } = req.body;
         const company_id = req.user.company_id;  // Get from authenticated user
         const user_id = req.user.id;
 
@@ -22,6 +22,7 @@ const createGrade = async (req, res, next) => {
             grade_name,
             description,
             level,
+            is_active,
             user_id
         });
 
@@ -64,11 +65,16 @@ const updateGrade = async (req, res, next) => {
 const getGradesByCompany = async (req, res, next) => {
     try {
         const company_id = req.user.company_id;  // Get from authenticated user
-        const activeOnly = req.body.activeOnly !== false;
+        const { is_active, search } = req.body;
 
-        const grades = await gradeService.getGradesByCompany(company_id, activeOnly);
+        const filters = {
+            is_active,
+            search
+        };
 
-        return sendSuccess(res, 'Grades retrieved successfully', grades);
+        const grades = await gradeService.getGradesByCompany(company_id, filters);
+
+        return sendSuccess(res, 'Grades retrieved successfully', { grades });
     } catch (error) {
         next(error);
     }
