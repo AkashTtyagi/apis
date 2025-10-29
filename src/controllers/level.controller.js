@@ -12,8 +12,9 @@ const { sendSuccess, sendCreated } = require('../utils/response');
  */
 const createLevel = async (req, res, next) => {
     try {
-        const { company_id, level_code, level_name, description, hierarchy_order, is_active } = req.body;
+        const {  level_code, level_name, description, hierarchy_order, is_active } = req.body;
         const user_id = req.user.id;
+        const company_id = req.user.company_id;
 
         const level = await levelService.createLevel({
             company_id,
@@ -25,7 +26,7 @@ const createLevel = async (req, res, next) => {
             user_id
         });
 
-        return sendCreated(res, 'Level created successfully', { level });
+        return sendCreated(res, 'Level created successfully', level);
     } catch (error) {
         next(error);
     }
