@@ -26,7 +26,7 @@ const createGrade = async (req, res, next) => {
             user_id
         });
 
-        return sendCreated(res, 'Grade created successfully', { grade });
+        return sendCreated(res, 'Grade created successfully', grade);
     } catch (error) {
         next(error);
     }
@@ -74,7 +74,7 @@ const getGradesByCompany = async (req, res, next) => {
 
         const grades = await gradeService.getGradesByCompany(company_id, filters);
 
-        return sendSuccess(res, 'Grades retrieved successfully', { grades });
+        return sendSuccess(res, 'Grades retrieved successfully', grades);
     } catch (error) {
         next(error);
     }
