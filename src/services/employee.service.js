@@ -337,24 +337,59 @@ const getEmployeesByCompany = async (company_id, filters = {}) => {
         company_id: company_id
     };
 
-    if (filters.status) {
-        whereClause.status = filters.status;
+    // Handle status filter - can be single value or array
+    if (filters.status !== undefined) {
+        if (Array.isArray(filters.status)) {
+            // Multiple statuses: [0, 1, 3]
+            whereClause.status = { [Op.in]: filters.status };
+        } else {
+            // Single status: 0
+            whereClause.status = filters.status;
+        }
     }
 
+    // Handle department_id filter - can be single value or array
     if (filters.department_id) {
-        whereClause.department_id = filters.department_id;
+        if (Array.isArray(filters.department_id)) {
+            // Multiple departments: [5, 6, 7]
+            whereClause.department_id = { [Op.in]: filters.department_id };
+        } else {
+            // Single department: 5
+            whereClause.department_id = filters.department_id;
+        }
     }
 
+    // Handle sub_department_id filter - can be single value or array
     if (filters.sub_department_id) {
-        whereClause.sub_department_id = filters.sub_department_id;
+        if (Array.isArray(filters.sub_department_id)) {
+            // Multiple sub-departments: [10, 11, 12]
+            whereClause.sub_department_id = { [Op.in]: filters.sub_department_id };
+        } else {
+            // Single sub-department: 10
+            whereClause.sub_department_id = filters.sub_department_id;
+        }
     }
 
+    // Handle designation_id filter - can be single value or array
     if (filters.designation_id) {
-        whereClause.designation_id = filters.designation_id;
+        if (Array.isArray(filters.designation_id)) {
+            // Multiple designations: [10, 11, 12]
+            whereClause.designation_id = { [Op.in]: filters.designation_id };
+        } else {
+            // Single designation: 10
+            whereClause.designation_id = filters.designation_id;
+        }
     }
 
+    // Handle entity_id filter - can be single value or array
     if (filters.entity_id) {
-        whereClause.entity_id = filters.entity_id;
+        if (Array.isArray(filters.entity_id)) {
+            // Multiple entities: [25, 26, 27]
+            whereClause.entity_id = { [Op.in]: filters.entity_id };
+        } else {
+            // Single entity: 25
+            whereClause.entity_id = filters.entity_id;
+        }
     }
 
     if (filters.is_deleted !== undefined) {

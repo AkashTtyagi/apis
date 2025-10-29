@@ -20,6 +20,7 @@ const { HrmsTimezoneMaster } = require('../models/HrmsTimezoneMaster');
 const { HrmsCurrencyMaster } = require('../models/HrmsCurrencyMaster');
 const { HrmsEmployee } = require('../models/HrmsEmployee');
 const { HrmsEmployeeTypeMaster } = require('../models/HrmsEmployeeTypeMaster');
+const { HrmsEmployeeStatusMaster } = require('../models/HrmsEmployeeStatusMaster');
 const { HrmsCostCenterMaster } = require('../models/HrmsCostCenterMaster');
 const { HrmsDivisionMaster } = require('../models/HrmsDivisionMaster');
 const { HrmsRegionMaster } = require('../models/HrmsRegionMaster');
@@ -108,6 +109,20 @@ const MASTER_CONFIG = {
         companyScoped: false,
         additionalFields: ['description'],
         orderBy: [['display_order', 'ASC'], ['type_name', 'ASC']]
+    },
+
+    // Employee Status Master (NOT company scoped)
+    employee_status: {
+        model: HrmsEmployeeStatusMaster,
+        table: 'hrms_employee_status_master',
+        fields: {
+            id: 'id',
+            code: 'status_code',
+            name: 'status_name'
+        },
+        companyScoped: false,
+        additionalFields: ['description'],
+        orderBy: [['display_order', 'ASC'], ['status_name', 'ASC']]
     },
 
     // Geographic Masters (NOT company scoped)

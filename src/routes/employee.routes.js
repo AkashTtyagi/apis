@@ -21,11 +21,11 @@ router.post('/', employeeController.createEmployee);
 // Update employee
 router.put('/:id', employeeController.updateEmployee);
 
+// Get employees by company (must come before /:id to avoid route conflict)
+router.post('/company', employeeController.getEmployeesByCompany);
+
 // Get employee by ID
 router.get('/:id', employeeController.getEmployeeById);
-
-// Get employees by company
-router.get('/company', employeeController.getEmployeesByCompany);
 
 // Activate user and send login credentials
 router.post('/activate/:user_id', async (req, res, next) => {

@@ -90,17 +90,42 @@ const getEmployeeById = async (req, res, next) => {
 
 /**
  * Get all employees for a company
- * GET /api/employees/company
+ * POST /api/employees/company
  */
 const getEmployeesByCompany = async (req, res, next) => {
     try {
         const company_id = req.user.company_id;
+
+        // Get filters from request body (POST) instead of query params
+        // All filters support both single value and array
         const filters = {
-            status: req.query.status,
-            department_id: req.query.department_id ? parseInt(req.query.department_id) : undefined,
-            designation_id: req.query.designation_id ? parseInt(req.query.designation_id) : undefined,
-            entity_id: req.query.entity_id ? parseInt(req.query.entity_id) : undefined,
-            is_active: req.query.is_active !== undefined ? req.query.is_active === 'true' : undefined
+            // status can be single value (0) or array ([0, 1, 3])
+            status: req.body.status !== undefined
+                ? (Array.isArray(req.body.status)
+                    ? req.body.status.map(s => parseInt(s))  // Array: [0, 1, 3]
+                    : parseInt(req.body.status))              // Single: 0
+                : undefined,
+
+            // department_id can be single value (5) or array ([5, 6, 7])
+            department_id: req.body.department_id
+                ? (Array.isArray(req.body.department_id)
+                    ? req.body.department_id.map(d => parseInt(d))  // Array: [5, 6, 7]
+                    : parseInt(req.body.department_id))              // Single: 5
+                : undefined,
+
+            // designation_id can be single value (10) or array ([10, 11, 12])
+            designation_id: req.body.designation_id
+                ? (Array.isArray(req.body.designation_id)
+                    ? req.body.designation_id.map(d => parseInt(d))  // Array: [10, 11, 12]
+                    : parseInt(req.body.designation_id))              // Single: 10
+                : undefined,
+
+            // entity_id can be single value (25) or array ([25, 26, 27])
+            entity_id: req.body.entity_id
+                ? (Array.isArray(req.body.entity_id)
+                    ? req.body.entity_id.map(e => parseInt(e))  // Array: [25, 26, 27]
+                    : parseInt(req.body.entity_id))              // Single: 25
+                : undefined
         };
 
         const employees = await employeeService.getEmployeesByCompany(company_id, filters);
