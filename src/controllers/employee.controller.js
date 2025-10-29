@@ -65,6 +65,21 @@ const getEmployeeById = async (req, res, next) => {
         const company_id = req.user.company_id;
         const includeTemplateFields = req.query.includeTemplateFields !== 'false';
 
+        // Validate employee_id
+        if (!req.params.id) {
+            return res.status(400).json({
+                success: false,
+                message: 'employee_id is required'
+            });
+        }
+
+        if (isNaN(employee_id) || employee_id <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'employee_id must be a valid positive number'
+            });
+        }
+
         const result = await employeeService.getEmployeeById(employee_id, company_id, includeTemplateFields);
 
         return sendSuccess(res, 'Employee retrieved successfully', result);
