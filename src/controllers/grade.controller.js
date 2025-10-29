@@ -68,7 +68,7 @@ const getGradesByCompany = async (req, res, next) => {
 
         const grades = await gradeService.getGradesByCompany(company_id, activeOnly);
 
-        return sendSuccess(res, 'Grades retrieved successfully', { grades });
+        return sendSuccess(res, 'Grades retrieved successfully', grades);
     } catch (error) {
         next(error);
     }
