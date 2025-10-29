@@ -13,7 +13,6 @@ const { sendSuccess, sendCreated } = require('../utils/response');
 const createDesignation = async (req, res, next) => {
     try {
         const {
-            company_id,
             designation_master_id,
             designation_code,
             designation_name,
@@ -26,6 +25,7 @@ const createDesignation = async (req, res, next) => {
             skill_id,
             job_description
         } = req.body;
+        const company_id = req.user.company_id;
         const user_id = req.user.id;
 
         const designation = await designationService.createDesignation({
@@ -100,7 +100,7 @@ const updateDesignation = async (req, res, next) => {
  */
 const getDesignationsByCompany = async (req, res, next) => {
     try {
-        const { company_id } = req.body;
+        const company_id = req.user.company_id;
         const activeOnly = req.body.activeOnly !== false;
 
         const designations = await designationService.getDesignationsByCompany(company_id, activeOnly);

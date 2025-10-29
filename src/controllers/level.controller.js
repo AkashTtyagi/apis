@@ -63,7 +63,8 @@ const updateLevel = async (req, res, next) => {
  */
 const getLevelsByCompany = async (req, res, next) => {
     try {
-        const { company_id, is_active, search } = req.body;
+        const company_id = req.user.company_id;
+        const { is_active, search } = req.body;
 
         const filters = {
             is_active,
