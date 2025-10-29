@@ -72,7 +72,7 @@ const getLevelsByCompany = async (req, res, next) => {
 
         const levels = await levelService.getLevelsByCompany(company_id, filters);
 
-        return sendSuccess(res, 'Levels retrieved successfully', levels);
+        return sendSuccess(res, 'Levels retrieved successfully',levels);
     } catch (error) {
         next(error);
     }
