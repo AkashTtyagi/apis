@@ -8782,6 +8782,228 @@
           ]
         }
       ]
+    },
+    {
+      "name": "32. Email Template Library",
+      "item": [
+        {
+          "name": "Create Email Template",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slug\": \"welcome_email\",\n  \"name\": \"Welcome Email\",\n  \"subject\": \"Welcome to {{company_name}}!\",\n  \"body\": \"<h1>Welcome {{user_name}}!</h1><p>We're excited to have you join our team.</p>\",\n  \"variables\": [\n    \"user_name\",\n    \"company_name\",\n    \"employee_code\"\n  ],\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/email-templates/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "email-templates",
+                "create"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Email Template",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"template_id\": 1,\n  \"name\": \"Updated Welcome Email\",\n  \"subject\": \"Welcome to {{company_name}} - Updated!\",\n  \"body\": \"<h1>Hi {{user_name}}!</h1><p>Welcome to our amazing team at {{company_name}}.</p>\",\n  \"variables\": [\n    \"user_name\",\n    \"company_name\",\n    \"employee_code\",\n    \"department\"\n  ],\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/email-templates/update",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "email-templates",
+                "update"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Email Templates",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_active\": true,\n  \"search\": \"\",\n  \"slug\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/email-templates/list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "email-templates",
+                "list"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Template Details",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"template_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/email-templates/details",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "email-templates",
+                "details"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Template by Slug",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slug\": \"welcome_email\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/email-templates/by-slug",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "email-templates",
+                "by-slug"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Clone Template",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"template_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/email-templates/clone",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "email-templates",
+                "clone"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Email Template",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"template_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/email-templates/delete",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "email-templates",
+                "delete"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ]
 }

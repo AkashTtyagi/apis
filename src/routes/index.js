@@ -29,6 +29,7 @@ const rosterRoutes = require('./roster.routes');
 const rotatingShiftRoutes = require('./rotatingShift.routes');
 const shiftSwapRoutes = require('./shiftSwap.routes');
 const skillRoutes = require('./skill.routes');
+const emailTemplateRoutes = require('./emailTemplate.routes');
 
 // Policy routes (Admin & ESS)
 const adminPolicyRoutes = require('./policy/admin.policy.routes');
@@ -120,6 +121,9 @@ router.use('/shift-swap', shiftSwapRoutes);
 
 // Skill management routes
 router.use('/skills', skillRoutes);
+
+// Email Template Library routes
+router.use('/email-templates', emailTemplateRoutes);
 
 // Admin Policy routes
 router.use('/admin/policy', adminPolicyRoutes);
