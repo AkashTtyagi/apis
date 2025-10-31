@@ -292,6 +292,13 @@ const HrmsEmployee = sequelize.define('HrmsEmployee', {
         comment: 'URL or path to profile picture'
     },
 
+    // Biometric Device ID (Client's unique ID for employee)
+    biometric_device_id: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+        comment: 'Client-provided unique biometric ID for employee (used for biometric attendance mapping)'
+    },
+
     // Is Deleted (Soft Delete)
     is_deleted: {
         type: DataTypes.TINYINT(1),

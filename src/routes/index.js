@@ -35,6 +35,9 @@ const emailTemplateRoutes = require('./emailTemplate.routes');
 const adminPolicyRoutes = require('./policy/admin.policy.routes');
 const essPolicyRoutes = require('./policy/ess.policy.routes');
 
+// ESS Microservice routes
+const essAttendanceRoutes = require('../microservices/ess/routes/attendance.routes');
+
 // Organizational routes
 const channelRoutes = require('./organizational/channel.routes');
 const businessUnitRoutes = require('./organizational/businessUnit.routes');
@@ -130,6 +133,9 @@ router.use('/admin/policy', adminPolicyRoutes);
 
 // ESS Policy routes
 router.use('/ess/policy', essPolicyRoutes);
+
+// ESS Attendance routes (Clock IN/OUT, Punch status, History)
+router.use('/ess/attendance', essAttendanceRoutes);
 
 // Organizational structure routes
 router.use('/channels', channelRoutes);

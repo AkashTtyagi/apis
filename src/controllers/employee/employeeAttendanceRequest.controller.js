@@ -5,10 +5,10 @@
  */
 
 const leaveApplicationService = require('../../services/attendance/leaveApplication.service');
+const onDutyApplicationService = require('../../services/attendance/onDutyApplication.service');
+const wfhApplicationService = require('../../services/attendance/wfhApplication.service');
+const shortLeaveApplicationService = require('../../services/attendance/shortLeaveApplication.service');
 const workflowExecutionService = require('../../services/workflow/workflowExecution.service');
-const { HrmsWorkflowRequest } = require('../../models/workflow');
-const { HrmsEmployee } = require('../../models/HrmsEmployee');
-const { HrmsDailyAttendance } = require('../../models/HrmsDailyAttendance');
 const moment = require('moment');
 
 /**
@@ -53,84 +53,35 @@ const applyLeave = async (req, res) => {
 /**
  * Apply for On Duty
  * POST /api/employee/onduty/apply
+ *
+ * Supports two modes:
+ * 1. Date Range Mode: from_date + to_date + from_time + to_time (same time for all dates)
+ * 2. Specific Dates Mode: specific_dates array with per-date time (non-continuous dates)
  */
 const applyOnDuty = async (req, res) => {
     try {
-        const {
-            from_date,
-            to_date,
-            from_time,
-            to_time,
-            duration,
-            purpose,
-            location,
-            attachment
-        } = req.body;
-
         const employee_id = req.user.employee_id;
         const user_id = req.user.user_id;
 
-        // Validation
-        if (!from_date || !to_date || !purpose || !location) {
-            return res.status(400).json({
-                success: false,
-                message: 'Required fields: from_date, to_date, purpose, location'
-            });
-        }
-
-        // Prepare request data
-        const requestData = {
-            from_date,
-            to_date,
-            from_time: from_time || null,
-            to_time: to_time || null,
-            duration: parseFloat(duration) || 1,
-            purpose,
-            location,
-            attachment: attachment || null,
-            applied_at: new Date()
-        };
-
-        // Get employee details
-        const employee = await HrmsEmployee.findByPk(employee_id);
-
-        // Submit workflow request (workflow_master_id = 2 for On Duty)
-        const request = await workflowExecutionService.submitRequest(
-            employee_id,
-            user_id,
-            2,
-            requestData
-        );
-
-        // Create daily attendance entries
-        await createDailyAttendanceForRequest({
-            request_id: request.id,
-            workflow_master_id: 2,  // On Duty
-            employee_id,
-            company_id: employee.company_id,
-            from_date,
-            to_date,
-            pay_day: 1,  // Full day
-            status: 'pending'
-        });
+        // Delegate to service layer
+        const result = await onDutyApplicationService.applyOnDuty(req.body, employee_id, user_id);
 
         return res.status(201).json({
             success: true,
             message: 'On Duty request submitted successfully',
             data: {
-                request_number: request.request_number,
-                request_id: request.id,
-                request_status: request.request_status,
-                from_date,
-                to_date,
-                purpose,
-                location
+                request_number: result.request.request_number,
+                request_id: result.request.id,
+                request_status: result.request.request_status,
+                on_duty_mode: result.on_duty_mode,
+                dates: result.dates,
+                duration: result.duration
             }
         });
 
     } catch (error) {
         console.error('Error applying on duty:', error);
-        return res.status(500).json({
+        return res.status(400).json({
             success: false,
             message: error.message || 'Failed to apply on duty'
         });
@@ -140,80 +91,35 @@ const applyOnDuty = async (req, res) => {
 /**
  * Apply for Work From Home (WFH)
  * POST /api/employee/wfh/apply
+ *
+ * Supports two modes:
+ * 1. Date Range Mode: from_date + to_date + day_type (same day_type for all dates)
+ * 2. Specific Dates Mode: specific_dates array with per-date day_type (non-continuous dates)
  */
 const applyWFH = async (req, res) => {
     try {
-        const {
-            from_date,
-            to_date,
-            duration,
-            reason,
-            work_plan,
-            attachment
-        } = req.body;
-
         const employee_id = req.user.employee_id;
         const user_id = req.user.user_id;
 
-        // Validation
-        if (!from_date || !to_date || !reason) {
-            return res.status(400).json({
-                success: false,
-                message: 'Required fields: from_date, to_date, reason'
-            });
-        }
-
-        // Prepare request data
-        const requestData = {
-            from_date,
-            to_date,
-            duration: parseFloat(duration) || 1,
-            reason,
-            work_plan: work_plan || null,
-            attachment: attachment || null,
-            applied_at: new Date()
-        };
-
-        // Get employee details
-        const employee = await HrmsEmployee.findByPk(employee_id);
-
-        // Submit workflow request (workflow_master_id = 3 for WFH)
-        const request = await workflowExecutionService.submitRequest(
-            employee_id,
-            user_id,
-            3,
-            requestData
-        );
-
-        // Create daily attendance entries
-        await createDailyAttendanceForRequest({
-            request_id: request.id,
-            workflow_master_id: 3,  // WFH
-            employee_id,
-            company_id: employee.company_id,
-            from_date,
-            to_date,
-            pay_day: 1,  // Full day
-            status: 'pending'
-        });
+        // Delegate to service layer
+        const result = await wfhApplicationService.applyWFH(req.body, employee_id, user_id);
 
         return res.status(201).json({
             success: true,
             message: 'WFH request submitted successfully',
             data: {
-                request_number: request.request_number,
-                request_id: request.id,
-                request_status: request.request_status,
-                from_date,
-                to_date,
-                duration,
-                reason
+                request_number: result.request.request_number,
+                request_id: result.request.id,
+                request_status: result.request.request_status,
+                wfh_mode: result.wfh_mode,
+                dates: result.dates,
+                duration: result.duration
             }
         });
 
     } catch (error) {
         console.error('Error applying WFH:', error);
-        return res.status(500).json({
+        return res.status(400).json({
             success: false,
             message: error.message || 'Failed to apply WFH'
         });
@@ -226,65 +132,29 @@ const applyWFH = async (req, res) => {
  */
 const applyShortLeave = async (req, res) => {
     try {
-        const {
-            leave_date,
-            from_time,
-            to_time,
-            duration_hours,
-            reason
-        } = req.body;
-
         const employee_id = req.user.employee_id;
         const user_id = req.user.user_id;
 
-        // Validation
-        if (!leave_date || !from_time || !to_time || !reason) {
-            return res.status(400).json({
-                success: false,
-                message: 'Required fields: leave_date, from_time, to_time, reason'
-            });
-        }
-
-        // Calculate hours
-        const start = moment(from_time, 'HH:mm');
-        const end = moment(to_time, 'HH:mm');
-        const calculatedHours = end.diff(start, 'hours', true);
-
-        // Prepare request data
-        const requestData = {
-            leave_date,
-            from_time,
-            to_time,
-            duration_hours: duration_hours || calculatedHours,
-            reason,
-            applied_at: new Date()
-        };
-
-        // Submit workflow request (workflow_master_id = 5 for Short Leave)
-        const request = await workflowExecutionService.submitRequest(
-            employee_id,
-            user_id,
-            5,
-            requestData
-        );
+        // Delegate to service layer
+        const result = await shortLeaveApplicationService.applyShortLeave(req.body, employee_id, user_id);
 
         return res.status(201).json({
             success: true,
             message: 'Short Leave request submitted successfully',
             data: {
-                request_number: request.request_number,
-                request_id: request.id,
-                request_status: request.request_status,
-                leave_date,
-                from_time,
-                to_time,
-                duration_hours: requestData.duration_hours
+                request_number: result.request.request_number,
+                request_id: result.request.id,
+                request_status: result.request.request_status,
+                leave_date: result.leave_date,
+                from_time: result.from_time,
+                to_time: result.to_time,
+                duration_hours: result.duration_hours
             }
         });
 
     } catch (error) {
         console.error('Error applying short leave:', error);
-        return res.status(500).json({
+        return res.status(400).json({
             success: false,
             message: error.message || 'Failed to apply short leave'
         });
@@ -489,47 +359,6 @@ const getLeaveBalance = async (req, res) => {
             success: false,
             message: error.message || 'Failed to get leave balance'
         });
-    }
-};
-
-/**
- * Helper: Create daily attendance entries for date range
- * @param {Object} data - Request data
- */
-const createDailyAttendanceForRequest = async (data) => {
-    const {
-        request_id,
-        workflow_master_id,
-        employee_id,
-        company_id,
-        from_date,
-        to_date,
-        pay_day,
-        status
-    } = data;
-
-    // Generate all dates from from_date to to_date
-    const currentDate = moment(from_date);
-    const endDate = moment(to_date);
-
-    while (currentDate.isSameOrBefore(endDate)) {
-        const dateStr = currentDate.format('YYYY-MM-DD');
-
-        await HrmsDailyAttendance.create({
-            employee_id,
-            company_id,
-            attendance_date: dateStr,
-            request_id,
-            workflow_master_id,
-            pay_day,
-            status,  // pending
-            punch_in: null,
-            punch_out: null,
-            punch_in_location: null,
-            punch_out_location: null
-        });
-
-        currentDate.add(1, 'day');
     }
 };
 

@@ -2302,7 +2302,7 @@
       "name": "16. Attendance Requests (Employee)",
       "item": [
         {
-          "name": "Apply Leave",
+          "name": "Apply Leave (Full Day - Date Range)",
           "request": {
             "method": "POST",
             "header": [
@@ -2317,7 +2317,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"leave_type\": 1,\n  \"from_date\": \"2025-01-25\",\n  \"to_date\": \"2025-01-27\",\n  \"reason\": \"Personal work\",\n  \"is_paid\": true,\n  \"attachment\": null\n}"
+              "raw": "{\n  \"leave_type\": 1,\n  \"from_date\": \"2025-01-25\",\n  \"to_date\": \"2025-01-27\",\n  \"day_type\": \"full_day\",\n  \"reason\": \"Personal work\",\n  \"attachment\": null\n}"
             },
             "url": {
               "raw": "{{base_url}}/employee/leave/apply",
@@ -2329,12 +2329,13 @@
                 "leave",
                 "apply"
               ]
-            }
+            },
+            "description": "Apply for full day leave for continuous dates. is_paid is automatically derived from leave master."
           },
           "response": []
         },
         {
-          "name": "Apply Leave (Multiple Dates)",
+          "name": "Apply Leave (First Half - Date Range)",
           "request": {
             "method": "POST",
             "header": [
@@ -2349,7 +2350,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"leave_type\": 1,\n  \"specific_dates\": [\"2025-01-20\", \"2025-01-22\", \"2025-01-25\"],\n  \"reason\": \"Personal commitments\",\n  \"is_paid\": true\n}"
+              "raw": "{\n  \"leave_type\": 1,\n  \"from_date\": \"2025-01-25\",\n  \"to_date\": \"2025-01-27\",\n  \"day_type\": \"first_half\",\n  \"reason\": \"Medical checkup\",\n  \"attachment\": null\n}"
             },
             "url": {
               "raw": "{{base_url}}/employee/leave/apply",
@@ -2361,12 +2362,13 @@
                 "leave",
                 "apply"
               ]
-            }
+            },
+            "description": "Apply for first half leave for all dates in range. Duration auto-calculated as days * 0.5"
           },
           "response": []
         },
         {
-          "name": "Apply On Duty",
+          "name": "Apply Leave (Second Half - Date Range)",
           "request": {
             "method": "POST",
             "header": [
@@ -2381,7 +2383,172 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"from_date\": \"2025-01-25\",\n  \"to_date\": \"2025-01-25\",\n  \"from_time\": \"09:00\",\n  \"to_time\": \"18:00\",\n  \"duration\": 1,\n  \"purpose\": \"Client meeting\",\n  \"location\": \"Client Office, Sector 18\"\n}"
+              "raw": "{\n  \"leave_type\": 1,\n  \"from_date\": \"2025-01-25\",\n  \"to_date\": \"2025-01-27\",\n  \"day_type\": \"second_half\",\n  \"reason\": \"Personal appointment\",\n  \"attachment\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/employee/leave/apply",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employee",
+                "leave",
+                "apply"
+              ]
+            },
+            "description": "Apply for second half leave for all dates in range. Duration auto-calculated as days * 0.5"
+          },
+          "response": []
+        },
+        {
+          "name": "Apply Leave (Multiple Dates - Strings)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leave_type\": 1,\n  \"specific_dates\": [\"2025-01-20\", \"2025-01-22\", \"2025-01-25\"],\n  \"reason\": \"Personal commitments\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/employee/leave/apply",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employee",
+                "leave",
+                "apply"
+              ]
+            },
+            "description": "Apply for full day leave on specific dates (string format). Backward compatible - defaults to full_day for each date."
+          },
+          "response": []
+        },
+        {
+          "name": "Apply Leave (Multiple Dates - Per Date day_type)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leave_type\": 1,\n  \"specific_dates\": [\n    { \"date\": \"2025-01-20\", \"day_type\": \"full_day\" },\n    { \"date\": \"2025-01-22\", \"day_type\": \"first_half\" },\n    { \"date\": \"2025-01-25\", \"day_type\": \"second_half\" }\n  ],\n  \"reason\": \"Medical appointments\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/employee/leave/apply",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employee",
+                "leave",
+                "apply"
+              ]
+            },
+            "description": "Apply for leave with different day_type for each date. Duration auto-calculated: 1 + 0.5 + 0.5 = 2 days"
+          },
+          "response": []
+        },
+        {
+          "name": "Apply Leave (Unpaid - LWP Full Day)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leave_type\": 5,\n  \"from_date\": \"2025-01-25\",\n  \"to_date\": \"2025-01-27\",\n  \"day_type\": \"full_day\",\n  \"reason\": \"Personal emergency\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/employee/leave/apply",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employee",
+                "leave",
+                "apply"
+              ]
+            },
+            "description": "Apply for unpaid leave (LWP). is_paid automatically set to false from leave master. pay_day = 1 (Full Day)"
+          },
+          "response": []
+        },
+        {
+          "name": "Apply Leave (Unpaid - LWP First Half)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leave_type\": 5,\n  \"from_date\": \"2025-01-25\",\n  \"to_date\": \"2025-01-27\",\n  \"day_type\": \"first_half\",\n  \"reason\": \"Personal work\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/employee/leave/apply",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employee",
+                "leave",
+                "apply"
+              ]
+            },
+            "description": "Apply for unpaid first half leave. is_paid = false, pay_day = 2 (First Half). Duration = 1.5 days"
+          },
+          "response": []
+        },
+        {
+          "name": "Apply On Duty (Date Range - Full Day)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from_date\": \"2025-01-25\",\n  \"to_date\": \"2025-01-27\",\n  \"from_time\": \"09:00\",\n  \"to_time\": \"18:00\",\n  \"purpose\": \"Client meetings in Mumbai\",\n  \"location\": \"Client Office, Mumbai\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/employee/onduty/apply",
@@ -2393,7 +2560,74 @@
                 "onduty",
                 "apply"
               ]
-            }
+            },
+            "description": "Apply for on duty from Jan 25-27 with time 09:00-18:00 (9 hours = Full Day). pay_day = 1 for all 3 dates."
+          },
+          "response": []
+        },
+        {
+          "name": "Apply On Duty (Date Range - Half Day)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from_date\": \"2025-01-25\",\n  \"to_date\": \"2025-01-27\",\n  \"from_time\": \"09:00\",\n  \"to_time\": \"13:00\",\n  \"purpose\": \"Morning training sessions\",\n  \"location\": \"Training Center\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/employee/onduty/apply",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employee",
+                "onduty",
+                "apply"
+              ]
+            },
+            "description": "Apply for on duty from Jan 25-27 with time 09:00-13:00 (4 hours = First Half). pay_day = 2 for all 3 dates."
+          },
+          "response": []
+        },
+        {
+          "name": "Apply On Duty (Specific Dates)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"specific_dates\": [\n    { \"date\": \"2025-01-25\", \"from_time\": \"09:00\", \"to_time\": \"18:00\" },\n    { \"date\": \"2025-01-27\", \"from_time\": \"09:00\", \"to_time\": \"13:00\" },\n    { \"date\": \"2025-01-29\", \"from_time\": \"14:00\", \"to_time\": \"18:00\" }\n  ],\n  \"purpose\": \"Client meetings on specific days\",\n  \"location\": \"Various client offices\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/employee/onduty/apply",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "employee",
+                "onduty",
+                "apply"
+              ]
+            },
+            "description": "Apply for on duty on specific dates with different times:\n- Jan 25: 09:00-18:00 (Full Day, pay_day=1)\n- Jan 27: 09:00-13:00 (First Half, pay_day=2)\n- Jan 29: 14:00-18:00 (Second Half, pay_day=3)"
           },
           "response": []
         },
@@ -2611,7 +2845,406 @@
       ]
     },
     {
-      "name": "17. Attendance Requests (Admin)",
+      "name": "17. Attendance Requests (Manager/Admin Apply)",
+      "item": [
+        {
+          "name": "Manager - Apply Leave on Behalf",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"target_employee_id\": 5,\n  \"leave_type\": 1,\n  \"from_date\": \"2025-11-10\",\n  \"to_date\": \"2025-11-12\",\n  \"day_type\": \"full_day\",\n  \"reason\": \"Medical leave\",\n  \"attachment\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/attendance/manager/leave/apply",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "attendance",
+                "manager",
+                "leave",
+                "apply"
+              ]
+            },
+            "description": "Manager applies for leave on behalf of employee. Requires target_employee_id. HrmsLeaveMaster validation applies with manager-specific rules."
+          },
+          "response": []
+        },
+        {
+          "name": "Admin - Apply Leave on Behalf",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"target_employee_id\": 5,\n  \"leave_type\": 1,\n  \"from_date\": \"2025-11-10\",\n  \"to_date\": \"2025-11-12\",\n  \"day_type\": \"full_day\",\n  \"reason\": \"Medical leave\",\n  \"attachment\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/attendance/admin/leave/apply",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "attendance",
+                "admin",
+                "leave",
+                "apply"
+              ]
+            },
+            "description": "Admin applies for leave on behalf of employee. No date restrictions for admin."
+          },
+          "response": []
+        },
+        {
+          "name": "Manager - Apply On Duty on Behalf",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"target_employee_id\": 5,\n  \"from_date\": \"2025-11-10\",\n  \"to_date\": \"2025-11-10\",\n  \"from_time\": \"10:00\",\n  \"to_time\": \"14:00\",\n  \"purpose\": \"Client meeting\",\n  \"location\": \"Client office\",\n  \"attachment\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/attendance/manager/onduty/apply",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "attendance",
+                "manager",
+                "onduty",
+                "apply"
+              ]
+            },
+            "description": "Manager applies for on duty on behalf of employee"
+          },
+          "response": []
+        },
+        {
+          "name": "Admin - Apply On Duty on Behalf",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"target_employee_id\": 5,\n  \"from_date\": \"2025-11-10\",\n  \"to_date\": \"2025-11-10\",\n  \"from_time\": \"10:00\",\n  \"to_time\": \"14:00\",\n  \"purpose\": \"Client meeting\",\n  \"location\": \"Client office\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/attendance/admin/onduty/apply",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "attendance",
+                "admin",
+                "onduty",
+                "apply"
+              ]
+            },
+            "description": "Admin applies for on duty on behalf of employee"
+          },
+          "response": []
+        },
+        {
+          "name": "Manager - Apply WFH on Behalf",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"target_employee_id\": 5,\n  \"from_date\": \"2025-11-10\",\n  \"to_date\": \"2025-11-12\",\n  \"day_type\": \"full_day\",\n  \"reason\": \"Remote work\",\n  \"work_plan\": \"Complete project documentation\",\n  \"attachment\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/attendance/manager/wfh/apply",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "attendance",
+                "manager",
+                "wfh",
+                "apply"
+              ]
+            },
+            "description": "Manager applies for WFH on behalf of employee"
+          },
+          "response": []
+        },
+        {
+          "name": "Admin - Apply WFH on Behalf",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"target_employee_id\": 5,\n  \"from_date\": \"2025-11-10\",\n  \"to_date\": \"2025-11-12\",\n  \"day_type\": \"full_day\",\n  \"reason\": \"Remote work\",\n  \"work_plan\": \"Complete project documentation\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/attendance/admin/wfh/apply",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "attendance",
+                "admin",
+                "wfh",
+                "apply"
+              ]
+            },
+            "description": "Admin applies for WFH on behalf of employee"
+          },
+          "response": []
+        },
+        {
+          "name": "Manager - Apply Short Leave on Behalf",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"target_employee_id\": 5,\n  \"leave_date\": \"2025-11-10\",\n  \"from_time\": \"09:00\",\n  \"to_time\": \"11:00\",\n  \"duration_hours\": 2,\n  \"reason\": \"Personal work\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/attendance/manager/short-leave/apply",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "attendance",
+                "manager",
+                "short-leave",
+                "apply"
+              ]
+            },
+            "description": "Manager applies for short leave on behalf of employee. Pay day (late come/early go/mid day) calculated automatically based on employee's shift timings."
+          },
+          "response": []
+        },
+        {
+          "name": "Admin - Apply Short Leave on Behalf",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"target_employee_id\": 5,\n  \"leave_date\": \"2025-11-10\",\n  \"from_time\": \"09:00\",\n  \"to_time\": \"11:00\",\n  \"duration_hours\": 2,\n  \"reason\": \"Personal work\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/attendance/admin/short-leave/apply",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "attendance",
+                "admin",
+                "short-leave",
+                "apply"
+              ]
+            },
+            "description": "Admin applies for short leave on behalf of employee"
+          },
+          "response": []
+        },
+        {
+          "name": "Manager - Apply Regularization on Behalf",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"target_employee_id\": 5,\n  \"attendance_date\": \"2025-11-08\",\n  \"punch_in\": \"2025-11-08T09:15:00\",\n  \"punch_out\": \"2025-11-08T18:30:00\",\n  \"reason\": \"Forgot to punch\",\n  \"attachment\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/attendance/manager/regularization/apply",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "attendance",
+                "manager",
+                "regularization",
+                "apply"
+              ]
+            },
+            "description": "Manager applies for attendance regularization on behalf of employee"
+          },
+          "response": []
+        },
+        {
+          "name": "Admin - Apply Regularization on Behalf",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"target_employee_id\": 5,\n  \"attendance_date\": \"2025-11-08\",\n  \"punch_in\": \"2025-11-08T09:15:00\",\n  \"punch_out\": \"2025-11-08T18:30:00\",\n  \"reason\": \"Forgot to punch\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/attendance/admin/regularization/apply",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "attendance",
+                "admin",
+                "regularization",
+                "apply"
+              ]
+            },
+            "description": "Admin applies for attendance regularization on behalf of employee"
+          },
+          "response": []
+        },
+        {
+          "name": "Manager - Get Employee Leave Balance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/attendance/manager/leave/balance/5",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "attendance",
+                "manager",
+                "leave",
+                "balance",
+                "5"
+              ]
+            },
+            "description": "Manager gets leave balance for an employee"
+          },
+          "response": []
+        },
+        {
+          "name": "Admin - Get Employee Leave Balance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/attendance/admin/leave/balance/5",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "attendance",
+                "admin",
+                "leave",
+                "balance",
+                "5"
+              ]
+            },
+            "description": "Admin gets leave balance for an employee"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "18. Attendance Requests (Admin Approval)",
       "item": [
         {
           "name": "Get All Requests",
@@ -9000,6 +9633,201 @@
                 "delete"
               ]
             }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "17. ESS Attendance (Clock IN/OUT)",
+      "item": [
+        {
+          "name": "Web Punch",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"device_id\": \"browser-fingerprint-xyz\",\n  \"device_name\": \"Chrome on Windows\",\n  \"device_info\": {\n    \"os\": \"Windows\",\n    \"browser\": \"Chrome\",\n    \"version\": \"120.0\"\n  },\n  \"photo_url\": \"https://cdn.example.com/selfie.jpg\",\n  \"photo_verified\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/ess/attendance/web-punch",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "ess",
+                "attendance",
+                "web-punch"
+              ]
+            },
+            "description": "Web clock IN/OUT. Auto-detects IN/OUT based on daily attendance entry. No location required."
+          },
+          "response": []
+        },
+        {
+          "name": "Mobile Punch",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"location\": {\n    \"latitude\": 28.7041,\n    \"longitude\": 77.1025,\n    \"accuracy\": 10.5,\n    \"address\": \"Connaught Place, New Delhi\"\n  },\n  \"device_id\": \"iphone-uuid-abc123\",\n  \"device_name\": \"iPhone 14 Pro\",\n  \"device_info\": {\n    \"os\": \"iOS\",\n    \"os_version\": \"17.1\",\n    \"model\": \"iPhone 14 Pro\"\n  },\n  \"photo_url\": \"https://cdn.example.com/selfie.jpg\",\n  \"photo_verified\": true,\n  \"is_outside_geofence\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/ess/attendance/mobile-punch",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "ess",
+                "attendance",
+                "mobile-punch"
+              ]
+            },
+            "description": "Mobile clock IN/OUT. Requires location (lat/long). Auto-detects IN/OUT."
+          },
+          "response": []
+        },
+        {
+          "name": "Biometric Push",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"biometric_device_id\": \"EMP001\",\n  \"punch_datetime\": \"2025-10-31T09:15:00.000Z\",\n  \"is_utc\": true,\n  \"device_id\": \"DEVICE-GATE-01\",\n  \"device_name\": \"Main Gate Biometric\",\n  \"company_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/ess/attendance/biometric-push",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "ess",
+                "attendance",
+                "biometric-push"
+              ]
+            },
+            "description": "Biometric device pushes punch. No auth required. Only saves to HrmsPunchLog. Does NOT update daily attendance."
+          },
+          "response": []
+        },
+        {
+          "name": "Process Punches (Cron)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": 1,\n  \"employee_id\": null,\n  \"date_from\": \"2025-10-30\",\n  \"date_to\": \"2025-10-31\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/ess/attendance/process-punches",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "ess",
+                "attendance",
+                "process-punches"
+              ]
+            },
+            "description": "Cron job to process unlinked biometric punches. No auth required. Creates/updates daily attendance."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Today's Status",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/ess/attendance/today",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "ess",
+                "attendance",
+                "today"
+              ]
+            },
+            "description": "Get today's punch status, all punches, and next action (in/out)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Punch History",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from_date\": \"2025-10-01\",\n  \"to_date\": \"2025-10-31\",\n  \"limit\": 50,\n  \"offset\": 0\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/ess/attendance/history",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "ess",
+                "attendance",
+                "history"
+              ]
+            },
+            "description": "Get punch history with date range filter and pagination."
           },
           "response": []
         }

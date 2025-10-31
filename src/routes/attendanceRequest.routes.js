@@ -9,6 +9,7 @@ const router = express.Router();
 // Controllers
 const employeeController = require('../controllers/employee/employeeAttendanceRequest.controller');
 const adminController = require('../controllers/admin/adminAttendanceRequest.controller');
+const managerController = require('../controllers/manager/managerAttendanceRequest.controller');
 
 // Middleware (uncomment when ready)
 // const authMiddleware = require('../middleware/auth.middleware');
@@ -151,5 +152,111 @@ router.post('/admin/requests/bulk-approve', adminController.bulkApprove);
  * @access  Admin
  */
 router.post('/admin/requests/bulk-reject', adminController.bulkReject);
+
+// ============================================
+// MANAGER/ADMIN ROUTES - APPLY ON BEHALF
+// ============================================
+
+/**
+ * @route   POST /api/attendance/manager/leave/apply
+ * @desc    Manager applies for leave on behalf of employee
+ * @body    target_employee_id: employee ID (required)
+ * @body    leave_type, from_date, to_date, reason, etc.
+ * @access  Manager
+ */
+router.post('/manager/leave/apply', managerController.applyLeave);
+
+/**
+ * @route   POST /api/attendance/admin/leave/apply
+ * @desc    Admin applies for leave on behalf of employee
+ * @body    target_employee_id: employee ID (required)
+ * @body    leave_type, from_date, to_date, reason, etc.
+ * @access  Admin
+ */
+router.post('/admin/leave/apply', managerController.applyLeave);
+
+/**
+ * @route   POST /api/attendance/manager/onduty/apply
+ * @desc    Manager applies for on duty on behalf of employee
+ * @body    target_employee_id: employee ID (required)
+ * @body    from_date, to_date, from_time, to_time, purpose, location, etc.
+ * @access  Manager
+ */
+router.post('/manager/onduty/apply', managerController.applyOnDuty);
+
+/**
+ * @route   POST /api/attendance/admin/onduty/apply
+ * @desc    Admin applies for on duty on behalf of employee
+ * @body    target_employee_id: employee ID (required)
+ * @access  Admin
+ */
+router.post('/admin/onduty/apply', managerController.applyOnDuty);
+
+/**
+ * @route   POST /api/attendance/manager/wfh/apply
+ * @desc    Manager applies for WFH on behalf of employee
+ * @body    target_employee_id: employee ID (required)
+ * @body    from_date, to_date, day_type, reason, work_plan, etc.
+ * @access  Manager
+ */
+router.post('/manager/wfh/apply', managerController.applyWFH);
+
+/**
+ * @route   POST /api/attendance/admin/wfh/apply
+ * @desc    Admin applies for WFH on behalf of employee
+ * @body    target_employee_id: employee ID (required)
+ * @access  Admin
+ */
+router.post('/admin/wfh/apply', managerController.applyWFH);
+
+/**
+ * @route   POST /api/attendance/manager/short-leave/apply
+ * @desc    Manager applies for short leave on behalf of employee
+ * @body    target_employee_id: employee ID (required)
+ * @body    leave_date, from_time, to_time, reason, etc.
+ * @access  Manager
+ */
+router.post('/manager/short-leave/apply', managerController.applyShortLeave);
+
+/**
+ * @route   POST /api/attendance/admin/short-leave/apply
+ * @desc    Admin applies for short leave on behalf of employee
+ * @body    target_employee_id: employee ID (required)
+ * @access  Admin
+ */
+router.post('/admin/short-leave/apply', managerController.applyShortLeave);
+
+/**
+ * @route   POST /api/attendance/manager/regularization/apply
+ * @desc    Manager applies for regularization on behalf of employee
+ * @body    target_employee_id: employee ID (required)
+ * @body    attendance_date, punch_in, punch_out, reason, etc.
+ * @access  Manager
+ */
+router.post('/manager/regularization/apply', managerController.applyRegularization);
+
+/**
+ * @route   POST /api/attendance/admin/regularization/apply
+ * @desc    Admin applies for regularization on behalf of employee
+ * @body    target_employee_id: employee ID (required)
+ * @access  Admin
+ */
+router.post('/admin/regularization/apply', managerController.applyRegularization);
+
+/**
+ * @route   GET /api/attendance/manager/leave/balance/:employee_id
+ * @desc    Manager gets leave balance for an employee
+ * @param   employee_id: employee ID
+ * @access  Manager
+ */
+router.get('/manager/leave/balance/:employee_id', managerController.getEmployeeLeaveBalance);
+
+/**
+ * @route   GET /api/attendance/admin/leave/balance/:employee_id
+ * @desc    Admin gets leave balance for an employee
+ * @param   employee_id: employee ID
+ * @access  Admin
+ */
+router.get('/admin/leave/balance/:employee_id', managerController.getEmployeeLeaveBalance);
 
 module.exports = router;

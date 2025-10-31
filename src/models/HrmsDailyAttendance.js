@@ -71,7 +71,7 @@ const HrmsDailyAttendance = sequelize.define('HrmsDailyAttendance', {
         type: DataTypes.TINYINT,
         allowNull: false,
         defaultValue: 1,
-        comment: '1=Full Day, 2=First Half, 3=Second Half, 4=Unpaid'
+        comment: '1=Full Day, 2=First Half, 3=Second Half'
     },
 
     // Actual Punch Details
