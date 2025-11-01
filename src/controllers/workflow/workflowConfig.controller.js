@@ -23,6 +23,7 @@ const { HrmsWorkflowMaster } = require('../../models/workflow');
 const createConfig = async (req, res) => {
     try {
         const configData = {
+            company_id:req.user.company_id,
             ...req.body,
             created_by: req.user.user_id
         };
