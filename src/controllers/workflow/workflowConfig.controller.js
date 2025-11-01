@@ -88,7 +88,7 @@ const getConfigById = async (req, res) => {
  */
 const getAllConfigs = async (req, res) => {
     try {
-        const { company_id, workflow_master_id, is_active, is_default } = req.query;
+        const { workflow_master_id, is_active, is_default } = req.query;
 
         const filters = {};
 
@@ -104,7 +104,8 @@ const getAllConfigs = async (req, res) => {
             filters.is_default = is_default === 'true';
         }
 
-        const companyId = company_id || req.user.company_id;
+        // Always use company_id from authenticated user
+        const companyId = req.user.company_id;
 
         const configs = await workflowConfigService.getWorkflowConfigs(companyId, filters);
 
@@ -194,6 +195,7 @@ const cloneConfig = async (req, res) => {
         const { configId } = req.params;
 
         const cloneData = {
+            company_id: req.user.company_id,
             ...req.body,
             created_by: req.user.user_id
         };
