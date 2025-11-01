@@ -62,6 +62,11 @@ const createWorkflowConfig = async (configData) => {
             throw new Error('Workflow name is required');
         }
 
+        // Validate stages
+        if (!stages || stages.length === 0) {
+            throw new Error('At least one workflow stage is required');
+        }
+
         // Validate workflow master exists
         const workflowMaster = await HrmsWorkflowMaster.findByPk(workflow_master_id);
         if (!workflowMaster) {
@@ -503,6 +508,27 @@ const createStage = async (workflowConfigId, stageData, transaction = null) => {
             approvers = []
         } = stageData;
 
+        // Validate required stage fields
+        if (!stage_name || stage_name.trim() === '') {
+            throw new Error('Stage name is required');
+        }
+        if (stage_order === undefined || stage_order === null) {
+            throw new Error('Stage order is required');
+        }
+        if (stage_type && !['approval', 'notification', 'auto_approve'].includes(stage_type)) {
+            throw new Error('Invalid stage type. Must be: approval, notification, or auto_approve');
+        }
+        if (approver_logic && !['OR', 'AND', 'SEQUENTIAL'].includes(approver_logic)) {
+            throw new Error('Invalid approver logic. Must be: OR, AND, or SEQUENTIAL');
+        }
+
+        // Validate approvers for approval stages
+        if (stage_type === 'approval' || !stage_type) {
+            if (!approvers || approvers.length === 0) {
+                throw new Error('At least one approver is required for approval stage');
+            }
+        }
+
         const stage = await HrmsWorkflowStage.create({
             workflow_config_id: workflowConfigId,
             stage_name,
@@ -601,6 +627,32 @@ const createStageApprover = async (stageId, approverData, transaction = null) =>
             has_condition,
             condition_id
         } = approverData;
+
+        // Validate required approver fields
+        if (!approver_type || approver_type.trim() === '') {
+            throw new Error('Approver type is required');
+        }
+
+        // Validate approver_type values
+        const validApproverTypes = [
+            'reporting_manager',
+            'custom_user',
+            'role_based',
+            'department_head',
+            'skip_level_manager',
+            'hr_admin',
+            'finance_head',
+            'ceo'
+        ];
+
+        if (!validApproverTypes.includes(approver_type)) {
+            throw new Error(`Invalid approver type. Must be one of: ${validApproverTypes.join(', ')}`);
+        }
+
+        // Validate custom_user_id when approver_type is custom_user
+        if (approver_type === 'custom_user' && !custom_user_id) {
+            throw new Error('Custom user ID is required when approver type is "custom_user"');
+        }
 
         const approver = await HrmsWorkflowStageApprover.create({
             stage_id: stageId,
