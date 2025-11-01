@@ -21,6 +21,34 @@ const {
 const { Op } = require('sequelize');
 const { sequelize: db } = require('../../utils/database');
 
+// ==================== HELPER FUNCTIONS ====================
+
+/**
+ * Check if workflow is finalized (has version history)
+ * Once finalized, only applicability can be modified
+ * @param {number} workflowConfigId - Workflow config ID
+ * @returns {Promise<boolean>} True if workflow is finalized
+ */
+const isWorkflowFinalized = async (workflowConfigId) => {
+    const versionCount = await HrmsWorkflowVersion.count({
+        where: { workflow_config_id: workflowConfigId }
+    });
+    return versionCount > 0;
+};
+
+/**
+ * Validate that workflow is not finalized before modification
+ * @param {number} workflowConfigId - Workflow config ID
+ * @param {string} operation - Operation being performed
+ * @throws {Error} If workflow is finalized
+ */
+const validateNotFinalized = async (workflowConfigId, operation) => {
+    const isFinalized = await isWorkflowFinalized(workflowConfigId);
+    if (isFinalized) {
+        throw new Error(`Cannot ${operation}: Workflow is finalized. Only applicability rules can be modified.`);
+    }
+};
+
 // ==================== WORKFLOW CONFIG CRUD ====================
 
 /**
@@ -515,11 +543,11 @@ const createStage = async (workflowConfigId, stageData, transaction = null) => {
         if (stage_order === undefined || stage_order === null) {
             throw new Error('Stage order is required');
         }
-        if (stage_type && !['approval', 'notification', 'auto_approve'].includes(stage_type)) {
-            throw new Error('Invalid stage type. Must be: approval, notification, or auto_approve');
+        if (stage_type && !['approval', 'notify_only', 'auto_action'].includes(stage_type)) {
+            throw new Error('Invalid stage type. Must be: approval, notify_only, or auto_action');
         }
-        if (approver_logic && !['OR', 'AND', 'SEQUENTIAL'].includes(approver_logic)) {
-            throw new Error('Invalid approver logic. Must be: OR, AND, or SEQUENTIAL');
+        if (approver_logic && !['OR', 'AND'].includes(approver_logic)) {
+            throw new Error('Invalid approver logic. Must be: OR or AND');
         }
 
         // Validate approvers for approval stages
@@ -882,18 +910,118 @@ const deleteConditionRule = async (ruleId) => {
  */
 const createApplicabilityRule = async (workflowConfigId, applicabilityData, transaction = null) => {
     try {
+        const {
+            applicability_type,
+            applicability_value,
+            advanced_applicability_type,
+            advanced_applicability_value,
+            is_excluded,
+            priority,
+            company_id
+        } = applicabilityData;
+
+        // Validate required fields
+        if (!applicability_type) {
+            throw new Error('Applicability type is required');
+        }
+
+        // Convert array to comma-separated string for applicability_value
+        let processedApplicabilityValue = null;
+        if (applicability_value) {
+            if (Array.isArray(applicability_value)) {
+                processedApplicabilityValue = applicability_value.join(',');
+            } else {
+                processedApplicabilityValue = applicability_value;
+            }
+        }
+
+        // Convert array to comma-separated string for advanced_applicability_value
+        let processedAdvancedValue = null;
+        if (advanced_applicability_value) {
+            if (Array.isArray(advanced_applicability_value)) {
+                processedAdvancedValue = advanced_applicability_value.join(',');
+            } else {
+                processedAdvancedValue = advanced_applicability_value;
+            }
+        }
+
         const applicability = await HrmsWorkflowApplicability.create({
             workflow_config_id: workflowConfigId,
-            ...applicabilityData,
+            applicability_type,
+            applicability_value: processedApplicabilityValue,
+            advanced_applicability_type: advanced_applicability_type || 'none',
+            advanced_applicability_value: processedAdvancedValue,
+            company_id,
+            is_excluded: is_excluded || false,
+            priority: priority || 1,
             is_active: true
         }, { transaction });
 
-        console.log(`✓ Applicability rule created: ${applicability.applicability_type}`);
+        console.log(`✓ Applicability rule created: ${applicability.applicability_type} (${processedApplicabilityValue || 'all'})`);
 
         return applicability;
 
     } catch (error) {
         console.error('Error creating applicability rule:', error);
+        throw error;
+    }
+};
+
+/**
+ * Update applicability rule
+ * @param {number} applicabilityId - Applicability ID
+ * @param {Object} updateData - Update data
+ * @returns {Promise<Object>} Updated applicability rule
+ */
+const updateApplicabilityRule = async (applicabilityId, updateData) => {
+    try {
+        const {
+            applicability_type,
+            applicability_value,
+            advanced_applicability_type,
+            advanced_applicability_value,
+            is_excluded,
+            priority,
+            company_id
+        } = updateData;
+
+        // Convert array to comma-separated string for applicability_value
+        let processedApplicabilityValue = applicability_value;
+        if (applicability_value !== undefined) {
+            if (Array.isArray(applicability_value)) {
+                processedApplicabilityValue = applicability_value.join(',');
+            }
+        }
+
+        // Convert array to comma-separated string for advanced_applicability_value
+        let processedAdvancedValue = advanced_applicability_value;
+        if (advanced_applicability_value !== undefined) {
+            if (Array.isArray(advanced_applicability_value)) {
+                processedAdvancedValue = advanced_applicability_value.join(',');
+            }
+        }
+
+        // Build update object with only provided fields
+        const updateFields = {};
+        if (applicability_type !== undefined) updateFields.applicability_type = applicability_type;
+        if (applicability_value !== undefined) updateFields.applicability_value = processedApplicabilityValue;
+        if (advanced_applicability_type !== undefined) updateFields.advanced_applicability_type = advanced_applicability_type;
+        if (advanced_applicability_value !== undefined) updateFields.advanced_applicability_value = processedAdvancedValue;
+        if (is_excluded !== undefined) updateFields.is_excluded = is_excluded;
+        if (priority !== undefined) updateFields.priority = priority;
+        if (company_id !== undefined) updateFields.company_id = company_id;
+
+        await HrmsWorkflowApplicability.update(
+            updateFields,
+            { where: { id: applicabilityId } }
+        );
+
+        console.log(`✓ Applicability rule updated: ${applicabilityId}`);
+
+        return await HrmsWorkflowApplicability.findByPk(applicabilityId);
+
+    } catch (error) {
+        console.error('Error updating applicability rule:', error);
         throw error;
     }
 };
@@ -1231,6 +1359,7 @@ module.exports = {
 
     // Applicability
     createApplicabilityRule,
+    updateApplicabilityRule,
     deleteApplicabilityRule,
 
     // Versioning
