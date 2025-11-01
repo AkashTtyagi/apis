@@ -10,6 +10,7 @@ const router = express.Router();
 const employeeController = require('../controllers/employee/employeeAttendanceRequest.controller');
 const adminController = require('../controllers/admin/adminAttendanceRequest.controller');
 const managerController = require('../controllers/manager/managerAttendanceRequest.controller');
+const calendarController = require('../controllers/employee/attendanceCalendar.controller');
 
 // Middleware (uncomment when ready)
 // const authMiddleware = require('../middleware/auth.middleware');
@@ -86,6 +87,33 @@ router.post('/employee/requests/:requestId/withdraw', employeeController.withdra
  * @access  Employee
  */
 router.get('/employee/leave/balance', employeeController.getLeaveBalance);
+
+/**
+ * @route   POST /api/attendance/calendar
+ * @desc    Get attendance calendar with derived status (Common for Employee/Manager/Admin)
+ * @body    employee_id: Employee ID (optional - for manager/admin, if not provided uses req.user.employee_id)
+ * @body    from_date: Start date (YYYY-MM-DD) - default: first day of current month
+ * @body    to_date: End date (YYYY-MM-DD) - default: last day of current month
+ * @access  Employee/Manager/Admin
+ *
+ * @example POST /api/attendance/calendar with {} (Employee viewing own calendar)
+ * @example POST /api/attendance/calendar with {"employee_id": 5} (Manager/Admin viewing employee 5's calendar)
+ * @example POST /api/attendance/calendar with {"from_date": "2025-11-01", "to_date": "2025-11-30"}
+ */
+router.post('/calendar', calendarController.getAttendanceCalendar);
+
+/**
+ * @route   POST /api/attendance/calendar/summary
+ * @desc    Get attendance summary (Common for Employee/Manager/Admin)
+ * @body    employee_id: Employee ID (optional - for manager/admin, if not provided uses req.user.employee_id)
+ * @body    from_date: Start date (YYYY-MM-DD)
+ * @body    to_date: End date (YYYY-MM-DD)
+ * @access  Employee/Manager/Admin
+ *
+ * @example POST /api/attendance/calendar/summary with {} (Employee viewing own summary)
+ * @example POST /api/attendance/calendar/summary with {"employee_id": 5} (Manager/Admin viewing employee 5's summary)
+ */
+router.post('/calendar/summary', calendarController.getAttendanceSummary);
 
 // ============================================
 // ADMIN ROUTES

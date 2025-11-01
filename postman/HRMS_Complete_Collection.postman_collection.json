@@ -2841,6 +2841,136 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Get Attendance Calendar (Employee Self)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from_date\": \"2025-11-01\",\n  \"to_date\": \"2025-11-30\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/attendance/calendar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "attendance",
+                "calendar"
+              ]
+            },
+            "description": "Employee views their own attendance calendar with derived status (Leave/WFH/On-Duty/Present/Absent combinations handled)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Attendance Calendar (Manager/Admin View)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employee_id\": 5,\n  \"from_date\": \"2025-11-01\",\n  \"to_date\": \"2025-11-30\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/attendance/calendar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "attendance",
+                "calendar"
+              ]
+            },
+            "description": "Manager/Admin views attendance calendar for employee ID 5"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Attendance Summary (Employee Self)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from_date\": \"2025-11-01\",\n  \"to_date\": \"2025-11-30\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/attendance/calendar/summary",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "attendance",
+                "calendar",
+                "summary"
+              ]
+            },
+            "description": "Employee views their own attendance summary with stats (present days, absent days, leave days, WFH days, etc.)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Attendance Summary (Manager/Admin View)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employee_id\": 5,\n  \"from_date\": \"2025-11-01\",\n  \"to_date\": \"2025-11-30\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/attendance/calendar/summary",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "attendance",
+                "calendar",
+                "summary"
+              ]
+            },
+            "description": "Manager/Admin views attendance summary for employee ID 5"
+          },
+          "response": []
         }
       ]
     },
