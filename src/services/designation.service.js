@@ -119,6 +119,27 @@ const getDesignationsByCompany = async (company_id, activeOnly = true) => {
 
     const designations = await HrmsCompanyDesignation.findAll({
         where: whereClause,
+        attributes: [
+            'id',
+            'company_id',
+            'designation_master_id',
+            'designation_code',
+            'designation_name',
+            'min_experience_years',
+            'max_experience_years',
+            'min_annual_salary',
+            'max_annual_salary',
+            'job_function',
+            'grade_id',
+            'skill_id',
+            'job_description',
+            'is_active',
+            'display_order',
+            'created_by',
+            'updated_by',
+            'created_at',
+            'updated_at'
+        ],
         order: [['display_order', 'ASC'], ['designation_name', 'ASC']],
         raw: true
     });

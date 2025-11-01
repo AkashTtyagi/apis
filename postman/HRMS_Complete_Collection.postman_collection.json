@@ -4672,7 +4672,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"company_id\": 1,\n  \"workflow_master_id\": 1,\n  \"workflow_name\": \"Leave Approval\",\n  \"is_active\": true\n}"
+                  "raw": "{\n  \"workflow_master_id\": 1,\n  \"workflow_name\": \"Leave Approval Workflow\",\n  \"description\": \"Workflow for leave approval process\",\n  \"is_active\": true,\n  \"is_default\": false,\n  \"priority\": 1,\n  \"stages\": [\n    {\n      \"stage_name\": \"Manager Approval\",\n      \"stage_order\": 1,\n      \"stage_type\": \"approval\",\n      \"approver_logic\": \"OR\",\n      \"sla_days\": 2,\n      \"sla_hours\": 0,\n      \"is_mandatory\": true,\n      \"can_skip\": false,\n      \"on_reject_action\": \"final_reject\",\n      \"send_email_on_assign\": true,\n      \"send_email_on_approve\": true,\n      \"send_email_on_reject\": true,\n      \"approvers\": [\n        {\n          \"approver_type\": \"reporting_manager\",\n          \"custom_user_id\": null,\n          \"approver_order\": 1,\n          \"has_condition\": false,\n          \"condition_id\": null\n        }\n      ]\n    }\n  ],\n  \"applicability\": []\n}"
                 },
                 "url": {
                   "raw": "{{base_url}}/workflows/admin/configs",
@@ -4684,8 +4684,10 @@
                     "admin",
                     "configs"
                   ]
-                }
-              }
+                },
+                "description": "Create a new workflow configuration. Company ID is automatically taken from authenticated user's token. No need to pass company_id in body."
+              },
+              "response": []
             },
             {
               "name": "Get All Configs",
@@ -4698,7 +4700,7 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{base_url}}/workflows/admin/configs",
+                  "raw": "{{base_url}}/workflows/admin/configs?workflow_master_id=1&is_active=true",
                   "host": [
                     "{{base_url}}"
                   ],
@@ -4706,9 +4708,29 @@
                     "workflows",
                     "admin",
                     "configs"
+                  ],
+                  "query": [
+                    {
+                      "key": "workflow_master_id",
+                      "value": "1",
+                      "description": "Filter by workflow master ID (optional)"
+                    },
+                    {
+                      "key": "is_active",
+                      "value": "true",
+                      "description": "Filter by active status (optional)"
+                    },
+                    {
+                      "key": "is_default",
+                      "value": "false",
+                      "description": "Filter by default flag (optional)",
+                      "disabled": true
+                    }
                   ]
-                }
-              }
+                },
+                "description": "Get all workflow configurations for the authenticated user's company. Company ID is automatically taken from token. No need to pass company_id as query parameter."
+              },
+              "response": []
             },
             {
               "name": "Get Config by ID",
@@ -4806,7 +4828,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"workflow_name\": \"Cloned Workflow\"\n}"
+                  "raw": "{\n  \"workflow_name\": \"Cloned Leave Workflow\",\n  \"cloneApplicability\": true\n}"
                 },
                 "url": {
                   "raw": "{{base_url}}/workflows/admin/configs/1/clone",
@@ -4820,8 +4842,10 @@
                     "1",
                     "clone"
                   ]
-                }
-              }
+                },
+                "description": "Clone an existing workflow configuration. Company ID is automatically taken from authenticated user's token."
+              },
+              "response": []
             },
             {
               "name": "Create Stage",
