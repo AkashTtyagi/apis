@@ -9,12 +9,12 @@ const router = express.Router();
 const workflowRequestController = require('../controllers/workflow/workflowRequest.controller');
 const workflowConfigController = require('../controllers/workflow/workflowConfig.controller');
 
-// Middleware (assuming these exist in your application)
-// const authMiddleware = require('../middleware/auth.middleware');
+// Middleware
+const authMiddleware = require('../middlewares/auth.middleware');
 // const adminMiddleware = require('../middleware/admin.middleware');
 
 // Apply authentication middleware to all routes
-// router.use(authMiddleware.authenticate);
+router.use(authMiddleware.authenticate);
 
 // ==================== END-USER ROUTES (WORKFLOW REQUESTS) ====================
 
