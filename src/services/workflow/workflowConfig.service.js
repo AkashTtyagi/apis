@@ -633,25 +633,27 @@ const createStageApprover = async (stageId, approverData, transaction = null) =>
             throw new Error('Approver type is required');
         }
 
-        // Validate approver_type values
+        // Validate approver_type values (must match database ENUM)
         const validApproverTypes = [
-            'reporting_manager',
-            'custom_user',
-            'role_based',
-            'department_head',
-            'skip_level_manager',
-            'hr_admin',
-            'finance_head',
-            'ceo'
+            'RM',                // Reporting Manager
+            'RM_OF_RM',          // Skip Level Manager / Manager's Manager
+            'HR_ADMIN',          // HR Admin
+            'HOD',               // Head of Department
+            'FUNCTIONAL_HEAD',   // Functional Head
+            'SUB_ADMIN',         // Sub Admin
+            'SECONDARY_RM',      // Secondary Reporting Manager
+            'SELF',              // Self Approval
+            'AUTO_APPROVE',      // Auto Approve
+            'CUSTOM_USER'        // Custom Specific User
         ];
 
         if (!validApproverTypes.includes(approver_type)) {
             throw new Error(`Invalid approver type. Must be one of: ${validApproverTypes.join(', ')}`);
         }
 
-        // Validate custom_user_id when approver_type is custom_user
-        if (approver_type === 'custom_user' && !custom_user_id) {
-            throw new Error('Custom user ID is required when approver type is "custom_user"');
+        // Validate custom_user_id when approver_type is CUSTOM_USER
+        if (approver_type === 'CUSTOM_USER' && !custom_user_id) {
+            throw new Error('Custom user ID is required when approver type is "CUSTOM_USER"');
         }
 
         const approver = await HrmsWorkflowStageApprover.create({

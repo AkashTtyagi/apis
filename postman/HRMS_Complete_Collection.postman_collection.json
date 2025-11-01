@@ -4672,7 +4672,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"workflow_master_id\": 1,\n  \"workflow_name\": \"Leave Approval Workflow\",\n  \"description\": \"Workflow for leave approval process\",\n  \"is_active\": true,\n  \"is_default\": false,\n  \"priority\": 1,\n  \"stages\": [\n    {\n      \"stage_name\": \"Manager Approval\",\n      \"stage_order\": 1,\n      \"stage_type\": \"approval\",\n      \"approver_logic\": \"OR\",\n      \"sla_days\": 2,\n      \"sla_hours\": 0,\n      \"is_mandatory\": true,\n      \"can_skip\": false,\n      \"on_reject_action\": \"final_reject\",\n      \"send_email_on_assign\": true,\n      \"send_email_on_approve\": true,\n      \"send_email_on_reject\": true,\n      \"approvers\": [\n        {\n          \"approver_type\": \"reporting_manager\",\n          \"custom_user_id\": null,\n          \"approver_order\": 1,\n          \"has_condition\": false,\n          \"condition_id\": null\n        }\n      ]\n    }\n  ],\n  \"applicability\": []\n}"
+                  "raw": "{\n  \"workflow_master_id\": 1,\n  \"workflow_name\": \"Leave Approval Workflow\",\n  \"description\": \"Workflow for leave approval process\",\n  \"is_active\": true,\n  \"is_default\": false,\n  \"priority\": 1,\n  \"stages\": [\n    {\n      \"stage_name\": \"Manager Approval\",\n      \"stage_order\": 1,\n      \"stage_type\": \"approval\",\n      \"approver_logic\": \"OR\",\n      \"sla_days\": 2,\n      \"sla_hours\": 0,\n      \"is_mandatory\": true,\n      \"can_skip\": false,\n      \"on_reject_action\": \"final_reject\",\n      \"send_email_on_assign\": true,\n      \"send_email_on_approve\": true,\n      \"send_email_on_reject\": true,\n      \"approvers\": [\n        {\n          \"approver_type\": \"RM\",\n          \"custom_user_id\": null,\n          \"approver_order\": 1,\n          \"has_condition\": false,\n          \"condition_id\": null\n        }\n      ]\n    }\n  ],\n  \"applicability\": []\n}"
                 },
                 "url": {
                   "raw": "{{base_url}}/workflows/admin/configs",
@@ -4685,7 +4685,7 @@
                     "configs"
                   ]
                 },
-                "description": "Create a new workflow configuration. Company ID is automatically taken from authenticated user's token. No need to pass company_id in body."
+                "description": "Create a new workflow configuration. Company ID is automatically taken from authenticated user's token. No need to pass company_id in body.\n\n**Valid Approver Types:**\n- `RM` - Reporting Manager\n- `RM_OF_RM` - Skip Level Manager / Manager's Manager\n- `HR_ADMIN` - HR Admin\n- `HOD` - Head of Department\n- `FUNCTIONAL_HEAD` - Functional Head\n- `SUB_ADMIN` - Sub Admin\n- `SECONDARY_RM` - Secondary Reporting Manager\n- `SELF` - Self Approval\n- `AUTO_APPROVE` - Auto Approve\n- `CUSTOM_USER` - Custom Specific User (requires custom_user_id)"
               },
               "response": []
             },
