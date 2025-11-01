@@ -931,8 +931,45 @@ const deleteApplicabilityRule = async (applicabilityId) => {
  */
 const createVersionSnapshot = async (workflowConfigId, versionNumber, notes, createdBy, transaction = null) => {
     try {
-        // Get complete workflow config snapshot
-        const configSnapshot = await getWorkflowConfigById(workflowConfigId);
+        // Get complete workflow config snapshot within transaction
+        const configSnapshot = await HrmsWorkflowConfig.findByPk(workflowConfigId, {
+            include: [
+                {
+                    model: HrmsWorkflowMaster,
+                    as: 'workflowMaster',
+                    attributes: ['id', 'workflow_for_name', 'workflow_code']
+                },
+                {
+                    model: HrmsWorkflowStage,
+                    as: 'stages',
+                    include: [
+                        {
+                            model: HrmsWorkflowStageApprover,
+                            as: 'approvers'
+                        }
+                    ]
+                },
+                {
+                    model: HrmsWorkflowCondition,
+                    as: 'conditions',
+                    include: [
+                        {
+                            model: HrmsWorkflowConditionRule,
+                            as: 'rules'
+                        }
+                    ]
+                },
+                {
+                    model: HrmsWorkflowApplicability,
+                    as: 'applicability'
+                }
+            ],
+            transaction
+        });
+
+        if (!configSnapshot) {
+            throw new Error('Workflow config not found for version snapshot');
+        }
 
         const version = await HrmsWorkflowVersion.create({
             workflow_config_id: workflowConfigId,
