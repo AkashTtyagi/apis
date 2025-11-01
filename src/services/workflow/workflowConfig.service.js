@@ -51,10 +51,39 @@ const createWorkflowConfig = async (configData) => {
             applicability = []
         } = configData;
 
+        // Validate required fields
+        if (!company_id) {
+            throw new Error('Company ID is required');
+        }
+        if (!workflow_master_id) {
+            throw new Error('Workflow master ID is required');
+        }
+        if (!workflow_name || workflow_name.trim() === '') {
+            throw new Error('Workflow name is required');
+        }
+
         // Validate workflow master exists
         const workflowMaster = await HrmsWorkflowMaster.findByPk(workflow_master_id);
         if (!workflowMaster) {
             throw new Error('Workflow master not found');
+        }
+
+        // Generate unique workflow_code
+        const baseCode = workflow_name
+            .toUpperCase()
+            .replace(/[^A-Z0-9]/g, '_')
+            .substring(0, 50);
+
+        let workflow_code = baseCode;
+        let counter = 1;
+
+        // Check if code already exists for this company
+        while (await HrmsWorkflowConfig.findOne({
+            where: { company_id, workflow_code },
+            transaction
+        })) {
+            workflow_code = `${baseCode}_${counter}`;
+            counter++;
         }
 
         // Create workflow config
@@ -62,6 +91,7 @@ const createWorkflowConfig = async (configData) => {
             company_id,
             workflow_master_id,
             workflow_name,
+            workflow_code,
             description,
             version: 1,
             is_active: is_active !== false,
