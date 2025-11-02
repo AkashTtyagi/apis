@@ -580,6 +580,9 @@ const updateApplicability = async (req, res) => {
             });
         }
 
+        // Use company_id from authenticated user
+        updateData.company_id = req.user.company_id;
+
         const applicability = await workflowConfigService.updateApplicabilityRule(applicability_id, updateData);
 
         return res.status(200).json({
