@@ -564,6 +564,41 @@ const createApplicability = async (req, res) => {
 };
 
 /**
+ * Update applicability rule
+ * POST /api/workflows/admin/applicability
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ */
+const updateApplicability = async (req, res) => {
+    try {
+        const { applicability_id, ...updateData } = req.body;
+
+        if (!applicability_id) {
+            return res.status(400).json({
+                success: false,
+                message: 'Applicability ID is required'
+            });
+        }
+
+        const applicability = await workflowConfigService.updateApplicabilityRule(applicability_id, updateData);
+
+        return res.status(200).json({
+            success: true,
+            message: 'Applicability rule updated successfully',
+            data: applicability
+        });
+
+    } catch (error) {
+        console.error('Error updating applicability rule:', error);
+        return res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to update applicability rule',
+            error: error.toString()
+        });
+    }
+};
+
+/**
  * Delete applicability rule
  * DELETE /api/workflow/admin/applicability/:applicabilityId
  * @param {Object} req - Request object
@@ -713,6 +748,7 @@ module.exports = {
 
     // Applicability
     createApplicability,
+    updateApplicability,
     deleteApplicability,
 
     // Workflow Masters

@@ -21,34 +21,6 @@ const {
 const { Op } = require('sequelize');
 const { sequelize: db } = require('../../utils/database');
 
-// ==================== HELPER FUNCTIONS ====================
-
-/**
- * Check if workflow is finalized (has version history)
- * Once finalized, only applicability can be modified
- * @param {number} workflowConfigId - Workflow config ID
- * @returns {Promise<boolean>} True if workflow is finalized
- */
-const isWorkflowFinalized = async (workflowConfigId) => {
-    const versionCount = await HrmsWorkflowVersion.count({
-        where: { workflow_config_id: workflowConfigId }
-    });
-    return versionCount > 0;
-};
-
-/**
- * Validate that workflow is not finalized before modification
- * @param {number} workflowConfigId - Workflow config ID
- * @param {string} operation - Operation being performed
- * @throws {Error} If workflow is finalized
- */
-const validateNotFinalized = async (workflowConfigId, operation) => {
-    const isFinalized = await isWorkflowFinalized(workflowConfigId);
-    if (isFinalized) {
-        throw new Error(`Cannot ${operation}: Workflow is finalized. Only applicability rules can be modified.`);
-    }
-};
-
 // ==================== WORKFLOW CONFIG CRUD ====================
 
 /**

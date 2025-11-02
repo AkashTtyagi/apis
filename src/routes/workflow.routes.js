@@ -221,6 +221,13 @@ router.delete('/admin/rules/:ruleId', workflowConfigController.deleteConditionRu
 router.post('/admin/configs/:configId/applicability', workflowConfigController.createApplicability);
 
 /**
+ * Update applicability rule
+ * POST /api/workflows/admin/applicability
+ * Body: { applicability_id, applicability_type, applicability_value, advanced_applicability_type, advanced_applicability_value, is_excluded, priority }
+ */
+router.post('/admin/applicability', workflowConfigController.updateApplicability);
+
+/**
  * Delete applicability rule
  * DELETE /api/workflow/admin/applicability/:applicabilityId
  */
