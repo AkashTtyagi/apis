@@ -122,6 +122,26 @@ HrmsCostCenterMaster.associate = (models) => {
         foreignKey: 'parent_cost_center_id',
         as: 'childCostCenters'
     });
+
+    // Association with HrmsUserDetails for created_by and updated_by
+    HrmsCostCenterMaster.belongsTo(models.HrmsUserDetails, {
+        foreignKey: 'created_by',
+        as: 'createdByUser',
+        constraints: false
+    });
+
+    HrmsCostCenterMaster.belongsTo(models.HrmsUserDetails, {
+        foreignKey: 'updated_by',
+        as: 'updatedByUser',
+        constraints: false
+    });
+
+    // Association with cost center head (employee)
+    HrmsCostCenterMaster.belongsTo(models.HrmsEmployee, {
+        foreignKey: 'cost_center_head_id',
+        as: 'costCenterHead',
+        constraints: false
+    });
 };
 
 module.exports = {

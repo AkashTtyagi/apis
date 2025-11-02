@@ -4,6 +4,7 @@
 
 const { HrmsCostCenterMaster } = require('../../models/HrmsCostCenterMaster');
 const { HrmsUserDetails } = require('../../models/HrmsUserDetails');
+const { HrmsEmployee } = require('../../models/HrmsEmployee');
 const { sequelize } = require('../../utils/database');
 
 /**
@@ -89,13 +90,35 @@ const getCostCenters = async (company_id, filters = {}) => {
             {
                 model: HrmsUserDetails,
                 as: 'createdByUser',
-                attributes: ['id', 'email', 'first_name', 'last_name'],
+                attributes: ['id', 'email'],
+                include: [
+                    {
+                        model: HrmsEmployee,
+                        as: 'employee',
+                        attributes: ['id', 'employee_code', 'first_name', 'middle_name', 'last_name'],
+                        required: false
+                    }
+                ],
                 required: false
             },
             {
                 model: HrmsUserDetails,
                 as: 'updatedByUser',
-                attributes: ['id', 'email', 'first_name', 'last_name'],
+                attributes: ['id', 'email'],
+                include: [
+                    {
+                        model: HrmsEmployee,
+                        as: 'employee',
+                        attributes: ['id', 'employee_code', 'first_name', 'middle_name', 'last_name'],
+                        required: false
+                    }
+                ],
+                required: false
+            },
+            {
+                model: HrmsEmployee,
+                as: 'costCenterHead',
+                attributes: ['id', 'employee_code', 'first_name', 'middle_name', 'last_name'],
                 required: false
             }
         ],
