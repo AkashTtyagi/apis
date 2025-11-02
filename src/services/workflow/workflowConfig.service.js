@@ -330,11 +330,33 @@ const cloneWorkflowConfig = async (sourceConfigId, cloneData) => {
             throw new Error('Source workflow config not found');
         }
 
+        const company_id = cloneData.company_id || sourceConfig.company_id;
+        const workflow_name = cloneData.workflow_name || `${sourceConfig.workflow_name} (Copy)`;
+
+        // Generate unique workflow_code for cloned workflow
+        const baseCode = workflow_name
+            .toUpperCase()
+            .replace(/[^A-Z0-9]/g, '_')
+            .substring(0, 50);
+
+        let workflow_code = baseCode;
+        let counter = 1;
+
+        // Check if code already exists for this company
+        while (await HrmsWorkflowConfig.findOne({
+            where: { company_id, workflow_code },
+            transaction
+        })) {
+            workflow_code = `${baseCode}_${counter}`;
+            counter++;
+        }
+
         // Create new config
         const newConfig = await HrmsWorkflowConfig.create({
-            company_id: cloneData.company_id || sourceConfig.company_id,
+            company_id,
             workflow_master_id: sourceConfig.workflow_master_id,
-            workflow_name: cloneData.workflow_name || `${sourceConfig.workflow_name} (Copy)`,
+            workflow_name,
+            workflow_code,
             description: sourceConfig.description,
             version: 1,
             is_active: cloneData.is_active !== false,

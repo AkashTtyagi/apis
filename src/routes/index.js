@@ -46,6 +46,7 @@ const branchRoutes = require('./organizational/branch.routes');
 const locationRoutes = require('./organizational/location.routes');
 const zoneRoutes = require('./organizational/zone.routes');
 const costCenterRoutes = require('./organizational/costCenter.routes');
+const divisionRoutes = require('./organizational/division.routes');
 
 // Role & Permission routes
 const rolePermissionRoutes = require('./role_permission');
@@ -145,6 +146,7 @@ router.use('/branches', branchRoutes);
 router.use('/locations', locationRoutes);
 router.use('/zones', zoneRoutes);
 router.use('/cost-centers', costCenterRoutes);
+router.use('/divisions', divisionRoutes);
 
 // Document management routes
 const documentRoutes = require('./document');
