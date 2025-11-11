@@ -30,53 +30,113 @@ const assignRoleToUser = async (assignmentData, assignedBy) => {
         where: {
             id: role_id,
             company_id,
-            application_id,
             is_active: true
-        }
+        },
+        include: [
+            {
+                model: require('../../models/role_permission').HrmsRoleMaster,
+                as: 'roleMaster',
+                required: false
+            }
+        ]
     });
 
     if (!role) {
-        throw new Error('Role not found or does not belong to this company and application');
+        throw new Error('Role not found or does not belong to this company');
     }
 
-    // Check if user already has this role active
-    const existing = await HrmsUserRole.findOne({
-        where: {
+    // If assigning super admin role (application_id = NULL)
+    if (role.is_super_admin && role.application_id === null) {
+        // Super admin assignment - single role covers ALL applications
+
+        // Check if user already has this super admin role
+        const existing = await HrmsUserRole.findOne({
+            where: {
+                user_id,
+                role_id,
+                is_active: true
+            }
+        });
+
+        if (existing) {
+            throw new Error('User already has super admin role assigned');
+        }
+
+        const userRole = await HrmsUserRole.create({
             user_id,
             role_id,
-            is_active: true
+            company_id,
+            application_id: null, // NULL = covers all applications
+            is_active: true,
+            assigned_at: new Date(),
+            assigned_by: assignedBy
+        });
+
+        // Log audit
+        await HrmsRolePermissionAuditLog.create({
+            company_id,
+            user_id,
+            action: 'role_assigned',
+            entity_type: 'user_role',
+            entity_id: userRole.id,
+            changed_by: assignedBy,
+            change_details: JSON.stringify({
+                role_id,
+                role_name: role.role_name,
+                application_id: null,
+                is_super_admin: true,
+                note: 'Super admin role - access to all applications'
+            })
+        });
+
+        return {
+            message: 'Super admin role assigned successfully. User now has access to ALL applications.',
+            userRole,
+            is_super_admin: true
+        };
+
+    } else {
+        // Normal role assignment
+        // Check if user already has this role active
+        const existing = await HrmsUserRole.findOne({
+            where: {
+                user_id,
+                role_id,
+                is_active: true
+            }
+        });
+
+        if (existing) {
+            throw new Error('User already has this role assigned');
         }
-    });
 
-    if (existing) {
-        throw new Error('User already has this role assigned');
-    }
-
-    const userRole = await HrmsUserRole.create({
-        user_id,
-        role_id,
-        company_id,
-        application_id,
-        is_active: true,
-        assigned_at: new Date(),
-        assigned_by: assignedBy
-    });
-
-    // Log audit
-    await HrmsRolePermissionAuditLog.create({
-        company_id,
-        user_id,
-        action: 'role_assigned',
-        entity_type: 'user_role',
-        entity_id: userRole.id,
-        changed_by: assignedBy,
-        change_details: JSON.stringify({
+        const userRole = await HrmsUserRole.create({
+            user_id,
             role_id,
-            role_name: role.role_name
-        })
-    });
+            company_id,
+            application_id: application_id || role.application_id,
+            is_active: true,
+            assigned_at: new Date(),
+            assigned_by: assignedBy
+        });
 
-    return userRole;
+        // Log audit
+        await HrmsRolePermissionAuditLog.create({
+            company_id,
+            user_id,
+            action: 'role_assigned',
+            entity_type: 'user_role',
+            entity_id: userRole.id,
+            changed_by: assignedBy,
+            change_details: JSON.stringify({
+                role_id,
+                role_name: role.role_name,
+                is_super_admin: false
+            })
+        });
+
+        return userRole;
+    }
 };
 
 /**
@@ -123,7 +183,10 @@ const getUserRoles = async (userId, companyId, applicationId) => {
         where: {
             user_id: userId,
             company_id: companyId,
-            application_id: applicationId,
+            [Op.or]: [
+                { application_id: applicationId },
+                { application_id: null }  // Include super admin roles
+            ],
             is_active: true
         },
         include: [
@@ -356,7 +419,10 @@ const getUserPermissionOverrides = async (userId, companyId, applicationId) => {
         where: {
             user_id: userId,
             company_id: companyId,
-            application_id: applicationId,
+            [Op.or]: [
+                { application_id: applicationId },
+                { application_id: null }  // Include super admin overrides
+            ],
             is_active: true
         },
         include: [

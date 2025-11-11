@@ -15,7 +15,8 @@ const HrmsRoleMaster = sequelize.define('HrmsRoleMaster', {
     },
     application_id: {
         type: DataTypes.INTEGER.UNSIGNED,
-        allowNull: false
+        allowNull: true,
+        comment: 'NULL = Super Admin (access to all applications), INT = specific application'
     },
     role_code: {
         type: DataTypes.STRING(50),
@@ -55,13 +56,13 @@ const HrmsRoleMaster = sequelize.define('HrmsRoleMaster', {
     updatedAt: 'updated_at',
     indexes: [
         {
-            unique: true,
             fields: ['application_id', 'role_code'],
-            name: 'unique_app_role_code'
+            name: 'idx_app_role_code'
         },
         { fields: ['application_id'] },
         { fields: ['is_active'] }
-    ]
+    ],
+    comment: 'Global role master - template roles. application_id=NULL for Super Admin'
 });
 
 module.exports = { HrmsRoleMaster };

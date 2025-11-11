@@ -16,4 +16,8 @@ router.post('/delete', menuController.deleteMenu);
 router.post('/get-user-menus', menuController.getUserMenus);
 router.post('/get-user-screen-permissions', menuController.getUserScreenPermissions);
 
+// New split APIs
+router.post('/get-user-menus-list', menuController.getUserMenusList);
+router.post('/get-user-menus-permissions', menuController.getUserMenusPermissions);
+
 module.exports = router;

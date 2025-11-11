@@ -19,7 +19,8 @@ const HrmsRole = sequelize.define('HrmsRole', {
     },
     application_id: {
         type: DataTypes.INTEGER.UNSIGNED,
-        allowNull: false
+        allowNull: true,
+        comment: 'NULL = Super Admin (access to all applications), INT = specific application'
     },
     role_master_id: {
         type: DataTypes.INTEGER.UNSIGNED,
@@ -43,6 +44,12 @@ const HrmsRole = sequelize.define('HrmsRole', {
         allowNull: false,
         defaultValue: false
     },
+    is_super_admin: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+        comment: 'TRUE if role is created from super admin role master'
+    },
     is_active: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
@@ -64,14 +71,21 @@ const HrmsRole = sequelize.define('HrmsRole', {
     updatedAt: 'updated_at',
     indexes: [
         {
-            unique: true,
+            // Changed from unique to regular index because MySQL treats NULL != NULL
+            // This allows multiple super admin roles (application_id=NULL) per company
+            // Code-level validation in createRoleFromMaster prevents duplicate super admin
+            unique: false,
             fields: ['company_id', 'application_id', 'role_code'],
-            name: 'unique_company_app_role'
+            name: 'idx_company_app_role'
         },
         { fields: ['company_id'] },
         { fields: ['application_id'] },
         { fields: ['role_master_id'] },
-        { fields: ['is_active'] }
+        { fields: ['is_active'] },
+        {
+            fields: ['company_id', 'is_super_admin'],
+            name: 'idx_super_admin'
+        }
     ]
 });
 

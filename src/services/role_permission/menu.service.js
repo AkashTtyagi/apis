@@ -206,7 +206,14 @@ const buildMenuTree = (menus, parentId = null) => {
  * This is the MAIN function that implements package + role + user permission logic
  */
 const getUserMenus = async (userId, companyId, applicationId) => {
+    const { isUserSuperAdmin } = require('./role.service');
+
+    // Check if user is super admin
+    const isSuperAdmin = await isUserSuperAdmin(userId, companyId);
+
     // Step 1: Get company's accessible modules (based on package)
+    // NOTE: Super admin RESPECTS package restrictions
+    // Super admin = all permissions within package modules, not unlimited modules
     const companyModules = await getCompanyModules(companyId);
     const moduleIds = companyModules.map(m => m.id);
 
@@ -231,11 +238,14 @@ const getUserMenus = async (userId, companyId, applicationId) => {
         order: [['display_order', 'ASC']]
     });
 
-    // Step 3: Get user's roles for this application
+    // Step 3: Get user's roles for this application (including super admin with NULL)
     const userRoles = await HrmsUserRole.findAll({
         where: {
             user_id: userId,
-            application_id: applicationId,
+            [Op.or]: [
+                { application_id: applicationId },
+                { application_id: null }  // Include super admin roles
+            ],
             is_active: true
         },
         include: [
@@ -262,11 +272,14 @@ const getUserMenus = async (userId, companyId, applicationId) => {
         ]
     });
 
-    // Step 4: Get user-specific permission overrides
+    // Step 4: Get user-specific permission overrides (including super admin with NULL)
     const userPermissions = await HrmsUserMenuPermission.findAll({
         where: {
             user_id: userId,
-            application_id: applicationId,
+            [Op.or]: [
+                { application_id: applicationId },
+                { application_id: null }  // Include super admin overrides
+            ],
             is_active: true
         },
         include: [
@@ -311,14 +324,20 @@ const getUserMenus = async (userId, companyId, applicationId) => {
     // Step 6: Attach permissions to menus
     const menusWithPermissions = allMenus.map(menu => {
         const menuJson = menu.toJSON();
-        const permissions = menuPermissionMap[menu.id]
+        let permissions = menuPermissionMap[menu.id]
             ? Array.from(menuPermissionMap[menu.id])
             : [];
+
+        // Super admin gets ALL permissions
+        if (isSuperAdmin && menu.menu_type === 'screen') {
+            const allPermissionCodes = ['VIEW', 'CREATE', 'UPDATE', 'DELETE', 'EXPORT', 'APPROVE', 'REJECT', 'PRINT'];
+            permissions = allPermissionCodes;
+        }
 
         return {
             ...menuJson,
             permissions: menu.menu_type === 'screen' ? permissions : [],
-            has_access: menu.menu_type === 'container' || permissions.length > 0
+            has_access: isSuperAdmin || menu.menu_type === 'container' || permissions.length > 0
         };
     });
 
@@ -463,6 +482,249 @@ const getUserScreenPermissions = async (userId, companyId, applicationId, menuId
     };
 };
 
+/**
+ * Get user menu list (structure only, no permissions)
+ * Returns hierarchical menu tree based on package + role access
+ */
+const getUserMenusList = async (userId, companyId, applicationId) => {
+    const { isUserSuperAdmin } = require('./role.service');
+
+    // Check if user is super admin
+    const isSuperAdmin = await isUserSuperAdmin(userId, companyId);
+
+    // Step 1: Get company's accessible modules (based on package)
+    // NOTE: Super admin RESPECTS package restrictions
+    const companyModules = await getCompanyModules(companyId);
+    const moduleIds = companyModules.map(m => m.id);
+
+    if (moduleIds.length === 0) {
+        return [];
+    }
+
+    // Step 2: Get all menus for this application in company's modules
+    const allMenus = await HrmsMenu.findAll({
+        where: {
+            application_id: applicationId,
+            module_id: { [Op.in]: moduleIds },
+            is_active: true
+        },
+        include: [
+            {
+                model: HrmsModule,
+                as: 'module',
+                attributes: ['id', 'module_code', 'module_name']
+            }
+        ],
+        order: [['display_order', 'ASC']]
+    });
+
+    // Step 3: Get user's roles for this application (including super admin with NULL)
+    const userRoles = await HrmsUserRole.findAll({
+        where: {
+            user_id: userId,
+            [Op.or]: [
+                { application_id: applicationId },
+                { application_id: null }  // Include super admin roles
+            ],
+            is_active: true
+        },
+        include: [
+            {
+                model: HrmsRole,
+                as: 'role',
+                where: { is_active: true },
+                include: [
+                    {
+                        model: HrmsRoleMenuPermission,
+                        as: 'permissions',
+                        where: { is_granted: true },
+                        required: false
+                    }
+                ]
+            }
+        ]
+    });
+
+    // Step 4: Get user-specific permission overrides
+    const userPermissions = await HrmsUserMenuPermission.findAll({
+        where: {
+            user_id: userId,
+            application_id: applicationId,
+            is_active: true
+        }
+    });
+
+    // Step 5: Build accessible menu set
+    const accessibleMenuIds = new Set();
+
+    // Add menus from role permissions
+    userRoles.forEach(userRole => {
+        if (userRole.role && userRole.role.permissions) {
+            userRole.role.permissions.forEach(perm => {
+                accessibleMenuIds.add(perm.menu_id);
+            });
+        }
+    });
+
+    // Apply user-specific overrides
+    userPermissions.forEach(userPerm => {
+        if (userPerm.permission_type === 'grant') {
+            accessibleMenuIds.add(userPerm.menu_id);
+        } else if (userPerm.permission_type === 'revoke') {
+            // Don't add to accessible set
+        }
+    });
+
+    // Step 6: Attach access info to menus
+    const menusWithAccess = allMenus.map(menu => {
+        const menuJson = menu.toJSON();
+        const hasAccess = isSuperAdmin || menu.menu_type === 'container' || accessibleMenuIds.has(menu.id);
+
+        return {
+            ...menuJson,
+            has_access: hasAccess
+        };
+    });
+
+    // Step 7: Filter accessible menus and build tree
+    const accessibleMenus = filterAccessibleMenus(menusWithAccess);
+    const menuTree = buildMenuTree(accessibleMenus);
+
+    return menuTree;
+};
+
+/**
+ * Get user menu permissions (permissions only, grouped by menu)
+ * Returns permissions for all accessible menus
+ */
+const getUserMenuPermissions = async (userId, companyId, applicationId) => {
+    const { isUserSuperAdmin } = require('./role.service');
+
+    // Check if user is super admin
+    const isSuperAdmin = await isUserSuperAdmin(userId, companyId);
+
+    // Step 1: Get company's accessible modules
+    // NOTE: Super admin RESPECTS package restrictions
+    const companyModules = await getCompanyModules(companyId);
+    const moduleIds = companyModules.map(m => m.id);
+
+    if (moduleIds.length === 0) {
+        return [];
+    }
+
+    // Step 2: Get all screen menus for this application
+    const screenMenus = await HrmsMenu.findAll({
+        where: {
+            application_id: applicationId,
+            module_id: { [Op.in]: moduleIds },
+            menu_type: 'screen',
+            is_active: true
+        },
+        attributes: ['id', 'menu_code', 'menu_name', 'route_path']
+    });
+
+    // Step 3: Get user's roles with permissions
+    const userRoles = await HrmsUserRole.findAll({
+        where: {
+            user_id: userId,
+            application_id: applicationId,
+            is_active: true
+        },
+        include: [
+            {
+                model: HrmsRole,
+                as: 'role',
+                where: { is_active: true },
+                include: [
+                    {
+                        model: HrmsRoleMenuPermission,
+                        as: 'permissions',
+                        where: { is_granted: true },
+                        required: false,
+                        include: [
+                            {
+                                model: HrmsPermissionMaster,
+                                as: 'permission',
+                                attributes: ['id', 'permission_code', 'permission_name']
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    });
+
+    // Step 4: Get user-specific permission overrides (including super admin with NULL)
+    const userPermissions = await HrmsUserMenuPermission.findAll({
+        where: {
+            user_id: userId,
+            [Op.or]: [
+                { application_id: applicationId },
+                { application_id: null }  // Include super admin overrides
+            ],
+            is_active: true
+        },
+        include: [
+            {
+                model: HrmsPermissionMaster,
+                as: 'permission',
+                attributes: ['id', 'permission_code', 'permission_name']
+            }
+        ]
+    });
+
+    // Step 5: Build permission map for each menu
+    const menuPermissionMap = {};
+
+    // Add role permissions
+    userRoles.forEach(userRole => {
+        if (userRole.role && userRole.role.permissions) {
+            userRole.role.permissions.forEach(perm => {
+                if (!menuPermissionMap[perm.menu_id]) {
+                    menuPermissionMap[perm.menu_id] = new Set();
+                }
+                menuPermissionMap[perm.menu_id].add(perm.permission.permission_code);
+            });
+        }
+    });
+
+    // Apply user-specific overrides
+    userPermissions.forEach(userPerm => {
+        if (!menuPermissionMap[userPerm.menu_id]) {
+            menuPermissionMap[userPerm.menu_id] = new Set();
+        }
+
+        if (userPerm.permission_type === 'grant') {
+            menuPermissionMap[userPerm.menu_id].add(userPerm.permission.permission_code);
+        } else if (userPerm.permission_type === 'revoke') {
+            menuPermissionMap[userPerm.menu_id].delete(userPerm.permission.permission_code);
+        }
+    });
+
+    // Step 6: Build result with only menus that have permissions
+    const result = screenMenus
+        .filter(menu => isSuperAdmin || (menuPermissionMap[menu.id] && menuPermissionMap[menu.id].size > 0))
+        .map(menu => {
+            let permissions;
+            if (isSuperAdmin) {
+                // Super admin gets all permissions
+                permissions = ['VIEW', 'CREATE', 'UPDATE', 'DELETE', 'EXPORT', 'APPROVE', 'REJECT', 'PRINT'];
+            } else {
+                permissions = Array.from(menuPermissionMap[menu.id]);
+            }
+
+            return {
+                menu_id: menu.id,
+                menu_code: menu.menu_code,
+                menu_name: menu.menu_name,
+                route_path: menu.route_path,
+                permissions: permissions
+            };
+        });
+
+    return result;
+};
+
 module.exports = {
     getMenusByApplication,
     getMenuById,
@@ -470,5 +732,7 @@ module.exports = {
     updateMenu,
     deleteMenu,
     getUserMenus,
-    getUserScreenPermissions
+    getUserScreenPermissions,
+    getUserMenusList,
+    getUserMenuPermissions
 };

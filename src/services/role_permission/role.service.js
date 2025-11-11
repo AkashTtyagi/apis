@@ -25,6 +25,23 @@ const getAllRoleMasters = async (filters = {}) => {
         where.is_active = filters.is_active;
     }
 
+    // Filter by application_id
+    if (filters.application_id !== undefined) {
+        if (filters.application_id === 'super_admin') {
+            // Get only super admin roles (application_id IS NULL)
+            where.application_id = null;
+        } else if (filters.application_id === 'all') {
+            // Get all roles including super admin
+            // No filter on application_id
+        } else if (filters.application_id) {
+            // Get specific application roles + super admin roles
+            where[Op.or] = [
+                { application_id: null },
+                { application_id: filters.application_id }
+            ];
+        }
+    }
+
     const roleMasters = await HrmsRoleMaster.findAll({
         where,
         order: [['display_order', 'ASC']]
@@ -127,12 +144,23 @@ const deleteRoleMaster = async (roleMasterId) => {
 
 /**
  * Get all roles for a company and application
+ * Includes super admin roles (application_id = NULL)
  */
 const getCompanyRoles = async (companyId, applicationId, filters = {}) => {
     const where = {
-        company_id: companyId,
-        application_id: applicationId
+        company_id: companyId
     };
+
+    // Include both: specific application roles AND super admin roles (application_id = NULL)
+    if (applicationId) {
+        where[Op.or] = [
+            { application_id: applicationId },
+            { application_id: null, is_super_admin: true } // Include super admin
+        ];
+    } else {
+        // If no application_id provided, get all roles for company
+        // This is kept for backward compatibility
+    }
 
     if (filters.is_active !== undefined) {
         where.is_active = filters.is_active;
@@ -165,7 +193,7 @@ const getCompanyRoles = async (companyId, applicationId, filters = {}) => {
                 ]
             }
         ],
-        order: [['created_at', 'DESC']]
+        order: [['is_super_admin', 'DESC'], ['created_at', 'DESC']] // Super admin roles first
     });
 
     return roles;
@@ -225,31 +253,89 @@ const createRoleFromMaster = async (roleData, userId) => {
         throw new Error('Role master not found');
     }
 
-    // Create company role
-    const role = await HrmsRole.create({
-        company_id,
-        application_id,
-        role_master_id,
-        role_name: role_name || roleMaster.role_name,
-        role_description: role_description || roleMaster.role_description,
-        is_active: true,
-        created_by: userId
-    });
+    // Check if this is a super admin role (application_id is NULL)
+    if (roleMaster.application_id === null) {
+        // Super Admin Role - Create ONE role with application_id = NULL
+        // This role will automatically cover ALL applications (present and future)
 
-    // Log audit
-    await HrmsRolePermissionAuditLog.create({
-        company_id,
-        action: 'role_created',
-        entity_type: 'role',
-        entity_id: role.id,
-        changed_by: userId,
-        change_details: JSON.stringify({
-            role_name: role.role_name,
-            role_master_id
-        })
-    });
+        // Check if super admin role already exists for this company
+        const existingSuperAdmin = await HrmsRole.findOne({
+            where: {
+                company_id,
+                application_id: null,
+                is_super_admin: true,
+                is_active: true
+            }
+        });
 
-    return role;
+        if (existingSuperAdmin) {
+            throw new Error('Super admin role already exists for this company');
+        }
+
+        const role = await HrmsRole.create({
+            company_id,
+            application_id: null, // NULL = covers ALL applications
+            role_master_id,
+            role_code: roleMaster.role_code,
+            role_name: role_name || roleMaster.role_name,
+            role_description: role_description || roleMaster.role_description,
+            is_super_admin: true,
+            is_active: true,
+            created_by: userId
+        });
+
+        // Log audit
+        await HrmsRolePermissionAuditLog.create({
+            company_id,
+            action: 'role_created',
+            entity_type: 'role',
+            entity_id: role.id,
+            changed_by: userId,
+            change_details: JSON.stringify({
+                role_name: role.role_name,
+                role_master_id,
+                application_id: null,
+                is_super_admin: true,
+                note: 'Super admin role with access to all applications'
+            })
+        });
+
+        return {
+            message: 'Super admin role created successfully. This role provides access to ALL applications.',
+            role,
+            is_super_admin: true
+        };
+
+    } else {
+        // Normal Role - Create for specific application
+        const role = await HrmsRole.create({
+            company_id,
+            application_id: application_id || roleMaster.application_id,
+            role_master_id,
+            role_code: roleMaster.role_code,
+            role_name: role_name || roleMaster.role_name,
+            role_description: role_description || roleMaster.role_description,
+            is_super_admin: false,
+            is_active: true,
+            created_by: userId
+        });
+
+        // Log audit
+        await HrmsRolePermissionAuditLog.create({
+            company_id,
+            action: 'role_created',
+            entity_type: 'role',
+            entity_id: role.id,
+            changed_by: userId,
+            change_details: JSON.stringify({
+                role_name: role.role_name,
+                role_master_id,
+                is_super_admin: false
+            })
+        });
+
+        return role;
+    }
 };
 
 /**
@@ -540,6 +626,54 @@ const getRolePermissions = async (roleId) => {
     return permissions;
 };
 
+/**
+ * Check if user is super admin
+ */
+const isUserSuperAdmin = async (userId, companyId) => {
+    const superAdminRole = await HrmsUserRole.findOne({
+        where: {
+            user_id: userId,
+            is_active: true
+        },
+        include: [
+            {
+                model: HrmsRole,
+                as: 'role',
+                where: {
+                    company_id: companyId,
+                    is_super_admin: true,
+                    is_active: true
+                },
+                required: true
+            }
+        ]
+    });
+
+    return !!superAdminRole;
+};
+
+/**
+ * Get all applications user has access to (for super admin)
+ */
+const getSuperAdminApplications = async (userId, companyId) => {
+    const HrmsApplication = require('../../models/role_permission/HrmsApplication').HrmsApplication;
+
+    // Check if user is super admin
+    const isSuperAdmin = await isUserSuperAdmin(userId, companyId);
+
+    if (!isSuperAdmin) {
+        return [];
+    }
+
+    // Return all active applications
+    const applications = await HrmsApplication.findAll({
+        where: { is_active: true },
+        order: [['display_order', 'ASC']]
+    });
+
+    return applications;
+};
+
 module.exports = {
     getAllRoleMasters,
     getRoleMasterById,
@@ -554,5 +688,7 @@ module.exports = {
     deleteRole,
     assignPermissionsToRole,
     revokePermissionsFromRole,
-    getRolePermissions
+    getRolePermissions,
+    isUserSuperAdmin,
+    getSuperAdminApplications
 };

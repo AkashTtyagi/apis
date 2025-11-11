@@ -23,7 +23,8 @@ const HrmsUserRole = sequelize.define('HrmsUserRole', {
     },
     application_id: {
         type: DataTypes.INTEGER.UNSIGNED,
-        allowNull: false
+        allowNull: true,
+        comment: 'NULL = Super Admin user (access to all applications), INT = specific application'
     },
     is_active: {
         type: DataTypes.BOOLEAN,

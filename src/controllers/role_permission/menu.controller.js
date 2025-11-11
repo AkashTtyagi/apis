@@ -147,6 +147,45 @@ const getUserScreenPermissions = async (req, res, next) => {
     }
 };
 
+/**
+ * Get user menu list (structure only, no permissions)
+ * POST /api/menus/get-user-menus-list
+ */
+const getUserMenusList = async (req, res, next) => {
+    try {
+        const { user_id, application_id, company_id } = req.body;
+
+        const menus = await menuService.getUserMenusList(user_id, company_id, application_id);
+
+        res.status(200).json({
+            success: true,
+            data: menus
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Get user menu permissions (permissions only, grouped by menu)
+ * POST /api/menus/get-user-menus-permissions
+ */
+const getUserMenusPermissions = async (req, res, next) => {
+    try {
+        const { user_id, application_id, company_id } = req.body;
+
+        const permissions = await menuService.getUserMenuPermissions(user_id, company_id, application_id);
+
+        res.status(200).json({
+            success: true,
+            data: permissions,
+            count: permissions.length
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     getMenusByApplication,
     getMenuById,
@@ -154,5 +193,7 @@ module.exports = {
     updateMenu,
     deleteMenu,
     getUserMenus,
-    getUserScreenPermissions
+    getUserScreenPermissions,
+    getUserMenusList,
+    getUserMenusPermissions
 };

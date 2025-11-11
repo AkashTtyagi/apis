@@ -11,6 +11,7 @@ const { HrmsUserDetails } = require('../models/HrmsUserDetails');
 const { sequelize } = require('../utils/database');
 const { validateFields } = require('../utils/fieldValidator');
 const { Op } = require('sequelize');
+const { HrmsRole, HrmsApplication, HrmsUserRole } = require('../models/role_permission');
 
 /**
  * Create new employee with template responses
@@ -106,6 +107,14 @@ const createEmployee = async (employeeData) => {
             }));
 
             await HrmsTemplateResponse.bulkCreate(responseData, { transaction });
+        }
+
+        // Auto-assign SUPER_ADMIN and EMPLOYEE roles to newly created employee
+        try {
+            await autoAssignDefaultRoles(userDetails.id, company_id, user_id, transaction);
+        } catch (roleError) {
+            // Log but don't fail employee creation if role assignment fails
+            console.error('Failed to auto-assign roles:', roleError.message);
         }
 
         await transaction.commit();
@@ -444,6 +453,111 @@ const getLoggedInUserDetails = async (user_id) => {
         },
         employee: result.employee
     };
+};
+
+/**
+ * Auto-assign SUPER_ADMIN and EMPLOYEE roles to newly created employee
+ * This function runs during employee creation to ensure default role assignment
+ *
+ * @param {number} new_user_id - ID of newly created user
+ * @param {number} company_id - Company ID
+ * @param {number} created_by - User ID who created the employee
+ * @param {Object} transaction - Sequelize transaction
+ */
+const autoAssignDefaultRoles = async (new_user_id, company_id, created_by, transaction) => {
+    const assignedRoles = [];
+
+    // 1. Assign SUPER_ADMIN role (application_id = NULL, covers ALL applications)
+    const superAdminRole = await HrmsRole.findOne({
+        where: {
+            company_id,
+            application_id: null, // NULL = covers ALL applications
+            is_super_admin: true,
+            is_active: true
+        },
+        transaction
+    });
+
+    if (superAdminRole) {
+        // Check if already assigned (avoid duplicates)
+        const existingSuperAdmin = await HrmsUserRole.findOne({
+            where: {
+                user_id: new_user_id,
+                role_id: superAdminRole.id
+            },
+            transaction
+        });
+
+        if (!existingSuperAdmin) {
+            const superAdminUserRole = await HrmsUserRole.create({
+                user_id: new_user_id,
+                role_id: superAdminRole.id,
+                company_id,
+                application_id: null, // NULL = covers ALL applications
+                is_active: true,
+                assigned_at: new Date(),
+                assigned_by: created_by
+            }, { transaction });
+
+            assignedRoles.push({
+                role: 'SUPER_ADMIN',
+                application: 'ALL',
+                note: 'Access to all applications',
+                user_role_id: superAdminUserRole.id
+            });
+        }
+    }
+
+    // 2. Assign EMPLOYEE role for ESS application
+    const essApplication = await HrmsApplication.findOne({
+        where: { app_code: 'ESS', is_active: true },
+        transaction
+    });
+
+    if (essApplication) {
+        const employeeRole = await HrmsRole.findOne({
+            where: {
+                company_id,
+                application_id: essApplication.id,
+                role_code: 'EMPLOYEE',
+                is_active: true
+            },
+            transaction
+        });
+
+        if (employeeRole) {
+            // Check if already assigned (avoid duplicates)
+            const existingEmployee = await HrmsUserRole.findOne({
+                where: {
+                    user_id: new_user_id,
+                    role_id: employeeRole.id
+                },
+                transaction
+            });
+
+            if (!existingEmployee) {
+                const employeeUserRole = await HrmsUserRole.create({
+                    user_id: new_user_id,
+                    role_id: employeeRole.id,
+                    company_id,
+                    application_id: essApplication.id,
+                    is_active: true,
+                    assigned_at: new Date(),
+                    assigned_by: created_by
+                }, { transaction });
+
+                assignedRoles.push({
+                    role: 'EMPLOYEE',
+                    application: 'ESS',
+                    note: 'ESS application access',
+                    user_role_id: employeeUserRole.id
+                });
+            }
+        }
+    }
+
+    console.log(`Auto-assigned roles to user ${new_user_id}:`, assignedRoles);
+    return assignedRoles;
 };
 
 module.exports = {
