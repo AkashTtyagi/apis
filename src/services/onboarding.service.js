@@ -9,6 +9,7 @@ const { HrmsLeaveMaster } = require('../models/HrmsLeaveMaster');
 const { HrmsLeavePolicyMaster } = require('../models/HrmsLeavePolicyMaster');
 const { HrmsLeavePolicyMapping } = require('../models/HrmsLeavePolicyMapping');
 const { HrmsEmployee } = require('../models/HrmsEmployee');
+const { HrmsRole, HrmsApplication, HrmsUserRole } = require('../models/role_permission');
 const { copyAllTemplatesToCompany } = require('./companyTemplate.service');
 const { createDefaultWorkflows } = require('./workflow/workflowConfig.service');
 const { seedDefaultDocumentStructure } = require('./document/documentSeeder.service');
@@ -466,7 +467,8 @@ const createDefaultLeavePolicy = async (company_id, user_id, transaction = null)
 };
 
 /**
- * Create employee record from user
+ * Create employee record from user during company onboarding
+ * Assigns both SUPER_ADMIN and EMPLOYEE roles
  * @param {number} company_id - Company ID
  * @param {number} user_id - User ID
  * @param {string} first_name - First name
@@ -475,7 +477,7 @@ const createDefaultLeavePolicy = async (company_id, user_id, transaction = null)
  * @param {string} email - Email
  * @param {string} phone - Phone
  * @param {Object} transaction - Sequelize transaction object
- * @returns {Object} Created employee
+ * @returns {Object} Created employee with assigned roles
  */
 const createEmployeeFromUser = async (company_id, user_id, first_name, middle_name, last_name, email, phone, transaction = null) => {
     try {
@@ -495,6 +497,76 @@ const createEmployeeFromUser = async (company_id, user_id, first_name, middle_na
             is_active: true,
             created_by: user_id
         }, { transaction });  // Pass transaction to Sequelize
+
+        // Auto-assign SUPER_ADMIN and EMPLOYEE roles during company onboarding
+        const assignedRoles = [];
+
+        // 1. Assign SUPER_ADMIN role (application_id = NULL, covers ALL applications)
+        const superAdminRole = await HrmsRole.findOne({
+            where: {
+                company_id,
+                application_id: null,
+                is_super_admin: true,
+                is_active: true
+            },
+            transaction
+        });
+
+        if (superAdminRole) {
+            await HrmsUserRole.create({
+                user_id,
+                role_id: superAdminRole.id,
+                company_id,
+                application_id: null, // NULL = covers ALL applications
+                is_active: true,
+                assigned_at: new Date(),
+                assigned_by: user_id
+            }, { transaction });
+
+            assignedRoles.push('SUPER_ADMIN');
+            console.log(`✓ SUPER_ADMIN role assigned to user ${user_id}`);
+        } else {
+            console.warn(`⚠ SUPER_ADMIN role not found for company ${company_id}`);
+        }
+
+        // 2. Assign EMPLOYEE role for ESS application
+        const essApplication = await HrmsApplication.findOne({
+            where: { app_code: 'ESS', is_active: true },
+            transaction
+        });
+
+        if (essApplication) {
+            const employeeRole = await HrmsRole.findOne({
+                where: {
+                    company_id,
+                    application_id: essApplication.id,
+                    role_code: 'EMPLOYEE',
+                    is_active: true
+                },
+                transaction
+            });
+
+            if (employeeRole) {
+                await HrmsUserRole.create({
+                    user_id,
+                    role_id: employeeRole.id,
+                    company_id,
+                    application_id: essApplication.id,
+                    is_active: true,
+                    assigned_at: new Date(),
+                    assigned_by: user_id
+                }, { transaction });
+
+                assignedRoles.push('EMPLOYEE');
+                console.log(`✓ EMPLOYEE role assigned to user ${user_id}`);
+            } else {
+                console.warn(`⚠ EMPLOYEE role not found for company ${company_id}`);
+            }
+        } else {
+            console.warn(`⚠ ESS application not found`);
+        }
+
+        console.log(`✓ Assigned roles during onboarding: ${assignedRoles.join(', ')}`);
 
         return employee;
     } catch (error) {

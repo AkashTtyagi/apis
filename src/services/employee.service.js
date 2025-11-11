@@ -109,12 +109,12 @@ const createEmployee = async (employeeData) => {
             await HrmsTemplateResponse.bulkCreate(responseData, { transaction });
         }
 
-        // Auto-assign SUPER_ADMIN and EMPLOYEE roles to newly created employee
+        // Auto-assign EMPLOYEE role to newly created employee
         try {
             await autoAssignDefaultRoles(userDetails.id, company_id, user_id, transaction);
         } catch (roleError) {
             // Log but don't fail employee creation if role assignment fails
-            console.error('Failed to auto-assign roles:', roleError.message);
+            console.error('Failed to auto-assign EMPLOYEE role:', roleError.message);
         }
 
         await transaction.commit();
@@ -456,8 +456,7 @@ const getLoggedInUserDetails = async (user_id) => {
 };
 
 /**
- * Auto-assign SUPER_ADMIN and EMPLOYEE roles to newly created employee
- * This function runs during employee creation to ensure default role assignment
+ * Auto-assign EMPLOYEE role to newly created employee
  *
  * @param {number} new_user_id - ID of newly created user
  * @param {number} company_id - Company ID
@@ -467,48 +466,7 @@ const getLoggedInUserDetails = async (user_id) => {
 const autoAssignDefaultRoles = async (new_user_id, company_id, created_by, transaction) => {
     const assignedRoles = [];
 
-    // 1. Assign SUPER_ADMIN role (application_id = NULL, covers ALL applications)
-    const superAdminRole = await HrmsRole.findOne({
-        where: {
-            company_id,
-            application_id: null, // NULL = covers ALL applications
-            is_super_admin: true,
-            is_active: true
-        },
-        transaction
-    });
-
-    if (superAdminRole) {
-        // Check if already assigned (avoid duplicates)
-        const existingSuperAdmin = await HrmsUserRole.findOne({
-            where: {
-                user_id: new_user_id,
-                role_id: superAdminRole.id
-            },
-            transaction
-        });
-
-        if (!existingSuperAdmin) {
-            const superAdminUserRole = await HrmsUserRole.create({
-                user_id: new_user_id,
-                role_id: superAdminRole.id,
-                company_id,
-                application_id: null, // NULL = covers ALL applications
-                is_active: true,
-                assigned_at: new Date(),
-                assigned_by: created_by
-            }, { transaction });
-
-            assignedRoles.push({
-                role: 'SUPER_ADMIN',
-                application: 'ALL',
-                note: 'Access to all applications',
-                user_role_id: superAdminUserRole.id
-            });
-        }
-    }
-
-    // 2. Assign EMPLOYEE role for ESS application
+    // Assign EMPLOYEE role for ESS application
     const essApplication = await HrmsApplication.findOne({
         where: { app_code: 'ESS', is_active: true },
         transaction
@@ -556,7 +514,7 @@ const autoAssignDefaultRoles = async (new_user_id, company_id, created_by, trans
         }
     }
 
-    console.log(`Auto-assigned roles to user ${new_user_id}:`, assignedRoles);
+    console.log(`Auto-assigned EMPLOYEE role to user ${new_user_id}:`, assignedRoles);
     return assignedRoles;
 };
 

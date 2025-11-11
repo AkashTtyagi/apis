@@ -717,32 +717,12 @@ curl -X POST http://localhost:3000/api/role-permission/roles/masters/get-all \
 
 ## Auto-Assignment on Employee Creation
 
-When a new employee is created via `POST /api/employees`, the system automatically assigns default roles:
+When a new employee is created via `POST /api/employees`, the system automatically assigns the EMPLOYEE role:
 
 ```javascript
 // employee.service.js - autoAssignDefaultRoles()
 
-// 1. Assign SUPER_ADMIN role (application_id = NULL)
-const superAdminRole = await HrmsRole.findOne({
-  where: {
-    company_id,
-    application_id: null,  // Find super admin role
-    is_super_admin: true,
-    is_active: true
-  }
-});
-
-await HrmsUserRole.create({
-  user_id: new_user_id,
-  role_id: superAdminRole.id,
-  company_id,
-  application_id: null,  // NULL = covers ALL applications
-  is_active: true,
-  assigned_at: new Date(),
-  assigned_by: created_by
-});
-
-// 2. Assign EMPLOYEE role for ESS application
+// Assign EMPLOYEE role for ESS application
 const employeeRole = await HrmsRole.findOne({
   where: {
     company_id,
@@ -764,8 +744,9 @@ await HrmsUserRole.create({
 ```
 
 **Result:** New employee gets:
-- ✅ SUPER_ADMIN access to ALL applications (via application_id = NULL)
-- ✅ EMPLOYEE role in ESS application
+- ✅ EMPLOYEE role in ESS application (basic self-service access)
+
+**Note:** SUPER_ADMIN role must be assigned manually via the role assignment API for security purposes. Not all employees should be super admins!
 
 ---
 
@@ -824,8 +805,9 @@ id | company_id | application_id | role_code   | is_super_admin
 - **Application Access:** Super admin can access ALL applications
 - **Module Access:** Super admin limited to company's purchased modules only
 - **Future-Proof:** New applications automatically accessible
-- **Auto-Assignment:** New employees automatically get SUPER_ADMIN + EMPLOYEE roles
+- **Auto-Assignment:** New employees automatically get EMPLOYEE role (SUPER_ADMIN assigned manually)
 - **Query Fix:** All queries use `Op.or` to include NULL application_id
+- **Security:** SUPER_ADMIN must be manually assigned for security
 
 **Key Difference from Regular Admin:**
 - Regular Admin: Specific application + specific permissions
