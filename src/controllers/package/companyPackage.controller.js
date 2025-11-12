@@ -11,8 +11,9 @@ const companyPackageService = require('../../services/package/companyPackage.ser
  */
 const assignPackageToCompany = async (req, res, next) => {
     try {
-        const { company_id, ...packageData } = req.body;
+        const { company_id, package_id, start_date, end_date } = req.body;
         const userId = req.user.id;
+        const packageData = { package_id, start_date, end_date };
 
         const companyPackage = await companyPackageService.assignPackageToCompany(
             company_id,
@@ -207,7 +208,6 @@ const removeAddonModule = async (req, res, next) => {
 const getCompanyAddonModules = async (req, res, next) => {
     try {
         const { company_id } = req.body;
-
         const addons = await companyPackageService.getCompanyAddonModules(company_id);
 
         res.status(200).json({
