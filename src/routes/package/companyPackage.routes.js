@@ -14,5 +14,6 @@ router.post('/get-history', companyPackageController.getCompanyPackageHistory);
 router.post('/update', companyPackageController.updateCompanyPackage);
 router.post('/get-modules', companyPackageController.getCompanyModules);
 router.post('/check-module-access', companyPackageController.checkModuleAccess);
+router.post('/get-all-companies', companyPackageController.getAllParentCompanies);
 
 module.exports = router;

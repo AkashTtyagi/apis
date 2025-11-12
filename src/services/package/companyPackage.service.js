@@ -4,6 +4,7 @@
  */
 
 const { HrmsCompanyPackage, HrmsPackage, HrmsModule } = require('../../models/package');
+const { HrmsCompany } = require('../../models/HrmsCompany');
 const { Op } = require('sequelize');
 
 /**
@@ -156,11 +157,43 @@ const hasModuleAccess = async (companyId, moduleId) => {
     return modules.some(module => module.id === moduleId);
 };
 
+/**
+ * Get all parent companies (is_parent_company = 1)
+ */
+const getAllParentCompanies = async () => {
+    const companies = await HrmsCompany.findAll({
+        where: {
+            is_parent_company: 1
+        },
+        attributes: [
+            'id',
+            'org_name',
+            'country_id',
+            'currency_id',
+            'org_industry',
+            'registered_address',
+            'pin_code',
+            'state_id',
+            'city_id',
+            'phone_number',
+            'fax_number',
+            'timezone_id',
+            'company_profile_path',
+            'created_at',
+            'updated_at'
+        ],
+        order: [['created_at', 'DESC']]
+    });
+
+    return companies;
+};
+
 module.exports = {
     assignPackageToCompany,
     getCompanyPackage,
     getCompanyPackageHistory,
     updateCompanyPackage,
     getCompanyModules,
-    hasModuleAccess
+    hasModuleAccess,
+    getAllParentCompanies
 };

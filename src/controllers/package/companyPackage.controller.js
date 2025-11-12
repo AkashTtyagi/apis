@@ -133,11 +133,31 @@ const checkModuleAccess = async (req, res, next) => {
     }
 };
 
+/**
+ * Get all parent companies
+ * POST /api/company-packages/get-all-companies
+ */
+const getAllParentCompanies = async (req, res, next) => {
+    try {
+        const companies = await companyPackageService.getAllParentCompanies();
+
+        res.status(200).json({
+            success: true,
+            message: 'Parent companies retrieved successfully',
+            data: companies,
+            count: companies.length
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     assignPackageToCompany,
     getCompanyPackage,
     getCompanyPackageHistory,
     updateCompanyPackage,
     getCompanyModules,
-    checkModuleAccess
+    checkModuleAccess,
+    getAllParentCompanies
 };
