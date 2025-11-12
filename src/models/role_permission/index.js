@@ -13,6 +13,7 @@ const { HrmsRoleMenuPermission } = require('./HrmsRoleMenuPermission');
 const { HrmsUserRole } = require('./HrmsUserRole');
 const { HrmsUserMenuPermission } = require('./HrmsUserMenuPermission');
 const { HrmsRolePermissionAuditLog } = require('./HrmsRolePermissionAuditLog');
+const { HrmsModuleMenu } = require('./HrmsModuleMenu');
 
 // Import package models for cross-module associations
 const { HrmsModule } = require('../package/HrmsModule');
@@ -25,9 +26,26 @@ const { HrmsModule } = require('../package/HrmsModule');
 HrmsApplication.hasMany(HrmsMenu, { foreignKey: 'application_id', as: 'menus' });
 HrmsMenu.belongsTo(HrmsApplication, { foreignKey: 'application_id', as: 'application' });
 
-// Module -> Menus (One-to-Many)
-HrmsModule.hasMany(HrmsMenu, { foreignKey: 'module_id', as: 'menus' });
-HrmsMenu.belongsTo(HrmsModule, { foreignKey: 'module_id', as: 'module' });
+// Module <-> Menu (Many-to-Many through HrmsModuleMenu)
+HrmsModule.belongsToMany(HrmsMenu, {
+    through: HrmsModuleMenu,
+    foreignKey: 'module_id',
+    otherKey: 'menu_id',
+    as: 'menus'
+});
+
+HrmsMenu.belongsToMany(HrmsModule, {
+    through: HrmsModuleMenu,
+    foreignKey: 'menu_id',
+    otherKey: 'module_id',
+    as: 'modules'
+});
+
+// Direct access to junction table
+HrmsModule.hasMany(HrmsModuleMenu, { foreignKey: 'module_id', as: 'moduleMenus' });
+HrmsMenu.hasMany(HrmsModuleMenu, { foreignKey: 'menu_id', as: 'menuModules' });
+HrmsModuleMenu.belongsTo(HrmsModule, { foreignKey: 'module_id', as: 'module' });
+HrmsModuleMenu.belongsTo(HrmsMenu, { foreignKey: 'menu_id', as: 'menu' });
 
 // Menu -> Parent Menu (Self-referencing for N-level hierarchy)
 HrmsMenu.hasMany(HrmsMenu, { foreignKey: 'parent_menu_id', as: 'children' });
@@ -92,6 +110,7 @@ HrmsUserMenuPermission.belongsTo(HrmsPermissionMaster, { foreignKey: 'permission
 module.exports = {
     HrmsApplication,
     HrmsMenu,
+    HrmsModuleMenu,
     HrmsPermissionMaster,
     HrmsRoleMaster,
     HrmsRoleMasterMenuPermission,

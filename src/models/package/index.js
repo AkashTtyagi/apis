@@ -7,6 +7,7 @@ const { HrmsPackage } = require('./HrmsPackage');
 const { HrmsModule } = require('./HrmsModule');
 const { HrmsPackageModule } = require('./HrmsPackageModule');
 const { HrmsCompanyPackage } = require('./HrmsCompanyPackage');
+const { HrmsCompanyAddonModule } = require('./HrmsCompanyAddonModule');
 
 // Define associations
 
@@ -35,9 +36,14 @@ HrmsPackageModule.belongsTo(HrmsModule, { foreignKey: 'module_id', as: 'module' 
 HrmsPackage.hasMany(HrmsCompanyPackage, { foreignKey: 'package_id', as: 'companyPackages' });
 HrmsCompanyPackage.belongsTo(HrmsPackage, { foreignKey: 'package_id', as: 'package' });
 
+// Company Add-on Modules (Direct module access)
+HrmsModule.hasMany(HrmsCompanyAddonModule, { foreignKey: 'module_id', as: 'companyAddons' });
+HrmsCompanyAddonModule.belongsTo(HrmsModule, { foreignKey: 'module_id', as: 'module' });
+
 module.exports = {
     HrmsPackage,
     HrmsModule,
     HrmsPackageModule,
-    HrmsCompanyPackage
+    HrmsCompanyPackage,
+    HrmsCompanyAddonModule
 };

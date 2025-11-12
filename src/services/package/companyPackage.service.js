@@ -3,7 +3,7 @@
  * Business logic for assigning packages to companies
  */
 
-const { HrmsCompanyPackage, HrmsPackage, HrmsModule } = require('../../models/package');
+const { HrmsCompanyPackage, HrmsPackage, HrmsModule, HrmsCompanyAddonModule } = require('../../models/package');
 const { HrmsCompany } = require('../../models/HrmsCompany');
 const { Op } = require('sequelize');
 
@@ -137,16 +137,46 @@ const updateCompanyPackage = async (companyId, updateData, userId) => {
 };
 
 /**
- * Get company's accessible modules (based on package)
+ * Get company's accessible modules (based on package + addon modules)
  */
 const getCompanyModules = async (companyId) => {
-    const companyPackage = await getCompanyPackage(companyId);
-
-    if (!companyPackage || !companyPackage.package) {
-        return [];
+    // Get base package modules
+    let baseModules = [];
+    try {
+        const companyPackage = await getCompanyPackage(companyId);
+        if (companyPackage && companyPackage.package) {
+            baseModules = companyPackage.package.modules || [];
+        }
+    } catch (error) {
+        // If no active package, base modules remain empty
+        console.log(`No active package for company ${companyId}`);
     }
 
-    return companyPackage.package.modules || [];
+    // Get addon modules
+    const addonModules = await HrmsCompanyAddonModule.findAll({
+        where: {
+            company_id: companyId,
+            is_active: true
+        },
+        include: [
+            {
+                model: HrmsModule,
+                as: 'module',
+                where: { is_active: true }
+            }
+        ]
+    });
+
+    // Extract module objects from addons
+    const addonModuleObjects = addonModules.map(addon => addon.module);
+
+    // Combine base + addon modules (remove duplicates by module id)
+    const allModules = [...baseModules, ...addonModuleObjects];
+    const uniqueModules = allModules.filter((module, index, self) =>
+        index === self.findIndex((m) => m.id === module.id)
+    );
+
+    return uniqueModules;
 };
 
 /**
@@ -188,6 +218,95 @@ const getAllParentCompanies = async () => {
     return companies;
 };
 
+/**
+ * Add addon module to company
+ */
+const addAddonModule = async (companyId, moduleId, userId) => {
+    // Check if module exists and is active
+    const module = await HrmsModule.findOne({
+        where: { id: moduleId, is_active: true }
+    });
+
+    if (!module) {
+        throw new Error('Module not found or inactive');
+    }
+
+    // Check if addon already exists
+    const existingAddon = await HrmsCompanyAddonModule.findOne({
+        where: {
+            company_id: companyId,
+            module_id: moduleId
+        }
+    });
+
+    if (existingAddon) {
+        if (existingAddon.is_active) {
+            throw new Error('This addon module is already assigned to the company');
+        } else {
+            // Reactivate if was inactive
+            existingAddon.is_active = true;
+            existingAddon.added_by = userId;
+            await existingAddon.save();
+            return existingAddon;
+        }
+    }
+
+    // Create new addon
+    const addon = await HrmsCompanyAddonModule.create({
+        company_id: companyId,
+        module_id: moduleId,
+        is_active: true,
+        added_by: userId
+    });
+
+    return addon;
+};
+
+/**
+ * Remove addon module from company
+ */
+const removeAddonModule = async (companyId, moduleId) => {
+    const addon = await HrmsCompanyAddonModule.findOne({
+        where: {
+            company_id: companyId,
+            module_id: moduleId,
+            is_active: true
+        }
+    });
+
+    if (!addon) {
+        throw new Error('Addon module not found or already inactive');
+    }
+
+    // Soft delete: set is_active to false
+    addon.is_active = false;
+    await addon.save();
+
+    return addon;
+};
+
+/**
+ * Get all addon modules for a company
+ */
+const getCompanyAddonModules = async (companyId) => {
+    const addons = await HrmsCompanyAddonModule.findAll({
+        where: {
+            company_id: companyId,
+            is_active: true
+        },
+        include: [
+            {
+                model: HrmsModule,
+                as: 'module',
+                where: { is_active: true }
+            }
+        ],
+        order: [['created_at', 'DESC']]
+    });
+
+    return addons;
+};
+
 module.exports = {
     assignPackageToCompany,
     getCompanyPackage,
@@ -195,5 +314,8 @@ module.exports = {
     updateCompanyPackage,
     getCompanyModules,
     hasModuleAccess,
-    getAllParentCompanies
+    getAllParentCompanies,
+    addAddonModule,
+    removeAddonModule,
+    getCompanyAddonModules
 };

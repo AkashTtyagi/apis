@@ -152,6 +152,75 @@ const getAllParentCompanies = async (req, res, next) => {
     }
 };
 
+/**
+ * Add addon module to company
+ * POST /api/company-packages/add-addon
+ */
+const addAddonModule = async (req, res, next) => {
+    try {
+        const { company_id, module_id } = req.body;
+        const userId = req.user.id;
+
+        const addon = await companyPackageService.addAddonModule(
+            company_id,
+            module_id,
+            userId
+        );
+
+        res.status(201).json({
+            success: true,
+            message: 'Addon module added successfully',
+            data: addon
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Remove addon module from company
+ * POST /api/company-packages/remove-addon
+ */
+const removeAddonModule = async (req, res, next) => {
+    try {
+        const { company_id, module_id } = req.body;
+
+        const addon = await companyPackageService.removeAddonModule(
+            company_id,
+            module_id
+        );
+
+        res.status(200).json({
+            success: true,
+            message: 'Addon module removed successfully',
+            data: addon
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Get all addon modules for company
+ * POST /api/company-packages/get-addons
+ */
+const getCompanyAddonModules = async (req, res, next) => {
+    try {
+        const { company_id } = req.body;
+
+        const addons = await companyPackageService.getCompanyAddonModules(company_id);
+
+        res.status(200).json({
+            success: true,
+            message: 'Addon modules retrieved successfully',
+            data: addons,
+            count: addons.length
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     assignPackageToCompany,
     getCompanyPackage,
@@ -159,5 +228,8 @@ module.exports = {
     updateCompanyPackage,
     getCompanyModules,
     checkModuleAccess,
-    getAllParentCompanies
+    getAllParentCompanies,
+    addAddonModule,
+    removeAddonModule,
+    getCompanyAddonModules
 };

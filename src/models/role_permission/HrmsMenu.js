@@ -18,11 +18,6 @@ const HrmsMenu = sequelize.define('HrmsMenu', {
         allowNull: false,
         comment: 'FK to hrms_applications'
     },
-    module_id: {
-        type: DataTypes.INTEGER.UNSIGNED,
-        allowNull: false,
-        comment: 'FK to hrms_modules'
-    },
     parent_menu_id: {
         type: DataTypes.INTEGER.UNSIGNED,
         allowNull: true,
@@ -89,7 +84,6 @@ const HrmsMenu = sequelize.define('HrmsMenu', {
             name: 'unique_app_menu_code'
         },
         { fields: ['application_id'] },
-        { fields: ['module_id'] },
         { fields: ['parent_menu_id'] },
         { fields: ['menu_type'] },
         { fields: ['is_active'] }

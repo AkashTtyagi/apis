@@ -16,4 +16,9 @@ router.post('/get-modules', companyPackageController.getCompanyModules);
 router.post('/check-module-access', companyPackageController.checkModuleAccess);
 router.post('/get-all-companies', companyPackageController.getAllParentCompanies);
 
+// Addon module routes
+router.post('/add-addon', companyPackageController.addAddonModule);
+router.post('/remove-addon', companyPackageController.removeAddonModule);
+router.post('/get-addons', companyPackageController.getCompanyAddonModules);
+
 module.exports = router;
