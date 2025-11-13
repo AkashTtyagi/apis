@@ -8,24 +8,48 @@ const adminLeaveManagementService = require('../../services/attendance/adminLeav
 
 /**
  * Get All Requests (Unified API for all types)
- * GET /api/admin/requests
+ * POST /api/attendance/admin/requests/list
  *
- * Query params:
- * - type: leave, onduty, wfh, regularization, short-leave (optional)
+ * Body params:
+ * - request_type: 1=leave, 2=onduty, 3=wfh, 4=regularization, 5=short-leave (optional)
  * - status: pending, approved, rejected, withdrawn (optional)
  * - employee_id: filter by employee (optional)
  * - from_date, to_date: date range filter (optional)
+ * - limit, offset: pagination (optional)
  */
 const getAllRequests = async (req, res) => {
     try {
         const company_id = req.user.company_id;
 
+        // Extract filters from request body
+        const filters = {
+            request_type: req.body.request_type, // 1=leave, 2=onduty, 3=wfh, 4=regularization, 5=short-leave
+            status: req.body.status,
+            employee_id: req.body.employee_id,
+            department_id: req.body.department_id,
+            manager_id: req.body.manager_id,
+            leave_type: req.body.leave_type,
+            from_date: req.body.from_date,
+            to_date: req.body.to_date,
+            applied_by_role: req.body.applied_by_role,
+            search: req.body.search,
+            limit: req.body.limit || 50,
+            offset: req.body.offset || 0,
+            sort_by: req.body.sort_by,
+            sort_order: req.body.sort_order
+        };
+
         // Delegate to service layer
-        const result = await adminLeaveManagementService.getAllLeaveRequests(company_id, req.query);
+        const result = await adminLeaveManagementService.getAllLeaveRequests(company_id, filters);
 
         return res.status(200).json({
             success: true,
-            data: result
+            data: result.data || result,
+            pagination: result.pagination || {
+                limit: filters.limit,
+                offset: filters.offset,
+                total: result.total || (result.data ? result.data.length : result.length)
+            }
         });
 
     } catch (error) {
@@ -40,15 +64,22 @@ const getAllRequests = async (req, res) => {
 
 /**
  * Get Request Details (Any Type)
- * GET /api/admin/requests/:requestId
+ * POST /api/attendance/admin/requests/details
  */
 const getRequestDetails = async (req, res) => {
     try {
-        const { requestId } = req.params;
+        const { request_id } = req.body;
         const company_id = req.user.company_id;
 
+        if (!request_id) {
+            return res.status(400).json({
+                success: false,
+                message: 'request_id is required'
+            });
+        }
+
         // Delegate to service layer
-        const request = await adminLeaveManagementService.getLeaveRequestDetails(requestId, company_id);
+        const request = await adminLeaveManagementService.getLeaveRequestDetails(request_id, company_id);
 
         return res.status(200).json({
             success: true,
@@ -67,22 +98,36 @@ const getRequestDetails = async (req, res) => {
 
 /**
  * Approve/Reject Request (Admin Override)
- * POST /api/admin/requests/:requestId/action
+ * POST /api/attendance/admin/requests/action
  *
  * Body:
- * - action: "approve" or "reject"
- * - remarks: optional remarks
+ * - request_id: number (required)
+ * - action: "approve" or "reject" (required)
+ * - remarks: optional remarks (required for reject)
  */
 const adminActionOnRequest = async (req, res) => {
     try {
-        const { requestId } = req.params;
-        const { action, remarks } = req.body;
+        const { request_id, action, remarks } = req.body;
         const company_id = req.user.company_id;
         const user_id = req.user.user_id;
 
+        if (!request_id) {
+            return res.status(400).json({
+                success: false,
+                message: 'request_id is required'
+            });
+        }
+
+        if (!action) {
+            return res.status(400).json({
+                success: false,
+                message: 'action is required'
+            });
+        }
+
         // Delegate to service layer
         const result = await adminLeaveManagementService.adminActionOnRequest(
-            requestId,
+            request_id,
             company_id,
             user_id,
             action,
@@ -97,8 +142,14 @@ const adminActionOnRequest = async (req, res) => {
             success: true,
             message: message,
             data: {
+                request_id: request_id,
                 request_number: result.request.request_number,
-                request_status: result.request.request_status,
+                previous_status: 'pending',
+                new_status: result.request.request_status,
+                approved_by: action === 'approve' ? req.user.name : undefined,
+                rejected_by: action === 'reject' ? req.user.name : undefined,
+                action_date: new Date(),
+                remarks: remarks,
                 workflow_type: result.workflow_type
             }
         });
@@ -116,12 +167,12 @@ const adminActionOnRequest = async (req, res) => {
 
 /**
  * Get Dashboard Statistics
- * GET /api/admin/requests/dashboard
+ * POST /api/attendance/admin/requests/dashboard
  */
 const getDashboardStats = async (req, res) => {
     try {
         const company_id = req.user.company_id;
-        const { from_date, to_date } = req.query;
+        const { from_date, to_date } = req.body;
 
         const dateFilter = {};
         if (from_date && to_date) {

@@ -266,12 +266,12 @@ const applyRegularization = async (req, res) => {
 
 /**
  * Get Leave Balance for an employee
- * GET /api/attendance/manager/leave/balance/:employee_id
- * GET /api/attendance/admin/leave/balance/:employee_id
+ * POST /api/attendance/manager/leave/balance
+ * POST /api/attendance/admin/leave/balance
  */
 const getEmployeeLeaveBalance = async (req, res) => {
     try {
-        const { employee_id } = req.params;
+        const { employee_id } = req.body;
 
         if (!employee_id) {
             return res.status(400).json({
@@ -285,8 +285,7 @@ const getEmployeeLeaveBalance = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            data: result,
-            message: 'TODO: Implement actual leave balance calculation'
+            data: result
         });
 
     } catch (error) {

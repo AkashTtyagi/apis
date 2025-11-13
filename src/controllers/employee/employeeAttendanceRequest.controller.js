@@ -253,18 +253,33 @@ const applyRegularization = async (req, res) => {
 
 /**
  * Get My Requests (All Types)
- * GET /api/employee/requests/my-requests
+ * POST /api/attendance/employee/requests/my-requests
  */
 const getMyRequests = async (req, res) => {
     try {
         const employee_id = req.user.employee_id;
 
+        // Extract filters from request body
+        const filters = {
+            request_type: req.body.request_type, // 1=leave, 2=onduty, 3=wfh, 4=regularization, 5=short-leave
+            status: req.body.status,
+            from_date: req.body.from_date,
+            to_date: req.body.to_date,
+            limit: req.body.limit || 20,
+            offset: req.body.offset || 0
+        };
+
         // Delegate to service layer
-        const result = await leaveApplicationService.getEmployeeLeaveRequests(employee_id, req.query);
+        const result = await leaveApplicationService.getEmployeeLeaveRequests(employee_id, filters);
 
         return res.status(200).json({
             success: true,
-            data: result
+            data: result.data || result,
+            pagination: result.pagination || {
+                limit: filters.limit,
+                offset: filters.offset,
+                total: result.total || (result.data ? result.data.length : result.length)
+            }
         });
 
     } catch (error) {
@@ -278,15 +293,22 @@ const getMyRequests = async (req, res) => {
 
 /**
  * Get Request Details
- * GET /api/employee/requests/:requestId
+ * POST /api/attendance/employee/requests/details
  */
 const getRequestDetails = async (req, res) => {
     try {
-        const { requestId } = req.params;
+        const { request_id } = req.body;
         const employee_id = req.user.employee_id;
 
+        if (!request_id) {
+            return res.status(400).json({
+                success: false,
+                message: 'request_id is required'
+            });
+        }
+
         // Delegate to service layer
-        const request = await leaveApplicationService.getLeaveRequestDetails(requestId, employee_id);
+        const request = await leaveApplicationService.getLeaveRequestDetails(request_id, employee_id);
 
         return res.status(200).json({
             success: true,
@@ -305,23 +327,31 @@ const getRequestDetails = async (req, res) => {
 
 /**
  * Withdraw Request
- * POST /api/employee/requests/:requestId/withdraw
+ * POST /api/attendance/employee/requests/withdraw
  */
 const withdrawRequest = async (req, res) => {
     try {
-        const { requestId } = req.params;
+        const { request_id, withdrawal_reason } = req.body;
         const employee_id = req.user.employee_id;
-        const { remarks } = req.body;
+
+        if (!request_id) {
+            return res.status(400).json({
+                success: false,
+                message: 'request_id is required'
+            });
+        }
 
         // Delegate to service layer
-        const request = await leaveApplicationService.withdrawLeaveRequest(requestId, employee_id, remarks);
+        const request = await leaveApplicationService.withdrawLeaveRequest(request_id, employee_id, withdrawal_reason);
 
         return res.status(200).json({
             success: true,
             message: 'Request withdrawn successfully',
             data: {
+                request_id: request.id,
                 request_number: request.request_number,
-                request_status: request.request_status
+                request_status: request.request_status,
+                withdrawn_date: new Date()
             }
         });
 
@@ -338,7 +368,7 @@ const withdrawRequest = async (req, res) => {
 
 /**
  * Get Leave Balance
- * GET /api/employee/leave/balance
+ * POST /api/attendance/employee/leave/balance
  */
 const getLeaveBalance = async (req, res) => {
     try {
@@ -349,8 +379,7 @@ const getLeaveBalance = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            data: result,
-            message: 'TODO: Implement actual leave balance calculation'
+            data: result
         });
 
     } catch (error) {

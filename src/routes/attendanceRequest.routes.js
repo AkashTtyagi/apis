@@ -59,34 +59,42 @@ router.post('/employee/short-leave/apply', employeeController.applyShortLeave);
 router.post('/employee/regularization/apply', employeeController.applyRegularization);
 
 /**
- * @route   GET /api/attendance/employee/requests/my-requests
+ * @route   POST /api/attendance/employee/requests/my-requests
  * @desc    Get employee's own requests (all types)
- * @query   type: leave, onduty, wfh, regularization, short-leave (optional)
- * @query   status: pending, approved, rejected, withdrawn (optional)
+ * @body    request_type: 1=leave, 2=onduty, 3=wfh, 4=regularization, 5=short-leave (optional)
+ * @body    status: pending, approved, rejected, withdrawn (optional)
+ * @body    from_date: YYYY-MM-DD (optional)
+ * @body    to_date: YYYY-MM-DD (optional)
+ * @body    limit: number (optional, default: 20)
+ * @body    offset: number (optional, default: 0)
  * @access  Employee
  */
-router.get('/employee/requests/my-requests', employeeController.getMyRequests);
+router.post('/employee/requests/my-requests', employeeController.getMyRequests);
 
 /**
- * @route   GET /api/attendance/employee/requests/:requestId
+ * @route   POST /api/attendance/employee/requests/details
  * @desc    Get request details
+ * @body    request_id: number (required)
  * @access  Employee
  */
-router.get('/employee/requests/:requestId', employeeController.getRequestDetails);
+router.post('/employee/requests/details', employeeController.getRequestDetails);
 
 /**
- * @route   POST /api/attendance/employee/requests/:requestId/withdraw
+ * @route   POST /api/attendance/employee/requests/withdraw
  * @desc    Withdraw a request
+ * @body    request_id: number (required)
+ * @body    withdrawal_reason: string (optional)
  * @access  Employee
  */
-router.post('/employee/requests/:requestId/withdraw', employeeController.withdrawRequest);
+router.post('/employee/requests/withdraw', employeeController.withdrawRequest);
 
 /**
- * @route   GET /api/attendance/employee/leave/balance
+ * @route   POST /api/attendance/employee/leave/balance
  * @desc    Get employee's leave balance
+ * @body    {} (empty body - uses logged-in employee)
  * @access  Employee
  */
-router.get('/employee/leave/balance', employeeController.getLeaveBalance);
+router.post('/employee/leave/balance', employeeController.getLeaveBalance);
 
 /**
  * @route   POST /api/attendance/calendar
@@ -123,45 +131,52 @@ router.post('/calendar/summary', calendarController.getAttendanceSummary);
 // router.use('/admin', adminMiddleware.checkAdmin);
 
 /**
- * @route   GET /api/attendance/admin/requests
+ * @route   POST /api/attendance/admin/requests/list
  * @desc    Get all requests (unified API for all types)
- * @query   type: leave, onduty, wfh, regularization, short-leave (optional)
- * @query   status: pending, approved, rejected, withdrawn (optional)
- * @query   employee_id: filter by employee (optional)
- * @query   from_date, to_date: date range (optional)
- * @query   limit, offset: pagination (optional)
+ * @body    request_type: 1=leave, 2=onduty, 3=wfh, 4=regularization, 5=short-leave (optional)
+ * @body    status: pending, approved, rejected, withdrawn (optional)
+ * @body    employee_id: number (optional)
+ * @body    department_id: number (optional)
+ * @body    manager_id: number (optional)
+ * @body    leave_type: string (optional, for leave requests)
+ * @body    from_date: YYYY-MM-DD (optional)
+ * @body    to_date: YYYY-MM-DD (optional)
+ * @body    applied_by_role: employee, manager, admin (optional)
+ * @body    search: string (optional - searches request_number, employee_name)
+ * @body    limit: number (optional, default: 50)
+ * @body    offset: number (optional, default: 0)
+ * @body    sort_by: applied_date, from_date, status (optional)
+ * @body    sort_order: asc, desc (optional)
  * @access  Admin
- *
- * @example GET /api/attendance/admin/requests?type=leave&status=pending
- * @example GET /api/attendance/admin/requests?type=onduty&employee_id=123
- * @example GET /api/attendance/admin/requests?from_date=2024-12-01&to_date=2024-12-31
- * @example GET /api/attendance/admin/requests (get all types)
  */
-router.get('/admin/requests', adminController.getAllRequests);
+router.post('/admin/requests/list', adminController.getAllRequests);
 
 /**
- * @route   GET /api/attendance/admin/requests/:requestId
+ * @route   POST /api/attendance/admin/requests/details
  * @desc    Get request details (any type)
+ * @body    request_id: number (required)
  * @access  Admin
  */
-router.get('/admin/requests/:requestId', adminController.getRequestDetails);
+router.post('/admin/requests/details', adminController.getRequestDetails);
 
 /**
- * @route   POST /api/attendance/admin/requests/:requestId/action
+ * @route   POST /api/attendance/admin/requests/action
  * @desc    Approve or reject a request (admin override)
- * @body    action: "approve" or "reject"
- * @body    remarks: optional remarks
+ * @body    request_id: number (required)
+ * @body    action: "approve" or "reject" (required)
+ * @body    remarks: string (optional for approve, required for reject)
  * @access  Admin
  */
-router.post('/admin/requests/:requestId/action', adminController.adminActionOnRequest);
+router.post('/admin/requests/action', adminController.adminActionOnRequest);
 
 /**
- * @route   GET /api/attendance/admin/requests/dashboard
+ * @route   POST /api/attendance/admin/requests/dashboard
  * @desc    Get dashboard statistics for all request types
- * @query   from_date, to_date: date range (optional)
+ * @body    from_date: YYYY-MM-DD (optional)
+ * @body    to_date: YYYY-MM-DD (optional)
  * @access  Admin
  */
-router.get('/admin/requests/dashboard', adminController.getDashboardStats);
+router.post('/admin/requests/dashboard', adminController.getDashboardStats);
 
 /**
  * @route   POST /api/attendance/admin/requests/bulk-approve
@@ -272,19 +287,19 @@ router.post('/manager/regularization/apply', managerController.applyRegularizati
 router.post('/admin/regularization/apply', managerController.applyRegularization);
 
 /**
- * @route   GET /api/attendance/manager/leave/balance/:employee_id
+ * @route   POST /api/attendance/manager/leave/balance
  * @desc    Manager gets leave balance for an employee
- * @param   employee_id: employee ID
+ * @body    employee_id: number (required)
  * @access  Manager
  */
-router.get('/manager/leave/balance/:employee_id', managerController.getEmployeeLeaveBalance);
+router.post('/manager/leave/balance', managerController.getEmployeeLeaveBalance);
 
 /**
- * @route   GET /api/attendance/admin/leave/balance/:employee_id
+ * @route   POST /api/attendance/admin/leave/balance
  * @desc    Admin gets leave balance for an employee
- * @param   employee_id: employee ID
+ * @body    employee_id: number (required)
  * @access  Admin
  */
-router.get('/admin/leave/balance/:employee_id', managerController.getEmployeeLeaveBalance);
+router.post('/admin/leave/balance', managerController.getEmployeeLeaveBalance);
 
 module.exports = router;
