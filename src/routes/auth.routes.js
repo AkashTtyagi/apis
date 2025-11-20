@@ -71,4 +71,10 @@ router.post(
     authController.resendPasswordSetEmail
 );
 
+/**
+ * POST /api/auth/logout
+ * Logout user (blacklist token)
+ */
+router.post('/logout', authController.logout);
+
 module.exports = router;

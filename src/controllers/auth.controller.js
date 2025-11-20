@@ -89,9 +89,36 @@ const resendPasswordSetEmail = async (req, res, next) => {
     }
 };
 
+/**
+ * Logout user
+ * POST /api/auth/logout
+ */
+const logout = async (req, res, next) => {
+    try {
+        // Get token from Authorization header
+        const authHeader = req.headers.authorization;
+
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(400).json({
+                success: false,
+                message: 'No token provided'
+            });
+        }
+
+        const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+
+        const result = await authService.logout(token);
+
+        return sendSuccess(res, result.message);
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     setPassword,
     login,
+    logout,
     forgotPassword,
     resetPassword,
     resendPasswordSetEmail

@@ -480,9 +480,51 @@ const resendPasswordSetEmail = async ({ email }) => {
     }
 };
 
+/**
+ * Logout user (blacklist token)
+ * @param {string} token - JWT token to blacklist
+ * @returns {Promise<Object>} - Logout result
+ */
+const logout = async (token) => {
+    try {
+        const { setCache } = require('../utils/redis');
+
+        // Decode token to get expiration time
+        const decoded = jwt.decode(token);
+
+        if (!decoded || !decoded.exp) {
+            throw new Error('Invalid token');
+        }
+
+        // Calculate remaining time until token expires
+        const currentTime = Math.floor(Date.now() / 1000);
+        const expiresIn = decoded.exp - currentTime;
+
+        // If token already expired, no need to blacklist
+        if (expiresIn <= 0) {
+            return {
+                success: true,
+                message: 'Logged out successfully'
+            };
+        }
+
+        // Blacklist token in Redis with expiration
+        const blacklistKey = `blacklist:${token}`;
+        await setCache(blacklistKey, 'logged_out', expiresIn);
+
+        return {
+            success: true,
+            message: 'Logged out successfully'
+        };
+    } catch (error) {
+        throw error;
+    }
+};
+
 module.exports = {
     setPassword,
     login,
+    logout,
     forgotPassword,
     resetPassword,
     sendPasswordSetEmail,

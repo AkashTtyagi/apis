@@ -28,6 +28,18 @@ const authenticate = async (req, res, next) => {
 
         const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
+        // Check if token is blacklisted (logged out)
+        const { existsCache } = require('../utils/redis');
+        const blacklistKey = `blacklist:${token}`;
+        const isBlacklisted = await existsCache(blacklistKey);
+
+        if (isBlacklisted) {
+            return res.status(401).json({
+                success: false,
+                message: 'Token has been invalidated. Please login again'
+            });
+        }
+
         // Verify token
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
 
