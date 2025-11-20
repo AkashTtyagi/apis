@@ -123,7 +123,10 @@ const assignModulesToPackage = async (req, res, next) => {
         res.status(200).json({
             success: true,
             message: result.message,
-            count: result.count
+            data: {
+                added: result.count,
+                skipped: result.skipped || 0
+            }
         });
     } catch (error) {
         next(error);

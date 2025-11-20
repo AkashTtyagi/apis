@@ -160,19 +160,45 @@ const assignModulesToPackage = async (packageId, moduleIds, userId) => {
         throw new Error('One or more modules not found');
     }
 
-    // Create package-module mappings
-    const mappings = moduleIds.map(moduleId => ({
+    // Get existing package-module mappings
+    const existingMappings = await HrmsPackageModule.findAll({
+        where: {
+            package_id: packageId,
+            is_active: true
+        },
+        attributes: ['module_id']
+    });
+
+    const existingModuleIds = existingMappings.map(m => m.module_id);
+
+    // Find new modules to add (modules in request but not in existing)
+    const newModuleIds = moduleIds.filter(
+        moduleId => !existingModuleIds.includes(moduleId)
+    );
+
+    // Add only new modules
+    if (newModuleIds.length === 0) {
+        return {
+            message: 'All modules are already assigned to this package',
+            count: 0,
+            skipped: existingModuleIds.length
+        };
+    }
+
+    const mappings = newModuleIds.map(moduleId => ({
         package_id: packageId,
         module_id: moduleId,
         is_active: true,
         created_by: userId
     }));
 
-    await HrmsPackageModule.bulkCreate(mappings, {
-        ignoreDuplicates: true
-    });
+    await HrmsPackageModule.bulkCreate(mappings);
 
-    return { message: 'Modules assigned to package successfully', count: mappings.length };
+    return {
+        message: `${newModuleIds.length} module(s) assigned to package successfully`,
+        count: newModuleIds.length,
+        skipped: existingModuleIds.length
+    };
 };
 
 /**
