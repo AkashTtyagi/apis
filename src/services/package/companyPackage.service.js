@@ -110,19 +110,28 @@ const getCompanyPackageHistory = async (companyId) => {
 /**
  * Update company package
  */
-const updateCompanyPackage = async (companyId, updateData, userId) => {
-    const companyPackage = await HrmsCompanyPackage.findOne({
-        where: {
-            company_id: companyId,
-            is_active: true
-        }
-    });
+const updateCompanyPackage = async (updateData, userId) => {
+    const { id, package_id } = updateData;
 
-    if (!companyPackage) {
-        throw new Error('No active package found for this company');
+    if (!id) {
+        throw new Error('Company package ID is required');
     }
 
-    const allowedFields = ['end_date', 'is_active'];
+    const companyPackage = await HrmsCompanyPackage.findByPk(id);
+
+    if (!companyPackage) {
+        throw new Error('Company package not found');
+    }
+
+    // If package_id is being changed, validate it exists
+    if (package_id && package_id !== companyPackage.package_id) {
+        const packageExists = await HrmsPackage.findByPk(package_id);
+        if (!packageExists) {
+            throw new Error('Package not found');
+        }
+    }
+
+    const allowedFields = ['package_id', 'start_date', 'end_date', 'notes', 'is_active'];
     const updateFields = {};
 
     allowedFields.forEach(field => {
@@ -130,6 +139,9 @@ const updateCompanyPackage = async (companyId, updateData, userId) => {
             updateFields[field] = updateData[field];
         }
     });
+
+    updateFields.updated_by = userId;
+    updateFields.updated_at = new Date();
 
     await companyPackage.update(updateFields);
 

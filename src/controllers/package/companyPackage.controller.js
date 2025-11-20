@@ -74,12 +74,10 @@ const getCompanyPackageHistory = async (req, res, next) => {
  */
 const updateCompanyPackage = async (req, res, next) => {
     try {
-        const { company_id, ...updateData } = req.body;
         const userId = req.user.id;
 
         const companyPackage = await companyPackageService.updateCompanyPackage(
-            company_id,
-            updateData,
+            req.body,
             userId
         );
 

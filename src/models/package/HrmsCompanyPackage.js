@@ -33,12 +33,21 @@ const HrmsCompanyPackage = sequelize.define('HrmsCompanyPackage', {
         allowNull: true,
         comment: 'Package expiry date, NULL = lifetime'
     },
+    notes: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        comment: 'Additional notes or comments'
+    },
     is_active: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: true
     },
     assigned_by: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+    },
+    updated_by: {
         type: DataTypes.INTEGER,
         allowNull: true
     }
