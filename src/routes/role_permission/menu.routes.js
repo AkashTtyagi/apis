@@ -24,4 +24,7 @@ router.post('/get-user-screen-permissions', menuController.getUserScreenPermissi
 router.post('/get-user-menus-list', menuController.getUserMenusList);
 router.post('/get-user-menus-permissions', menuController.getUserMenusPermissions);
 
+// Logged-in user menus (simplified - uses auth token)
+router.post('/my-menus', menuController.getMyMenus);
+
 module.exports = router;

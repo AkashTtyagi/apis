@@ -186,6 +186,27 @@ const getUserMenusPermissions = async (req, res, next) => {
     }
 };
 
+/**
+ * Get menus for logged-in user (using auth token)
+ * POST /api/menus/my-menus
+ */
+const getMyMenus = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const companyId = req.user.company_id;
+        const { application_id = 1 } = req.body;
+
+        const menus = await menuService.getUserMenus(userId, companyId, application_id);
+
+        res.status(200).json({
+            success: true,
+            data: menus
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     getMenusByApplication,
     getMenuById,
@@ -195,5 +216,6 @@ module.exports = {
     getUserMenus,
     getUserScreenPermissions,
     getUserMenusList,
-    getUserMenusPermissions
+    getUserMenusPermissions,
+    getMyMenus
 };
