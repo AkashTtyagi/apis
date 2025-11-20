@@ -3,7 +3,8 @@
  * Business logic for module management
  */
 
-const { HrmsModule, HrmsPackage } = require('../../models/package');
+const { HrmsModule, HrmsPackage, HrmsModuleMenu } = require('../../models/package');
+const { HrmsMenu } = require('../../models/role_permission');
 
 /**
  * Get all modules
@@ -131,10 +132,79 @@ const deleteModule = async (moduleId) => {
     return { message: 'Module deleted successfully' };
 };
 
+/**
+ * Build menu tree from flat array
+ */
+const buildMenuTree = (menus, parentId = null) => {
+    return menus
+        .filter(menu => menu.parent_menu_id === parentId)
+        .map(menu => {
+            const menuObj = menu.toJSON ? menu.toJSON() : menu;
+            return {
+                ...menuObj,
+                children: buildMenuTree(menus, menu.id)
+            };
+        });
+};
+
+/**
+ * Get menus mapped to a module
+ */
+const getModuleMenus = async (moduleId) => {
+    const module = await HrmsModule.findByPk(moduleId);
+
+    if (!module) {
+        throw new Error('Module not found');
+    }
+
+    // Get all menus mapped to this module
+    const moduleMenus = await HrmsModuleMenu.findAll({
+        where: {
+            module_id: moduleId,
+            is_active: true
+        },
+        include: [
+            {
+                model: HrmsMenu,
+                as: 'menu',
+                where: { is_active: true },
+                required: true,
+                attributes: [
+                    'id',
+                    'application_id',
+                    'parent_menu_id',
+                    'menu_code',
+                    'menu_name',
+                    'menu_type',
+                    'menu_icon',
+                    'route_path',
+                    'display_order'
+                ]
+            }
+        ],
+        order: [[{ model: HrmsMenu, as: 'menu' }, 'display_order', 'ASC']]
+    });
+
+    // Extract menu objects
+    const menus = moduleMenus.map(mm => mm.menu);
+
+    // Build hierarchical tree structure
+    const menuTree = buildMenuTree(menus);
+
+    return {
+        module_id: moduleId,
+        module_code: module.module_code,
+        module_name: module.module_name,
+        menus: menuTree,
+        count: menus.length
+    };
+};
+
 module.exports = {
     getAllModules,
     getModuleById,
     createModule,
     updateModule,
-    deleteModule
+    deleteModule,
+    getModuleMenus
 };

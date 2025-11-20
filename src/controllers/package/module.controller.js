@@ -102,10 +102,37 @@ const deleteModule = async (req, res, next) => {
     }
 };
 
+/**
+ * Get menus mapped to a module
+ * POST /api/modules/get-menus
+ */
+const getModuleMenus = async (req, res, next) => {
+    try {
+        const { module_id } = req.body;
+
+        if (!module_id) {
+            return res.status(400).json({
+                success: false,
+                message: 'module_id is required'
+            });
+        }
+
+        const result = await moduleService.getModuleMenus(module_id);
+
+        res.status(200).json({
+            success: true,
+            data: result
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     getAllModules,
     getModuleById,
     createModule,
     updateModule,
-    deleteModule
+    deleteModule,
+    getModuleMenus
 };

@@ -8,6 +8,7 @@ const { HrmsModule } = require('./HrmsModule');
 const { HrmsPackageModule } = require('./HrmsPackageModule');
 const { HrmsCompanyPackage } = require('./HrmsCompanyPackage');
 const { HrmsCompanyAddonModule } = require('./HrmsCompanyAddonModule');
+const { HrmsModuleMenu } = require('../role_permission/HrmsModuleMenu');
 
 // Define associations
 
@@ -45,5 +46,6 @@ module.exports = {
     HrmsModule,
     HrmsPackageModule,
     HrmsCompanyPackage,
-    HrmsCompanyAddonModule
+    HrmsCompanyAddonModule,
+    HrmsModuleMenu
 };
