@@ -192,6 +192,37 @@ const updateMenu = async (menuId, updateData, userId) => {
 
     await menu.update(updateFields);
 
+    // Handle module_ids update if provided
+    if (updateData.module_ids !== undefined && Array.isArray(updateData.module_ids)) {
+        // Get existing active module mappings
+        const existingMappings = await HrmsModuleMenu.findAll({
+            where: {
+                menu_id: menuId,
+                is_active: true
+            },
+            attributes: ['module_id']
+        });
+
+        const existingModuleIds = existingMappings.map(m => m.module_id);
+
+        // Find new modules to add (modules in request but not in existing)
+        const newModuleIds = updateData.module_ids.filter(
+            moduleId => !existingModuleIds.includes(moduleId)
+        );
+
+        // Add only new modules
+        if (newModuleIds.length > 0) {
+            const mappings = newModuleIds.map(moduleId => ({
+                module_id: moduleId,
+                menu_id: menuId,
+                is_active: true,
+                created_by: userId
+            }));
+
+            await HrmsModuleMenu.bulkCreate(mappings);
+        }
+    }
+
     return menu;
 };
 
