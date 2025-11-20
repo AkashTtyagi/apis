@@ -11,7 +11,10 @@ const employeeController = require('../controllers/employee/employeeAttendanceRe
 const adminController = require('../controllers/admin/adminAttendanceRequest.controller');
 const managerController = require('../controllers/manager/managerAttendanceRequest.controller');
 const calendarController = require('../controllers/employee/attendanceCalendar.controller');
+const { authenticate } = require('../middlewares/auth.middleware');
 
+// Apply authentication middleware to all routes
+router.use(authenticate);
 // Middleware (uncomment when ready)
 // const authMiddleware = require('../middleware/auth.middleware');
 // const adminMiddleware = require('../middleware/admin.middleware');
