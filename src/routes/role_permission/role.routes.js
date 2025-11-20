@@ -6,6 +6,10 @@
 const express = require('express');
 const router = express.Router();
 const roleController = require('../../controllers/role_permission/role.controller');
+const authMiddleware = require('../../middlewares/auth.middleware');
+
+// Apply authentication to all routes
+router.use(authMiddleware.authenticate);
 
 // Role Master routes
 router.post('/masters/get-all', roleController.getAllRoleMasters);

@@ -6,6 +6,10 @@
 const express = require('express');
 const router = express.Router();
 const menuController = require('../../controllers/role_permission/menu.controller');
+const authMiddleware = require('../../middlewares/auth.middleware');
+
+// Apply authentication to all routes
+router.use(authMiddleware.authenticate);
 
 // All routes are POST type
 router.post('/get-by-application', menuController.getMenusByApplication);
