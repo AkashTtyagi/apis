@@ -256,10 +256,14 @@ const deleteMenu = async (menuId) => {
 const buildMenuTree = (menus, parentId = null) => {
     return menus
         .filter(menu => menu.parent_menu_id === parentId)
-        .map(menu => ({
-            ...menu.toJSON(),
-            children: buildMenuTree(menus, menu.id)
-        }));
+        .map(menu => {
+            // Handle both Sequelize instances and plain objects
+            const menuObj = menu.toJSON ? menu.toJSON() : menu;
+            return {
+                ...menuObj,
+                children: buildMenuTree(menus, menu.id)
+            };
+        });
 };
 
 /**
