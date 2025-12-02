@@ -93,9 +93,9 @@ const applyOnDuty = async (onDutyData, employee_id, user_id) => {
     // Submit workflow request (workflow_master_id = 2 for On Duty)
     const request = await workflowExecutionService.submitRequest(
         employee_id,
-        user_id,
-        2,
-        requestData
+        2,  // workflow_master_id for On Duty
+        requestData,
+        user_id  // submittedBy
     );
 
     // Create daily attendance entries for each date

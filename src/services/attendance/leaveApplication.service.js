@@ -150,9 +150,9 @@ const applyLeave = async (leaveData, employee_id, user_id, requested_by_role = '
     // Submit workflow request (workflow_master_id = 1 for Leave)
     const request = await workflowExecutionService.submitRequest(
         employee_id,
-        user_id,
-        1,
-        requestData
+        1,  // workflow_master_id for Leave
+        requestData,
+        user_id  // submittedBy
     );
 
     // Create daily attendance entries for each date

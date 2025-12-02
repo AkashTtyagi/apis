@@ -96,9 +96,9 @@ const applyWFH = async (wfhData, employee_id, user_id) => {
     // Submit workflow request (workflow_master_id = 3 for WFH)
     const request = await workflowExecutionService.submitRequest(
         employee_id,
-        user_id,
-        3,
-        requestData
+        3,  // workflow_master_id for WFH
+        requestData,
+        user_id  // submittedBy
     );
 
     // Create daily attendance entries for each date

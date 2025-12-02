@@ -96,9 +96,9 @@ const applyShortLeave = async (shortLeaveData, employee_id, user_id) => {
     // Submit workflow request (workflow_master_id = 5 for Short Leave)
     const request = await workflowExecutionService.submitRequest(
         employee_id,
-        user_id,
-        5,
-        requestData
+        5,  // workflow_master_id for Short Leave
+        requestData,
+        user_id  // submittedBy
     );
 
     // Create daily attendance entry

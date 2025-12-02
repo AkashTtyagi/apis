@@ -176,9 +176,9 @@ const applyRegularizationOnBehalf = async (regularizationData, target_employee_i
     // Submit workflow request (workflow_master_id = 4 for Regularization)
     const request = await workflowExecutionService.submitRequest(
         target_employee_id,
-        requester_user_id,
-        4,
-        requestData
+        4,  // workflow_master_id for Regularization
+        requestData,
+        requester_user_id  // submittedBy
     );
 
     return {
