@@ -9,7 +9,8 @@ const { HrmsLeaveMaster } = require('../models/HrmsLeaveMaster');
 const { HrmsLeavePolicyMaster } = require('../models/HrmsLeavePolicyMaster');
 const { HrmsLeavePolicyMapping } = require('../models/HrmsLeavePolicyMapping');
 const { HrmsEmployee } = require('../models/HrmsEmployee');
-const { HrmsRole, HrmsApplication, HrmsUserRole } = require('../models/role_permission');
+const { HrmsRole, HrmsApplication, HrmsUserRole, HrmsRoleMaster, HrmsRoleMasterMenuPermission, HrmsRoleMenuPermission } = require('../models/role_permission');
+const { HrmsPackage, HrmsCompanyPackage } = require('../models/package');
 const { copyAllTemplatesToCompany } = require('./companyTemplate.service');
 const { createDefaultWorkflows } = require('./workflow/workflowConfig.service');
 const { seedDefaultDocumentStructure } = require('./document/documentSeeder.service');
@@ -253,7 +254,25 @@ const onboardCompanyAndUser = async (data) => {
             }
         }
 
-        // Step 10: Create employee record from user (INSIDE transaction)
+        // Step 10: Assign basic package to company (INSIDE transaction)
+        console.log(`Assigning basic package to company...`);
+        const packageResult = await assignBasicPackage(
+            company_id, user_id,
+            dbTrans.trans_id  // Pass Sequelize transaction
+        );
+        if (packageResult) {
+            console.log(`✓ Basic package assigned to company ${company_id}`);
+        }
+
+        // Step 11: Create default roles from role masters (INSIDE transaction)
+        console.log(`Creating default roles for company...`);
+        const rolesResult = await createDefaultRoles(
+            company_id, user_id,
+            dbTrans.trans_id  // Pass Sequelize transaction
+        );
+        console.log(`✓ Roles created: ${rolesResult.roles_created} roles`);
+
+        // Step 12: Create employee record from user (INSIDE transaction)
         // Pass the Sequelize transaction to Sequelize methods
         console.log(`Creating employee record...`);
         const employee = await createEmployeeFromUser(
@@ -262,7 +281,7 @@ const onboardCompanyAndUser = async (data) => {
         );
         console.log(`✓ Employee created with ID: ${employee.id}`);
 
-        // Step 11: Create default leave policy with all default leave types (INSIDE transaction)
+        // Step 13: Create default leave policy with all default leave types (INSIDE transaction)
         console.log(`Creating default leave policy...`);
         const policyResult = await createDefaultLeavePolicy(
             company_id, user_id,
@@ -271,7 +290,7 @@ const onboardCompanyAndUser = async (data) => {
         const policy = policyResult.policy;
         console.log(`✓ Default leave policy created with ID: ${policy.id}`);
 
-        // Step 12: Assign policy to employee (INSIDE transaction)
+        // Step 14: Assign policy to employee (INSIDE transaction)
         console.log(`Assigning leave policy to employee...`);
         await assignPolicyToEmployee(
             employee.id, policy.id,
@@ -279,7 +298,7 @@ const onboardCompanyAndUser = async (data) => {
         );
         console.log(`✓ Leave policy ${policy.id} assigned to employee ${employee.id}`);
 
-        // Step 13: Copy all default templates to company (INSIDE transaction)
+        // Step 15: Copy all default templates to company (INSIDE transaction)
         console.log(`Copying default templates to company...`);
         const templateCopyResult = await copyAllTemplatesToCompany(
             company_id, user_id, country_id,
@@ -287,7 +306,7 @@ const onboardCompanyAndUser = async (data) => {
         );
         console.log(`✓ Templates copied: ${templateCopyResult.templates_copied} templates, ${templateCopyResult.total_sections} sections, ${templateCopyResult.total_fields} fields`);
 
-        // Step 14: Create default workflows for all workflow types (INSIDE transaction)
+        // Step 16: Create default workflows for all workflow types (INSIDE transaction)
         console.log(`Creating default workflows for all workflow types...`);
         const workflowResult = await createDefaultWorkflows(
             company_id, user_id,
@@ -295,7 +314,7 @@ const onboardCompanyAndUser = async (data) => {
         );
         console.log(`✓ Workflows created: ${workflowResult.created_count} workflows configured`);
 
-        // Step 15: Create default document management structure (INSIDE transaction)
+        // Step 17: Create default document management structure (INSIDE transaction)
         console.log(`Creating default document management structure...`);
         const documentResult = await seedDefaultDocumentStructure(
             company_id, user_id,
@@ -326,11 +345,13 @@ const onboardCompanyAndUser = async (data) => {
             // Don't fail the entire onboarding if email fails
         }
 
-        // Return company, user, employee, template, workflow, and document data
+        // Return company, user, employee, roles, template, workflow, and document data
         return {
             company: company,
             user: user,
             employee: employee,
+            package: packageResult,
+            roles: rolesResult,
             templates: templateCopyResult,
             workflows: workflowResult,
             documents: documentResult
@@ -462,6 +483,144 @@ const createDefaultLeavePolicy = async (company_id, user_id, transaction = null)
         };
     } catch (error) {
         console.error('Error creating default leave policy:', error.message);
+        throw error;
+    }
+};
+
+/**
+ * Assign basic package to company during onboarding
+ * @param {number} company_id - Company ID
+ * @param {number} user_id - User ID who assigned
+ * @param {Object} transaction - Sequelize transaction object
+ * @returns {Object} Created company package assignment
+ */
+const assignBasicPackage = async (company_id, user_id, transaction = null) => {
+    try {
+        // Find basic package
+        const basicPackage = await HrmsPackage.findOne({
+            where: {
+                package_code: 'BASIC',
+                is_active: true
+            },
+            transaction
+        });
+
+        if (!basicPackage) {
+            console.warn('⚠ Basic package not found, skipping package assignment');
+            return null;
+        }
+
+        // Assign package to company
+        const companyPackage = await HrmsCompanyPackage.create({
+            company_id,
+            package_id: basicPackage.id,
+            start_date: new Date(),
+            end_date: null, // Lifetime for basic
+            notes: 'Auto-assigned during onboarding',
+            is_active: true,
+            assigned_by: user_id
+        }, { transaction });
+
+        console.log(`✓ Basic package assigned to company ${company_id}`);
+        return companyPackage;
+    } catch (error) {
+        console.error('Error assigning basic package:', error.message);
+        throw error;
+    }
+};
+
+/**
+ * Create default roles for company from role masters
+ * Copies role masters to company-specific roles with permissions
+ * @param {number} company_id - Company ID
+ * @param {number} user_id - User ID who created
+ * @param {Object} transaction - Sequelize transaction object
+ * @returns {Object} Created roles summary
+ */
+const createDefaultRoles = async (company_id, user_id, transaction = null) => {
+    try {
+        // Get all active role masters
+        const roleMasters = await HrmsRoleMaster.findAll({
+            where: { is_active: true },
+            include: [{
+                model: HrmsRoleMasterMenuPermission,
+                as: 'permissions',
+                where: { is_granted: true },
+                required: false
+            }],
+            transaction
+        });
+
+        if (!roleMasters || roleMasters.length === 0) {
+            console.warn('⚠ No role masters found, skipping role creation');
+            return { roles_created: 0 };
+        }
+
+        const createdRoles = [];
+
+        for (const roleMaster of roleMasters) {
+            // Check if role already exists for company
+            const existingRole = await HrmsRole.findOne({
+                where: {
+                    company_id,
+                    role_master_id: roleMaster.id
+                },
+                transaction
+            });
+
+            if (existingRole) {
+                console.log(`⚠ Role ${roleMaster.role_code} already exists for company ${company_id}, skipping`);
+                continue;
+            }
+
+            // Determine if this is super admin role (application_id is NULL)
+            const isSuperAdmin = roleMaster.application_id === null;
+
+            // Create company-specific role
+            const role = await HrmsRole.create({
+                company_id,
+                application_id: roleMaster.application_id,
+                role_master_id: roleMaster.id,
+                role_code: roleMaster.role_code,
+                role_name: roleMaster.role_name,
+                role_description: roleMaster.role_description,
+                is_system_role: true,
+                is_super_admin: isSuperAdmin,
+                is_active: true,
+                created_by: user_id
+            }, { transaction });
+
+            // Copy permissions from role master to company role
+            const roleMasterData = roleMaster.get({ plain: true });
+            const masterPermissions = roleMasterData.permissions || [];
+
+            if (masterPermissions.length > 0) {
+                const rolePermissions = masterPermissions.map(perm => ({
+                    role_id: role.id,
+                    menu_id: perm.menu_id,
+                    permission_id: perm.permission_id,
+                    is_granted: perm.is_granted,
+                    created_by: user_id
+                }));
+
+                await HrmsRoleMenuPermission.bulkCreate(rolePermissions, { transaction });
+                console.log(`✓ Copied ${rolePermissions.length} permissions for role ${role.role_code}`);
+            }
+
+            createdRoles.push({
+                id: role.id,
+                role_code: role.role_code,
+                is_super_admin: isSuperAdmin
+            });
+        }
+
+        console.log(`✓ Created ${createdRoles.length} roles for company ${company_id}`);
+        return {
+            roles_created: createdRoles.length,
+            roles: createdRoles
+        };
+    } catch (error) {
+        console.error('Error creating default roles:', error.message);
         throw error;
     }
 };
@@ -602,5 +761,7 @@ module.exports = {
     onboardCompanyAndUser,
     createDefaultLeavePolicy,
     createEmployeeFromUser,
-    assignPolicyToEmployee
+    assignPolicyToEmployee,
+    assignBasicPackage,
+    createDefaultRoles
 };
