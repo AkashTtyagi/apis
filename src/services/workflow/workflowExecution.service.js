@@ -155,8 +155,13 @@ const submitRequest = async (employeeId, workflowMasterId, requestData, submitte
  */
 const processStage = async (requestId, stageId, context, transaction = null) => {
     try {
-        const stage = await HrmsWorkflowStage.findByPk(stageId);
-        const request = await HrmsWorkflowRequest.findByPk(requestId);
+        const queryOptions = transaction ? { transaction } : {};
+        const stage = await HrmsWorkflowStage.findByPk(stageId, queryOptions);
+        const request = await HrmsWorkflowRequest.findByPk(requestId, queryOptions);
+
+        if (!request) {
+            throw new Error(`Workflow request not found with ID: ${requestId}`);
+        }
 
         console.log(`Processing stage: ${stage.stage_name} for request ${request.request_number}`);
 

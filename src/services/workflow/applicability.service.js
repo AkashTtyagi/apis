@@ -64,7 +64,9 @@ const findApplicableWorkflow = async (employeeId, workflowMasterId) => {
                 'id', 'company_id', 'entity_id', 'department_id', 'sub_department_id',
                 'designation_id', 'level_id', 'grade_id', 'location_id', 'employee_type_id',
                 'branch_id', 'region_id'
-            ]
+            ],
+            raw: true,
+            paranoid: false
         });
 
         if (!employee) {
@@ -72,7 +74,7 @@ const findApplicableWorkflow = async (employeeId, workflowMasterId) => {
         }
 
         // Get all active workflows for this workflow master and company
-        const workflows = await HrmsWorkflowConfig.findAll({
+        const workflowsData = await HrmsWorkflowConfig.findAll({
             where: {
                 company_id: employee.company_id,
                 workflow_master_id: workflowMasterId,
@@ -82,12 +84,16 @@ const findApplicableWorkflow = async (employeeId, workflowMasterId) => {
                 model: HrmsWorkflowApplicability,
                 as: 'applicability',
                 where: { is_active: true },
-                required: false,
-                // Order by created_at DESC to get newest rules first for same type
-                order: [['created_at', 'DESC']]
+                required: false
             }],
-            order: [['is_default', 'DESC']] // Default workflows first
+            order: [
+                ['is_default', 'DESC'],
+                [{ model: HrmsWorkflowApplicability, as: 'applicability' }, 'created_at', 'DESC']
+            ]
         });
+
+        // Convert to plain JSON objects
+        const workflows = workflowsData.map(w => w.get({ plain: true }));
 
         if (!workflows || workflows.length === 0) {
             throw new Error('No workflows configured for this workflow type');
