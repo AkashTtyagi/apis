@@ -52,8 +52,8 @@ const validateLeaveRequest = async (params) => {
 
     // Get employee details
     const employee = await HrmsEmployee.findByPk(employee_id, {
-        attributes: ['id', 'employee_code', 'first_name', 'last_name', 'gender', 'marital_status',
-                     'employee_status', 'esi_applicable', 'date_of_joining', 'company_id']
+        attributes: ['id', 'employee_code', 'first_name', 'last_name', 'gender',
+                     'status', 'date_of_joining', 'company_id']
     });
 
     if (!employee) {
@@ -73,26 +73,18 @@ const validateLeaveRequest = async (params) => {
     }
 
     // 3. Check ESI eligibility
-    if (leaveMaster.applicable_to_esi !== 'both') {
-        const isESI = employee.esi_applicable === 1 || employee.esi_applicable === true;
-        if (leaveMaster.applicable_to_esi === 'esi' && !isESI) {
-            throw new Error(`${leaveMaster.leave_name} is only applicable to ESI employees`);
-        }
-        if (leaveMaster.applicable_to_esi === 'non_esi' && isESI) {
-            throw new Error(`${leaveMaster.leave_name} is only applicable to non-ESI employees`);
-        }
-    }
+    // Note: esi_applicable field not in employee model - skip ESI validation for now
+    // TODO: Add esi_applicable column to hrms_employees if ESI-based leave rules are needed
 
     // 4. Check employee status eligibility
     const applicableStatuses = leaveMaster.applicable_to_status.split(',').map(s => s.trim());
-    if (!applicableStatuses.includes('all') && !applicableStatuses.includes(String(employee.employee_status))) {
+    if (!applicableStatuses.includes('all') && !applicableStatuses.includes(String(employee.status))) {
         throw new Error(`${leaveMaster.leave_name} is not applicable to your current employment status`);
     }
 
     // 5. Check marital status (for leaves that require married status)
-    if (leaveMaster.credit_only_married && employee.marital_status !== 'married') {
-        throw new Error(`${leaveMaster.leave_name} is only applicable to married employees`);
-    }
+    // Note: marital_status field not in employee model - skip marital validation for now
+    // TODO: Add marital_status column to hrms_employees if marriage-based leave rules are needed
 
     // 6. Check joining period restriction
     if (leaveMaster.restrict_after_joining_period !== 'no_restriction' && employee.date_of_joining) {
@@ -112,7 +104,8 @@ const validateLeaveRequest = async (params) => {
                 }
                 break;
             case 'exclude_probation_period':
-                if (employee.employee_status === '1' || employee.employee_status === 'probation') {
+                // status: 1 = Probation (from hrms_employee_status_master)
+                if (employee.status === 1) {
                     throw new Error(`${leaveMaster.leave_name} cannot be applied during probation period`);
                 }
                 break;
