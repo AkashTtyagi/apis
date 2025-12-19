@@ -185,7 +185,7 @@ const creditLeavesToEmployee = async (employee, leaveType, amount, cycleYear, mo
             amount: creditAmount,
             balance_after_transaction: newBalance,
             transaction_date: new Date(),
-            reference_type: 'auto_credit',
+            reference_type: 'system_credit',
             reference_id: null,
             remarks: `Auto credit - ${frequency}`,
             created_by: null // System generated
