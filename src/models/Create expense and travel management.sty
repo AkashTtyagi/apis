@@ -1,0 +1,286 @@
+Create expense and travel management
+
+1) create the location group 
+   a) group name 
+   b) group code 
+   c) multi select the state form drop down
+   e) multi select city  form drop down
+    
+
+    use :- we use this at the time we set the max amount limit accoundly to location group 
+
+2) create Expense category
+
+   1) Expense type
+     option 
+        a) Mileage
+        b) Amount
+
+        below configutation when we select amount type
+
+    2) Expense Info
+        a)Expense category Name (manditory)
+          input box 
+        b) Expense group  (manditory)
+            input box and dropdown
+        c) Expense code  (manditory)
+            input box
+        d) Category description
+           input box
+    3) configure the Expense category custom Fields (what you want to capture at the time of expense filing)
+        a) Field Name (mandotory)
+            input box
+        b) Field Type (mandotory)
+            option 
+                i) Textbox
+                ii) Textarea
+                iii) Date
+                iv) Dropdown
+                v) Multi select dropdown
+        c) Is Mandatory
+            option Yes / No
+        d) For Dropdown / Multi select dropdown 
+            specify values (mandotory)
+                input box (comma separated values)
+        e) Add more field (option to add more custom fields)    
+
+
+    4) Limit amount details
+
+        a) Limit for all location
+        b) location dependent Limit
+        c) No limit
+        if (a) option is select then 
+
+            Choose Type
+
+            i)Amount
+            ii ) % of CTC
+
+            if we select Amount then 
+                a) specify limit amount (mandotory)
+                    input box 
+                b)  period (mandotory)
+                        (dropdown) option like (Day,Week,Month,Quarter,6 months, Year,LiftTime)
+
+
+        if (b) option is select then 
+        then 
+            i) LOcation group (mandotory)
+                dropdown (single select)(list of LOcation group )
+            ii) specify limit amount (mandotory)
+                    input box
+
+                    multiply location group add kr sakte hai one by one with specify limit amount
+            iii)  period (mandotory)
+                (dropdown) option like (Day,Week,Month,Quarter,6 months, Year,LiftTime)
+        
+
+
+    5) For employees
+        a) Do you want user to file expense as exceptional when out of limit?
+            option Yes / No
+
+        b) Description required
+            option Yes / No
+        c) Receipt required
+            option Yes / No
+
+        d) Min expense limit for receipt
+            option Yes / No
+            if Yes then 
+                specify limit amount (mandotory)
+                input box   
+
+        e)  Reimbursable 
+            option CHECKBOX (if this is not on then employee can not file expense as reimbursable)
+
+
+    
+    6) Claim frequency
+        a) Claim frequency
+            option 
+                i) Daily
+                ii) Weekly
+                iii) Monthly
+                iv) Quarterly
+                v) Half yearly
+                vi) Yearly
+                vii) LiftTime
+            
+                if we select any option other than LiftTime then 
+                    specify  count (mandotory)
+                        input box (only number)
+    7) Expense date rules
+        1) Do you want to allow the user to file expenses for future date ?
+            option (yes/No)
+        2) Do you want to allow the user to file expenses before the date of joining ?
+        option (yes/No)
+
+        3) Do you want to allow the user to file expenses after the date of relieving ?
+            option (yes/No)
+        4) Maximum days allowed to file expense after the expense date ?
+            input box (only number)
+
+    configutation when we select Mileage type in expense type
+    2) Expense Info
+        a)Expense category Name (manditory)
+          input box 
+        b) Expense group  (manditory)
+            input box and dropdown
+        c) Expense code  (manditory)
+            input box
+        d) Category description
+           input box
+    3) configure the Expense category custom Fields (what you want to capture at the time of expense filing)
+        a) Field Name (mandotory)
+            input box
+        b) Field Type (mandotory)
+            option 
+                i) Textbox
+                ii) Textarea
+                iii) Date
+                iv) Dropdown
+                v) Multi select dropdown
+        c) Is Mandatory
+            option Yes / No
+        d) For Dropdown / Multi select dropdown 
+            specify values (mandotory)
+                input box (comma separated values)
+        e) Add more field (option to add more custom fields)
+    4) Mileage details
+        a) Rate per km  (mandotory)
+            input box (number only)
+        b) Do you want to specify distance limit(KM)
+            option Yes / No
+            if Yes then 
+                i) specify limit distance (mandotory)
+                    input box (number only)
+                ii) Km limit for (mandotory)
+                    option 
+                        a) Day
+                        b) Week
+                        c) Month
+                        d) Quarter
+                        e) 6 months
+                        f) Year
+                        g) LiftTime
+
+    5) For employees
+        a) Description required
+            option Yes / No
+        b) Receipt required
+            option Yes / No
+            if Yes then 
+                Min expense limit for receipt (mandotory)
+                option Yes / No
+                if Yes then 
+                    Specify expense limit    (mandotory)
+                        input box 
+
+         
+        c)  Reimbursable
+            option CHECKBOX (if this is not on then employee can not file expense as reimbursable)  
+    6) Claim frequency
+        a) Claim frequency
+            option 
+                i) Daily
+                ii) Weekly
+                iii) Monthly
+                iv) Quarterly
+                v) Half yearly
+                vi) Yearly
+                vii) LiftTime   
+                if we select any option other than LiftTime then 
+                    specify  count (mandotory)
+                        input box (only number)
+
+    7) Expense date rules
+        1) Do you want to allow the user to file expenses for future date ?
+            option (yes/No)
+        2) Do you want to allow the user to file expenses before the date of joining ?
+        option (yes/No)
+
+        3) Do you want to allow the user to file expenses after the date of relieving ?
+            option (yes/No)
+        4) Maximum days allowed to file expense after the expense date ?
+            input box (only number)   
+            
+            
+3) currency  management
+    option to add the currency policy for expense reimbursement
+    a) Policy name (mandotory)
+        input box
+    b) Effective date (mandotory)
+        date picker
+    c) Option to add multiple currency with exchange rate against base currency
+        i) Exchange Currency (mandotory)
+            dropdown (list of currency)
+        ii) Exchange rate (mandotory)
+            input box (number only)
+        iii) Base Currency (mandotory)
+            dropdown (list of currency)    
+    d) Add more currency (option to add more currency with exchange rate against base currency)
+    e) Note 
+        input box (to specify any note regarding currency policy)
+ 
+4) Expense policy - ##
+    a) Policy name (mandotory)
+        input box
+    b) Effective date (mandotory)
+        date picker
+    c) Expense category  (mandotory)
+        multi select dropdown (list of expense category created in expense category management)
+    d) Advance Settings
+        i) Do you want to allow employees to edit expense after submission ?
+            option Yes / No
+        ii) Do you want to allow employees to delete expense after submission ?
+            option Yes / No
+        iii) Do you want to apply limit across all categories?
+            option Yes / No
+            if YEs then 
+                1) Specify limit amount (mandotory)
+                    input box
+    e) Applicability
+    f) Advance Applicability
+    
+5) General Settings
+    a) Configure the expense report submission window 
+     option (Yes / No)
+     if Yes then
+           i)  Expense report submission start day number
+                input box (only number)
+            ii) Expense report submission end day number
+                input box (only number)
+    b) How many days are allowed for backdated travel request?
+        input box (only number)
+    c) Do you want to allow the user to edit the system calculated distance?
+        option Yes / No
+    d) Do you want employees to submit expenses from multiple months in a single report?
+        option Yes / No   
+    e) Do you want the users to submit exceptional expenses with regular expenses in the same expense report?
+        option Yes / No
+    f) Do you want to allow employee to raise advance request along with travel?
+
+i have mention the expense and travel management system flow , i request you to modify this acdording to the industry or cater the all requirement of the industry    
+
+
+
+
+    
+    
+
+
+
+
+
+                    
+
+              
+
+
+
+
+
+
+
