@@ -267,10 +267,11 @@ const processLeaveCreditsByFrequency = async (frequency, dayOfMonth = null) => {
             console.log(`\n🏢 Processing Company: ${company.org_name} (ID: ${company.id})`);
 
             // Step 3: Get all active employees for this company
+            // status: 0=Active, 1=Probation, 2=Internship (these are considered active for leave credits)
             const employees = await HrmsEmployee.findAll({
                 where: {
                     company_id: company.id,
-                    is_active: true,
+                    status: { [Op.in]: [0, 1, 2] },
                     leave_policy_id: { [Op.not]: null }
                 },
                 attributes: ['id', 'company_id', 'employee_code', 'status', 'gender', 'date_of_joining', 'leave_policy_id'],
