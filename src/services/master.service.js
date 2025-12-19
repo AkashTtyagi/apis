@@ -678,6 +678,9 @@ const getHierarchicalMasterData = async (parentSlug, childSlug, companyId = null
 const getAllMasterCounts = async (companyId = null) => {
     const counts = {};
 
+    // Masters that don't have is_active field (use soft delete or other mechanism)
+    const noIsActiveField = ['entity', 'industry', 'timezone', 'currency', 'employee_type', 'employee_status'];
+
     for (const [slug, config] of Object.entries(MASTER_CONFIG)) {
         // Skip employee slug
         if (slug === 'employee') {
@@ -686,9 +689,12 @@ const getAllMasterCounts = async (companyId = null) => {
 
         try {
             // Build where clause
-            const whereClause = {
-                is_active: true
-            };
+            const whereClause = {};
+
+            // Only add is_active filter for masters that have this field
+            if (!noIsActiveField.includes(slug)) {
+                whereClause.is_active = true;
+            }
 
             // Add company_id filter if master is company-scoped
             if (config.companyScoped && companyId) {
