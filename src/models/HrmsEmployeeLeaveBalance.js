@@ -193,6 +193,21 @@ const HrmsEmployeeLeaveBalance = sequelize.define('HrmsEmployeeLeaveBalance', {
     ]
 });
 
+// Define associations
+HrmsEmployeeLeaveBalance.associate = (models) => {
+    // Balance belongs to Leave Type
+    HrmsEmployeeLeaveBalance.belongsTo(models.HrmsLeaveMaster, {
+        foreignKey: 'leave_type_id',
+        as: 'leaveType'
+    });
+
+    // Balance belongs to Employee
+    HrmsEmployeeLeaveBalance.belongsTo(models.HrmsEmployee, {
+        foreignKey: 'employee_id',
+        as: 'employee'
+    });
+};
+
 module.exports = {
     HrmsEmployeeLeaveBalance
 };

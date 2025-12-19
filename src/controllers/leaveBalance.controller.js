@@ -90,7 +90,53 @@ const processLeaveTransaction = async (req, res, next) => {
     }
 };
 
+/**
+ * Get saved leave balance from HrmsEmployeeLeaveBalance table
+ * GET /api/leave-balance/saved/:employeeId
+ */
+const getSavedLeaveBalance = async (req, res, next) => {
+    try {
+        const employee_id = parseInt(req.params.employeeId);
+        const { leave_cycle_year, year, month } = req.query;
+
+        const balances = await leaveBalanceService.getSavedLeaveBalance(
+            employee_id,
+            leave_cycle_year ? parseInt(leave_cycle_year) : null,
+            year ? parseInt(year) : null,
+            month ? parseInt(month) : null
+        );
+
+        return sendSuccess(res, 'Saved leave balance fetched successfully', { balances });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Get leave ledger history
+ * GET /api/leave-balance/ledger/:employeeId
+ */
+const getLeaveLedger = async (req, res, next) => {
+    try {
+        const employee_id = parseInt(req.params.employeeId);
+        const { leave_type_id, leave_cycle_year, limit } = req.query;
+
+        const ledger = await leaveBalanceService.getEmployeeLeaveLedger(
+            employee_id,
+            leave_type_id ? parseInt(leave_type_id) : null,
+            leave_cycle_year ? parseInt(leave_cycle_year) : null,
+            limit ? parseInt(limit) : 100
+        );
+
+        return sendSuccess(res, 'Leave ledger fetched successfully', { ledger });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     getEmployeeLeaveBalance,
-    processLeaveTransaction
+    processLeaveTransaction,
+    getSavedLeaveBalance,
+    getLeaveLedger
 };

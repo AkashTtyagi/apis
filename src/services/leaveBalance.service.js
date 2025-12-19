@@ -454,11 +454,78 @@ const getDetailedBalanceBreakdown = async (employee_id, leave_type_id, leave_cyc
     }
 };
 
+/**
+ * Get saved leave balance from HrmsEmployeeLeaveBalance table
+ * @param {number} employee_id - Employee ID
+ * @param {number} leave_cycle_year - Leave cycle year (optional)
+ * @param {number} year - Year (optional)
+ * @param {number} month - Month (optional)
+ * @returns {Array} Saved leave balances
+ */
+const getSavedLeaveBalance = async (employee_id, leave_cycle_year = null, year = null, month = null) => {
+    try {
+        const whereClause = { employee_id };
+
+        if (leave_cycle_year) {
+            whereClause.leave_cycle_year = leave_cycle_year;
+        }
+
+        if (year) {
+            whereClause.year = year;
+        } else {
+            whereClause.year = new Date().getFullYear();
+        }
+
+        if (month) {
+            whereClause.month = month;
+        } else {
+            whereClause.month = new Date().getMonth() + 1;
+        }
+
+        const balances = await HrmsEmployeeLeaveBalance.findAll({
+            where: whereClause,
+            attributes: [
+                'id',
+                'employee_id',
+                'leave_type_id',
+                'leave_cycle_year',
+                'month',
+                'year',
+                'available_balance',
+                'opening_balance',
+                'total_credited',
+                'total_debited',
+                'carried_forward',
+                'encashed',
+                'lapsed',
+                'last_transaction_id',
+                'last_updated_date',
+                [sequelize.literal('`leaveType`.`leave_code`'), 'leave_code'],
+                [sequelize.literal('`leaveType`.`leave_name`'), 'leave_name'],
+                [sequelize.literal('`leaveType`.`leave_type`'), 'leave_type']
+            ],
+            include: [{
+                model: HrmsLeaveMaster,
+                as: 'leaveType',
+                attributes: []
+            }],
+            order: [['leave_type_id', 'ASC']],
+            raw: true
+        });
+
+        return balances;
+    } catch (error) {
+        console.error('Error fetching saved leave balance:', error.message);
+        throw error;
+    }
+};
+
 module.exports = {
     getEmployeeLeaveBalance,
     creditLeaves,
     debitLeaves,
     reverseLeaveTransaction,
     getEmployeeLeaveLedger,
-    getDetailedBalanceBreakdown
+    getDetailedBalanceBreakdown,
+    getSavedLeaveBalance
 };
