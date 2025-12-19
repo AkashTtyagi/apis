@@ -270,6 +270,20 @@ HrmsCompany.associate = (models) => {
     targetKey: 'user_id',
     as: 'updaterEmployee'
   });
+
+  // Contact Person (contact_person_id -> id in employees)
+  HrmsCompany.belongsTo(models.HrmsEmployee, {
+    foreignKey: 'contact_person_id',
+    as: 'contactPerson',
+    constraints: false
+  });
+
+  // Parent Company (self-referencing)
+  HrmsCompany.belongsTo(models.HrmsCompany, {
+    foreignKey: 'parent_enterprise_id',
+    as: 'parentCompany',
+    constraints: false
+  });
 };
 
 module.exports = {

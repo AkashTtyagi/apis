@@ -11,6 +11,7 @@ const { HrmsCityMaster } = require('../models/HrmsCityMaster');
 const { HrmsCurrencyMaster } = require('../models/HrmsCurrencyMaster');
 const { HrmsIndustryMaster } = require('../models/HrmsIndustryMaster');
 const { HrmsTimezoneMaster } = require('../models/HrmsTimezoneMaster');
+const { sequelize } = require('../utils/database');
 const templateService = require('./template.service');
 
 /**
@@ -117,22 +118,98 @@ const getCompanyDetails = async (company_id) => {
             attributes: [
                 'id',
                 'org_name',
+                // Country
                 'country_id',
+                [sequelize.literal('`country`.`country_code`'), 'country_code'],
+                [sequelize.literal('`country`.`country_name`'), 'country_name'],
+                // Currency
                 'currency_id',
+                [sequelize.literal('`currency`.`currency_code`'), 'currency_code'],
+                [sequelize.literal('`currency`.`currency_name`'), 'currency_name'],
+                [sequelize.literal('`currency`.`currency_symbol`'), 'currency_symbol'],
+                // Industry
                 'org_industry',
+                [sequelize.literal('`industry`.`industry_name`'), 'industry_name'],
+                // Address
                 'registered_address',
                 'pin_code',
+                // State
                 'state_id',
+                [sequelize.literal('`state`.`state_code`'), 'state_code'],
+                [sequelize.literal('`state`.`state_name`'), 'state_name'],
+                // City
                 'city_id',
+                [sequelize.literal('`city`.`city_name`'), 'city_name'],
+                // Contact
                 'phone_number',
                 'fax_number',
+                // Contact Person
                 'contact_person_id',
+                [sequelize.literal('`contactPerson`.`employee_code`'), 'contact_person_code'],
+                [sequelize.literal("CONCAT(`contactPerson`.`first_name`, ' ', COALESCE(`contactPerson`.`middle_name`, ''), ' ', `contactPerson`.`last_name`)"), 'contact_person_name'],
+                // Timezone
                 'timezone_id',
+                [sequelize.literal('`timezone`.`timezone_name`'), 'timezone_name'],
+                [sequelize.literal('`timezone`.`display_name`'), 'timezone_display_name'],
+                // Other
                 'company_profile_path',
                 'is_parent_company',
+                // Parent Company
                 'parent_enterprise_id',
+                [sequelize.literal('`parentCompany`.`org_name`'), 'parent_company_name'],
+                // Timestamps
                 'created_at',
                 'updated_at'
+            ],
+            include: [
+                {
+                    model: HrmsCountryMaster,
+                    as: 'country',
+                    attributes: [],
+                    required: false
+                },
+                {
+                    model: HrmsStateMaster,
+                    as: 'state',
+                    attributes: [],
+                    required: false
+                },
+                {
+                    model: HrmsCityMaster,
+                    as: 'city',
+                    attributes: [],
+                    required: false
+                },
+                {
+                    model: HrmsCurrencyMaster,
+                    as: 'currency',
+                    attributes: [],
+                    required: false
+                },
+                {
+                    model: HrmsIndustryMaster,
+                    as: 'industry',
+                    attributes: [],
+                    required: false
+                },
+                {
+                    model: HrmsTimezoneMaster,
+                    as: 'timezone',
+                    attributes: [],
+                    required: false
+                },
+                {
+                    model: HrmsEmployee,
+                    as: 'contactPerson',
+                    attributes: [],
+                    required: false
+                },
+                {
+                    model: HrmsCompany,
+                    as: 'parentCompany',
+                    attributes: [],
+                    required: false
+                }
             ]
         });
 
