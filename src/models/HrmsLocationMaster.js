@@ -182,6 +182,20 @@ HrmsLocationMaster.associate = (models) => {
         foreignKey: 'city_id',
         as: 'city'
     });
+
+    // Created By User
+    HrmsLocationMaster.belongsTo(models.HrmsUserDetails, {
+        foreignKey: 'created_by',
+        as: 'createdByUser',
+        constraints: false
+    });
+
+    // Updated By User
+    HrmsLocationMaster.belongsTo(models.HrmsUserDetails, {
+        foreignKey: 'updated_by',
+        as: 'updatedByUser',
+        constraints: false
+    });
 };
 
 module.exports = {

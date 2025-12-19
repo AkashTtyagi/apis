@@ -114,6 +114,27 @@ HrmsZoneMaster.associate = (models) => {
         foreignKey: 'region_id',
         as: 'region'
     });
+
+    // Zone Head
+    HrmsZoneMaster.belongsTo(models.HrmsEmployee, {
+        foreignKey: 'zone_head_id',
+        as: 'zoneHead',
+        constraints: false
+    });
+
+    // Created By User
+    HrmsZoneMaster.belongsTo(models.HrmsUserDetails, {
+        foreignKey: 'created_by',
+        as: 'createdByUser',
+        constraints: false
+    });
+
+    // Updated By User
+    HrmsZoneMaster.belongsTo(models.HrmsUserDetails, {
+        foreignKey: 'updated_by',
+        as: 'updatedByUser',
+        constraints: false
+    });
 };
 
 module.exports = {

@@ -108,6 +108,27 @@ HrmsChannelMaster.associate = (models) => {
         foreignKey: 'company_id',
         as: 'company'
     });
+
+    // Channel Head
+    HrmsChannelMaster.belongsTo(models.HrmsEmployee, {
+        foreignKey: 'channel_head_id',
+        as: 'channelHead',
+        constraints: false
+    });
+
+    // Created By User
+    HrmsChannelMaster.belongsTo(models.HrmsUserDetails, {
+        foreignKey: 'created_by',
+        as: 'createdByUser',
+        constraints: false
+    });
+
+    // Updated By User
+    HrmsChannelMaster.belongsTo(models.HrmsUserDetails, {
+        foreignKey: 'updated_by',
+        as: 'updatedByUser',
+        constraints: false
+    });
 };
 
 module.exports = {

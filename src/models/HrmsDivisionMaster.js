@@ -102,6 +102,27 @@ HrmsDivisionMaster.associate = (models) => {
         foreignKey: 'company_id',
         as: 'company'
     });
+
+    // Division Head
+    HrmsDivisionMaster.belongsTo(models.HrmsEmployee, {
+        foreignKey: 'division_head_id',
+        as: 'divisionHead',
+        constraints: false
+    });
+
+    // Created By User
+    HrmsDivisionMaster.belongsTo(models.HrmsUserDetails, {
+        foreignKey: 'created_by',
+        as: 'createdByUser',
+        constraints: false
+    });
+
+    // Updated By User
+    HrmsDivisionMaster.belongsTo(models.HrmsUserDetails, {
+        foreignKey: 'updated_by',
+        as: 'updatedByUser',
+        constraints: false
+    });
 };
 
 module.exports = {

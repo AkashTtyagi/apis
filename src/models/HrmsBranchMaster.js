@@ -238,6 +238,27 @@ HrmsBranchMaster.associate = (models) => {
         foreignKey: 'city_id',
         as: 'city'
     });
+
+    // Branch Head
+    HrmsBranchMaster.belongsTo(models.HrmsEmployee, {
+        foreignKey: 'branch_head_id',
+        as: 'branchHead',
+        constraints: false
+    });
+
+    // Created By User
+    HrmsBranchMaster.belongsTo(models.HrmsUserDetails, {
+        foreignKey: 'created_by',
+        as: 'createdByUser',
+        constraints: false
+    });
+
+    // Updated By User
+    HrmsBranchMaster.belongsTo(models.HrmsUserDetails, {
+        foreignKey: 'updated_by',
+        as: 'updatedByUser',
+        constraints: false
+    });
 };
 
 module.exports = {

@@ -125,6 +125,27 @@ HrmsBusinessUnitMaster.associate = (models) => {
         foreignKey: 'cost_center_id',
         as: 'costCenter'
     });
+
+    // Business Unit Head
+    HrmsBusinessUnitMaster.belongsTo(models.HrmsEmployee, {
+        foreignKey: 'business_unit_head_id',
+        as: 'businessUnitHead',
+        constraints: false
+    });
+
+    // Created By User
+    HrmsBusinessUnitMaster.belongsTo(models.HrmsUserDetails, {
+        foreignKey: 'created_by',
+        as: 'createdByUser',
+        constraints: false
+    });
+
+    // Updated By User
+    HrmsBusinessUnitMaster.belongsTo(models.HrmsUserDetails, {
+        foreignKey: 'updated_by',
+        as: 'updatedByUser',
+        constraints: false
+    });
 };
 
 module.exports = {

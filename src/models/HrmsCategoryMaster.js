@@ -97,6 +97,20 @@ HrmsCategoryMaster.associate = (models) => {
         foreignKey: 'company_id',
         as: 'company'
     });
+
+    // Created By User
+    HrmsCategoryMaster.belongsTo(models.HrmsUserDetails, {
+        foreignKey: 'created_by',
+        as: 'createdByUser',
+        constraints: false
+    });
+
+    // Updated By User
+    HrmsCategoryMaster.belongsTo(models.HrmsUserDetails, {
+        foreignKey: 'updated_by',
+        as: 'updatedByUser',
+        constraints: false
+    });
 };
 
 module.exports = {
