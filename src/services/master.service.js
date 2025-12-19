@@ -185,7 +185,7 @@ const MASTER_CONFIG = {
             code: 'sub_department_code',
             name: 'sub_department_name'
         },
-        companyScoped: true,
+        companyScoped: false,  // Sub-departments are filtered via org_dept_id, not company_id
         additionalFields: ['org_dept_id']
     },
     grade: {
