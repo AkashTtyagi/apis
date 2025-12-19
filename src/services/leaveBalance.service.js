@@ -21,7 +21,7 @@ const getEmployeeLeaveBalance = async (employee_id, leave_cycle_year = null) => 
     try {
         // Get employee details with leave policy
         const employee = await HrmsEmployee.findOne({
-            where: { id: employee_id, is_active: true },
+            where: { id: employee_id, status: { [Op.in]: [0, 1, 2] } },
             attributes: ['id', 'company_id', 'leave_policy_id', 'status'],
             raw: true
         });
