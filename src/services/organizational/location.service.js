@@ -7,6 +7,8 @@ const { HrmsBranchMaster } = require('../../models/HrmsBranchMaster');
 const { HrmsCountryMaster } = require('../../models/HrmsCountryMaster');
 const { HrmsStateMaster } = require('../../models/HrmsStateMaster');
 const { HrmsCityMaster } = require('../../models/HrmsCityMaster');
+const { HrmsEmployee } = require('../../models/HrmsEmployee');
+const { HrmsUserDetails } = require('../../models/HrmsUserDetails');
 const { sequelize } = require('../../utils/database');
 
 const createLocation = async (data) => {
@@ -69,30 +71,104 @@ const getLocations = async (company_id, filters = {}) => {
     }
 
     const locations = await HrmsLocationMaster.findAll({
+        attributes: [
+            'id',
+            'company_id',
+            'location_code',
+            'location_name',
+            'location_type',
+            'description',
+            'capacity',
+            // Branch
+            'branch_id',
+            [sequelize.literal('`branch`.`branch_code`'), 'branch_code'],
+            [sequelize.literal('`branch`.`branch_name`'), 'branch_name'],
+            // Address
+            'address_line1',
+            'address_line2',
+            'postal_code',
+            'latitude',
+            'longitude',
+            // Country
+            'country_id',
+            [sequelize.literal('`country`.`country_code`'), 'country_code'],
+            [sequelize.literal('`country`.`country_name`'), 'country_name'],
+            // State
+            'state_id',
+            [sequelize.literal('`state`.`state_code`'), 'state_code'],
+            [sequelize.literal('`state`.`state_name`'), 'state_name'],
+            // City
+            'city_id',
+            [sequelize.literal('`city`.`city_name`'), 'city_name'],
+            // Status & Order
+            'is_active',
+            'display_order',
+            // Created By
+            'created_by',
+            [sequelize.literal('`createdByUser`.`email`'), 'created_by_email'],
+            [sequelize.literal('`createdByUser->employee`.`employee_code`'), 'created_by_code'],
+            [sequelize.literal("CONCAT(`createdByUser->employee`.`first_name`, ' ', COALESCE(`createdByUser->employee`.`middle_name`, ''), ' ', `createdByUser->employee`.`last_name`)"), 'created_by_name'],
+            // Updated By
+            'updated_by',
+            [sequelize.literal('`updatedByUser`.`email`'), 'updated_by_email'],
+            [sequelize.literal('`updatedByUser->employee`.`employee_code`'), 'updated_by_code'],
+            [sequelize.literal("CONCAT(`updatedByUser->employee`.`first_name`, ' ', COALESCE(`updatedByUser->employee`.`middle_name`, ''), ' ', `updatedByUser->employee`.`last_name`)"), 'updated_by_name'],
+            // Timestamps
+            'created_at',
+            'updated_at'
+        ],
         where: whereClause,
         include: [
             {
                 model: HrmsBranchMaster,
                 as: 'branch',
-                attributes: ['id', 'branch_code', 'branch_name'],
+                attributes: [],
                 required: false
             },
             {
                 model: HrmsCountryMaster,
                 as: 'country',
-                attributes: ['id', 'country_name', 'country_code'],
+                attributes: [],
                 required: false
             },
             {
                 model: HrmsStateMaster,
                 as: 'state',
-                attributes: ['id', 'state_name', 'state_code'],
+                attributes: [],
                 required: false
             },
             {
                 model: HrmsCityMaster,
                 as: 'city',
-                attributes: ['id', 'city_name'],
+                attributes: [],
+                required: false
+            },
+            {
+                model: HrmsUserDetails,
+                as: 'createdByUser',
+                attributes: [],
+                include: [
+                    {
+                        model: HrmsEmployee,
+                        as: 'employee',
+                        attributes: [],
+                        required: false
+                    }
+                ],
+                required: false
+            },
+            {
+                model: HrmsUserDetails,
+                as: 'updatedByUser',
+                attributes: [],
+                include: [
+                    {
+                        model: HrmsEmployee,
+                        as: 'employee',
+                        attributes: [],
+                        required: false
+                    }
+                ],
                 required: false
             }
         ],

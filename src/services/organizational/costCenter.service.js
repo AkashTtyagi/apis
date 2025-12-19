@@ -79,23 +79,54 @@ const getCostCenters = async (company_id, filters = {}) => {
     }
 
     const costCenters = await HrmsCostCenterMaster.findAll({
+        attributes: [
+            'id',
+            'company_id',
+            'cost_center_code',
+            'cost_center_name',
+            'description',
+            // Parent Cost Center
+            'parent_cost_center_id',
+            [sequelize.literal('`parentCostCenter`.`cost_center_code`'), 'parent_cost_center_code'],
+            [sequelize.literal('`parentCostCenter`.`cost_center_name`'), 'parent_cost_center_name'],
+            // Cost Center Head
+            'cost_center_head_id',
+            [sequelize.literal('`costCenterHead`.`employee_code`'), 'cost_center_head_code'],
+            [sequelize.literal("CONCAT(`costCenterHead`.`first_name`, ' ', COALESCE(`costCenterHead`.`middle_name`, ''), ' ', `costCenterHead`.`last_name`)"), 'cost_center_head_name'],
+            // Status & Order
+            'is_active',
+            'display_order',
+            // Created By
+            'created_by',
+            [sequelize.literal('`createdByUser`.`email`'), 'created_by_email'],
+            [sequelize.literal('`createdByUser->employee`.`employee_code`'), 'created_by_code'],
+            [sequelize.literal("CONCAT(`createdByUser->employee`.`first_name`, ' ', COALESCE(`createdByUser->employee`.`middle_name`, ''), ' ', `createdByUser->employee`.`last_name`)"), 'created_by_name'],
+            // Updated By
+            'updated_by',
+            [sequelize.literal('`updatedByUser`.`email`'), 'updated_by_email'],
+            [sequelize.literal('`updatedByUser->employee`.`employee_code`'), 'updated_by_code'],
+            [sequelize.literal("CONCAT(`updatedByUser->employee`.`first_name`, ' ', COALESCE(`updatedByUser->employee`.`middle_name`, ''), ' ', `updatedByUser->employee`.`last_name`)"), 'updated_by_name'],
+            // Timestamps
+            'created_at',
+            'updated_at'
+        ],
         where: whereClause,
         include: [
             {
                 model: HrmsCostCenterMaster,
                 as: 'parentCostCenter',
-                attributes: ['id', 'cost_center_code', 'cost_center_name'],
+                attributes: [],
                 required: false
             },
             {
                 model: HrmsUserDetails,
                 as: 'createdByUser',
-                attributes: ['id', 'email'],
+                attributes: [],
                 include: [
                     {
                         model: HrmsEmployee,
                         as: 'employee',
-                        attributes: ['id', 'employee_code', 'first_name', 'middle_name', 'last_name'],
+                        attributes: [],
                         required: false
                     }
                 ],
@@ -104,12 +135,12 @@ const getCostCenters = async (company_id, filters = {}) => {
             {
                 model: HrmsUserDetails,
                 as: 'updatedByUser',
-                attributes: ['id', 'email'],
+                attributes: [],
                 include: [
                     {
                         model: HrmsEmployee,
                         as: 'employee',
-                        attributes: ['id', 'employee_code', 'first_name', 'middle_name', 'last_name'],
+                        attributes: [],
                         required: false
                     }
                 ],
@@ -118,7 +149,7 @@ const getCostCenters = async (company_id, filters = {}) => {
             {
                 model: HrmsEmployee,
                 as: 'costCenterHead',
-                attributes: ['id', 'employee_code', 'first_name', 'middle_name', 'last_name'],
+                attributes: [],
                 required: false
             }
         ],

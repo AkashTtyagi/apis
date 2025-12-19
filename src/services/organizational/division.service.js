@@ -3,6 +3,8 @@
  */
 
 const { HrmsDivisionMaster } = require('../../models/HrmsDivisionMaster');
+const { HrmsEmployee } = require('../../models/HrmsEmployee');
+const { HrmsUserDetails } = require('../../models/HrmsUserDetails');
 const { sequelize } = require('../../utils/database');
 
 const createDivision = async (data) => {
@@ -57,7 +59,70 @@ const getDivisions = async (company_id, filters = {}) => {
     }
 
     const divisions = await HrmsDivisionMaster.findAll({
+        attributes: [
+            'id',
+            'company_id',
+            'division_code',
+            'division_name',
+            'description',
+            // Division Head
+            'division_head_id',
+            [sequelize.literal('`divisionHead`.`employee_code`'), 'division_head_code'],
+            [sequelize.literal("CONCAT(`divisionHead`.`first_name`, ' ', COALESCE(`divisionHead`.`middle_name`, ''), ' ', `divisionHead`.`last_name`)"), 'division_head_name'],
+            // Status & Order
+            'is_active',
+            'display_order',
+            // Created By
+            'created_by',
+            [sequelize.literal('`createdByUser`.`email`'), 'created_by_email'],
+            [sequelize.literal('`createdByUser->employee`.`employee_code`'), 'created_by_code'],
+            [sequelize.literal("CONCAT(`createdByUser->employee`.`first_name`, ' ', COALESCE(`createdByUser->employee`.`middle_name`, ''), ' ', `createdByUser->employee`.`last_name`)"), 'created_by_name'],
+            // Updated By
+            'updated_by',
+            [sequelize.literal('`updatedByUser`.`email`'), 'updated_by_email'],
+            [sequelize.literal('`updatedByUser->employee`.`employee_code`'), 'updated_by_code'],
+            [sequelize.literal("CONCAT(`updatedByUser->employee`.`first_name`, ' ', COALESCE(`updatedByUser->employee`.`middle_name`, ''), ' ', `updatedByUser->employee`.`last_name`)"), 'updated_by_name'],
+            // Timestamps
+            'created_at',
+            'updated_at'
+        ],
         where: whereClause,
+        include: [
+            {
+                model: HrmsEmployee,
+                as: 'divisionHead',
+                attributes: [],
+                required: false
+            },
+            {
+                model: HrmsUserDetails,
+                as: 'createdByUser',
+                attributes: [],
+                include: [
+                    {
+                        model: HrmsEmployee,
+                        as: 'employee',
+                        attributes: [],
+                        required: false
+                    }
+                ],
+                required: false
+            },
+            {
+                model: HrmsUserDetails,
+                as: 'updatedByUser',
+                attributes: [],
+                include: [
+                    {
+                        model: HrmsEmployee,
+                        as: 'employee',
+                        attributes: [],
+                        required: false
+                    }
+                ],
+                required: false
+            }
+        ],
         order: [
             ['display_order', 'ASC'],
             ['division_name', 'ASC']

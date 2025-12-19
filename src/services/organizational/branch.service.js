@@ -11,6 +11,8 @@ const { HrmsCostCenterMaster } = require('../../models/HrmsCostCenterMaster');
 const { HrmsCountryMaster } = require('../../models/HrmsCountryMaster');
 const { HrmsStateMaster } = require('../../models/HrmsStateMaster');
 const { HrmsCityMaster } = require('../../models/HrmsCityMaster');
+const { HrmsEmployee } = require('../../models/HrmsEmployee');
+const { HrmsUserDetails } = require('../../models/HrmsUserDetails');
 const { sequelize } = require('../../utils/database');
 
 const createBranch = async (data) => {
@@ -77,54 +79,155 @@ const getBranches = async (company_id, filters = {}) => {
     }
 
     const branches = await HrmsBranchMaster.findAll({
+        attributes: [
+            'id',
+            'company_id',
+            'branch_code',
+            'branch_name',
+            'branch_type',
+            'description',
+            // Region
+            'region_id',
+            [sequelize.literal('`region`.`region_code`'), 'region_code'],
+            [sequelize.literal('`region`.`region_name`'), 'region_name'],
+            // Zone
+            'zone_id',
+            [sequelize.literal('`zone`.`zone_code`'), 'zone_code'],
+            [sequelize.literal('`zone`.`zone_name`'), 'zone_name'],
+            // Business Unit
+            'business_unit_id',
+            [sequelize.literal('`businessUnit`.`business_unit_code`'), 'business_unit_code'],
+            [sequelize.literal('`businessUnit`.`business_unit_name`'), 'business_unit_name'],
+            // Channel
+            'channel_id',
+            [sequelize.literal('`channel`.`channel_code`'), 'channel_code'],
+            [sequelize.literal('`channel`.`channel_name`'), 'channel_name'],
+            // Cost Center
+            'cost_center_id',
+            [sequelize.literal('`costCenter`.`cost_center_code`'), 'cost_center_code'],
+            [sequelize.literal('`costCenter`.`cost_center_name`'), 'cost_center_name'],
+            // Branch Head
+            'branch_head_id',
+            [sequelize.literal('`branchHead`.`employee_code`'), 'branch_head_code'],
+            [sequelize.literal("CONCAT(`branchHead`.`first_name`, ' ', COALESCE(`branchHead`.`middle_name`, ''), ' ', `branchHead`.`last_name`)"), 'branch_head_name'],
+            // Address
+            'address_line1',
+            'address_line2',
+            'postal_code',
+            'phone',
+            'email',
+            'latitude',
+            'longitude',
+            // Country
+            'country_id',
+            [sequelize.literal('`country`.`country_code`'), 'country_code'],
+            [sequelize.literal('`country`.`country_name`'), 'country_name'],
+            // State
+            'state_id',
+            [sequelize.literal('`state`.`state_code`'), 'state_code'],
+            [sequelize.literal('`state`.`state_name`'), 'state_name'],
+            // City
+            'city_id',
+            [sequelize.literal('`city`.`city_name`'), 'city_name'],
+            // Status & Order
+            'is_active',
+            'display_order',
+            // Created By
+            'created_by',
+            [sequelize.literal('`createdByUser`.`email`'), 'created_by_email'],
+            [sequelize.literal('`createdByUser->employee`.`employee_code`'), 'created_by_code'],
+            [sequelize.literal("CONCAT(`createdByUser->employee`.`first_name`, ' ', COALESCE(`createdByUser->employee`.`middle_name`, ''), ' ', `createdByUser->employee`.`last_name`)"), 'created_by_name'],
+            // Updated By
+            'updated_by',
+            [sequelize.literal('`updatedByUser`.`email`'), 'updated_by_email'],
+            [sequelize.literal('`updatedByUser->employee`.`employee_code`'), 'updated_by_code'],
+            [sequelize.literal("CONCAT(`updatedByUser->employee`.`first_name`, ' ', COALESCE(`updatedByUser->employee`.`middle_name`, ''), ' ', `updatedByUser->employee`.`last_name`)"), 'updated_by_name'],
+            // Timestamps
+            'created_at',
+            'updated_at'
+        ],
         where: whereClause,
         include: [
             {
                 model: HrmsRegionMaster,
                 as: 'region',
-                attributes: ['id', 'region_code', 'region_name'],
+                attributes: [],
                 required: false
             },
             {
                 model: HrmsZoneMaster,
                 as: 'zone',
-                attributes: ['id', 'zone_code', 'zone_name'],
+                attributes: [],
                 required: false
             },
             {
                 model: HrmsBusinessUnitMaster,
                 as: 'businessUnit',
-                attributes: ['id', 'business_unit_code', 'business_unit_name'],
+                attributes: [],
                 required: false
             },
             {
                 model: HrmsChannelMaster,
                 as: 'channel',
-                attributes: ['id', 'channel_code', 'channel_name'],
+                attributes: [],
                 required: false
             },
             {
                 model: HrmsCostCenterMaster,
                 as: 'costCenter',
-                attributes: ['id', 'cost_center_code', 'cost_center_name'],
+                attributes: [],
                 required: false
             },
             {
                 model: HrmsCountryMaster,
                 as: 'country',
-                attributes: ['id', 'country_name', 'country_code'],
+                attributes: [],
                 required: false
             },
             {
                 model: HrmsStateMaster,
                 as: 'state',
-                attributes: ['id', 'state_name', 'state_code'],
+                attributes: [],
                 required: false
             },
             {
                 model: HrmsCityMaster,
                 as: 'city',
-                attributes: ['id', 'city_name'],
+                attributes: [],
+                required: false
+            },
+            {
+                model: HrmsEmployee,
+                as: 'branchHead',
+                attributes: [],
+                required: false
+            },
+            {
+                model: HrmsUserDetails,
+                as: 'createdByUser',
+                attributes: [],
+                include: [
+                    {
+                        model: HrmsEmployee,
+                        as: 'employee',
+                        attributes: [],
+                        required: false
+                    }
+                ],
+                required: false
+            },
+            {
+                model: HrmsUserDetails,
+                as: 'updatedByUser',
+                attributes: [],
+                include: [
+                    {
+                        model: HrmsEmployee,
+                        as: 'employee',
+                        attributes: [],
+                        required: false
+                    }
+                ],
                 required: false
             }
         ],

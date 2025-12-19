@@ -3,6 +3,8 @@
  */
 
 const { HrmsChannelMaster } = require('../../models/HrmsChannelMaster');
+const { HrmsEmployee } = require('../../models/HrmsEmployee');
+const { HrmsUserDetails } = require('../../models/HrmsUserDetails');
 const { sequelize } = require('../../utils/database');
 
 const createChannel = async (data) => {
@@ -61,7 +63,71 @@ const getChannels = async (company_id, filters = {}) => {
     }
 
     const channels = await HrmsChannelMaster.findAll({
+        attributes: [
+            'id',
+            'company_id',
+            'channel_code',
+            'channel_name',
+            'channel_type',
+            'description',
+            // Channel Head
+            'channel_head_id',
+            [sequelize.literal('`channelHead`.`employee_code`'), 'channel_head_code'],
+            [sequelize.literal("CONCAT(`channelHead`.`first_name`, ' ', COALESCE(`channelHead`.`middle_name`, ''), ' ', `channelHead`.`last_name`)"), 'channel_head_name'],
+            // Status & Order
+            'is_active',
+            'display_order',
+            // Created By
+            'created_by',
+            [sequelize.literal('`createdByUser`.`email`'), 'created_by_email'],
+            [sequelize.literal('`createdByUser->employee`.`employee_code`'), 'created_by_code'],
+            [sequelize.literal("CONCAT(`createdByUser->employee`.`first_name`, ' ', COALESCE(`createdByUser->employee`.`middle_name`, ''), ' ', `createdByUser->employee`.`last_name`)"), 'created_by_name'],
+            // Updated By
+            'updated_by',
+            [sequelize.literal('`updatedByUser`.`email`'), 'updated_by_email'],
+            [sequelize.literal('`updatedByUser->employee`.`employee_code`'), 'updated_by_code'],
+            [sequelize.literal("CONCAT(`updatedByUser->employee`.`first_name`, ' ', COALESCE(`updatedByUser->employee`.`middle_name`, ''), ' ', `updatedByUser->employee`.`last_name`)"), 'updated_by_name'],
+            // Timestamps
+            'created_at',
+            'updated_at'
+        ],
         where: whereClause,
+        include: [
+            {
+                model: HrmsEmployee,
+                as: 'channelHead',
+                attributes: [],
+                required: false
+            },
+            {
+                model: HrmsUserDetails,
+                as: 'createdByUser',
+                attributes: [],
+                include: [
+                    {
+                        model: HrmsEmployee,
+                        as: 'employee',
+                        attributes: [],
+                        required: false
+                    }
+                ],
+                required: false
+            },
+            {
+                model: HrmsUserDetails,
+                as: 'updatedByUser',
+                attributes: [],
+                include: [
+                    {
+                        model: HrmsEmployee,
+                        as: 'employee',
+                        attributes: [],
+                        required: false
+                    }
+                ],
+                required: false
+            }
+        ],
         order: [
             ['display_order', 'ASC'],
             ['channel_name', 'ASC']

@@ -5,6 +5,8 @@
 const { HrmsBusinessUnitMaster } = require('../../models/HrmsBusinessUnitMaster');
 const { HrmsDivisionMaster } = require('../../models/HrmsDivisionMaster');
 const { HrmsCostCenterMaster } = require('../../models/HrmsCostCenterMaster');
+const { HrmsEmployee } = require('../../models/HrmsEmployee');
+const { HrmsUserDetails } = require('../../models/HrmsUserDetails');
 const { sequelize } = require('../../utils/database');
 
 const createBusinessUnit = async (data) => {
@@ -63,18 +65,87 @@ const getBusinessUnits = async (company_id, filters = {}) => {
     }
 
     const businessUnits = await HrmsBusinessUnitMaster.findAll({
+        attributes: [
+            'id',
+            'company_id',
+            'business_unit_code',
+            'business_unit_name',
+            'description',
+            // Division
+            'division_id',
+            [sequelize.literal('`division`.`division_code`'), 'division_code'],
+            [sequelize.literal('`division`.`division_name`'), 'division_name'],
+            // Cost Center
+            'cost_center_id',
+            [sequelize.literal('`costCenter`.`cost_center_code`'), 'cost_center_code'],
+            [sequelize.literal('`costCenter`.`cost_center_name`'), 'cost_center_name'],
+            // Business Unit Head
+            'business_unit_head_id',
+            [sequelize.literal('`businessUnitHead`.`employee_code`'), 'business_unit_head_code'],
+            [sequelize.literal("CONCAT(`businessUnitHead`.`first_name`, ' ', COALESCE(`businessUnitHead`.`middle_name`, ''), ' ', `businessUnitHead`.`last_name`)"), 'business_unit_head_name'],
+            // Status & Order
+            'is_active',
+            'display_order',
+            // Created By
+            'created_by',
+            [sequelize.literal('`createdByUser`.`email`'), 'created_by_email'],
+            [sequelize.literal('`createdByUser->employee`.`employee_code`'), 'created_by_code'],
+            [sequelize.literal("CONCAT(`createdByUser->employee`.`first_name`, ' ', COALESCE(`createdByUser->employee`.`middle_name`, ''), ' ', `createdByUser->employee`.`last_name`)"), 'created_by_name'],
+            // Updated By
+            'updated_by',
+            [sequelize.literal('`updatedByUser`.`email`'), 'updated_by_email'],
+            [sequelize.literal('`updatedByUser->employee`.`employee_code`'), 'updated_by_code'],
+            [sequelize.literal("CONCAT(`updatedByUser->employee`.`first_name`, ' ', COALESCE(`updatedByUser->employee`.`middle_name`, ''), ' ', `updatedByUser->employee`.`last_name`)"), 'updated_by_name'],
+            // Timestamps
+            'created_at',
+            'updated_at'
+        ],
         where: whereClause,
         include: [
             {
                 model: HrmsDivisionMaster,
                 as: 'division',
-                attributes: ['id', 'division_code', 'division_name'],
+                attributes: [],
                 required: false
             },
             {
                 model: HrmsCostCenterMaster,
                 as: 'costCenter',
-                attributes: ['id', 'cost_center_code', 'cost_center_name'],
+                attributes: [],
+                required: false
+            },
+            {
+                model: HrmsEmployee,
+                as: 'businessUnitHead',
+                attributes: [],
+                required: false
+            },
+            {
+                model: HrmsUserDetails,
+                as: 'createdByUser',
+                attributes: [],
+                include: [
+                    {
+                        model: HrmsEmployee,
+                        as: 'employee',
+                        attributes: [],
+                        required: false
+                    }
+                ],
+                required: false
+            },
+            {
+                model: HrmsUserDetails,
+                as: 'updatedByUser',
+                attributes: [],
+                include: [
+                    {
+                        model: HrmsEmployee,
+                        as: 'employee',
+                        attributes: [],
+                        required: false
+                    }
+                ],
                 required: false
             }
         ],
