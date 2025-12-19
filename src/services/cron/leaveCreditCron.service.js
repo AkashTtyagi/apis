@@ -247,9 +247,8 @@ const processLeaveCreditsByFrequency = async (frequency, dayOfMonth = null) => {
 
         const results = [];
 
-        // Step 1: Get all active companies
+        // Step 1: Get all companies (HrmsCompany uses soft delete, not is_active)
         const companies = await HrmsCompany.findAll({
-            where: { is_active: true },
             attributes: ['id', 'org_name'],
             raw: true,
             transaction: dbTransaction
