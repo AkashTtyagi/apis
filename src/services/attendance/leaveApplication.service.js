@@ -11,6 +11,7 @@ const { HrmsLeaveMaster } = require('../../models/HrmsLeaveMaster');
 const { validateLeaveRequest } = require('../../validations/attendance/leaveValidation');
 const workflowExecutionService = require('../workflow/workflowExecution.service');
 const moment = require('moment');
+const { Op } = require('sequelize');
 
 /**
  * Apply for leave (Date Range or Multiple Dates mode)
@@ -336,20 +337,14 @@ const handleMultipleDatesMode = (data) => {
  * @returns {Promise<Object>} Leave requests with pagination
  */
 const getEmployeeLeaveRequests = async (employee_id, filters = {}) => {
-    const { type, status, limit = 20, offset = 0 } = filters;
+    const { request_type, status, from_date, to_date, limit = 20, offset = 0 } = filters;
 
     const where = { employee_id };
+    const isLeaveType = request_type === 1;
 
-    // Filter by workflow type
-    if (type) {
-        const typeMap = {
-            'leave': 1,
-            'onduty': 2,
-            'wfh': 3,
-            'regularization': 4,
-            'short-leave': 5
-        };
-        where.workflow_master_id = typeMap[type.toLowerCase()];
+    // Filter by workflow type (request_type: 1=leave, 2=onduty, 3=wfh, 4=regularization, 5=short-leave)
+    if (request_type) {
+        where.workflow_master_id = request_type;
     }
 
     // Filter by status
@@ -357,23 +352,56 @@ const getEmployeeLeaveRequests = async (employee_id, filters = {}) => {
         where.request_status = status;
     }
 
+    // Filter by date range
+    if (from_date && to_date) {
+        where.from_date = { [Op.between]: [from_date, to_date] };
+    } else if (from_date) {
+        where.from_date = { [Op.gte]: from_date };
+    } else if (to_date) {
+        where.from_date = { [Op.lte]: to_date };
+    }
+
+    // Build include array
+    const include = [
+        {
+            model: require('../../models/workflow').HrmsWorkflowMaster,
+            as: 'workflowMaster',
+            attributes: ['workflow_for_name', 'workflow_code']
+        }
+    ];
+
+    // Add HrmsLeaveMaster include for leave type requests
+    if (isLeaveType) {
+        include.push({
+            model: HrmsLeaveMaster,
+            as: 'leaveMaster',
+            attributes: ['leave_code', 'leave_name'],
+            required: false
+        });
+    }
+
     const requests = await HrmsWorkflowRequest.findAndCountAll({
         where,
         limit: parseInt(limit),
         offset: parseInt(offset),
         order: [['submitted_at', 'DESC']],
-        include: [
-            {
-                model: require('../../models/workflow').HrmsWorkflowMaster,
-                as: 'workflowMaster',
-                attributes: ['workflow_for_name', 'workflow_code']
-            }
-        ]
+        include
+    });
+
+    // Flatten leaveMaster data for leave type requests
+    const formattedRequests = requests.rows.map(request => {
+        const data = request.toJSON();
+        if (data.leaveMaster) {
+            data.leave_code = data.leaveMaster.leave_code;
+            data.leave_name = data.leaveMaster.leave_name;
+            delete data.leaveMaster;
+        }
+        return data;
     });
 
     return {
         total: requests.count,
-        requests: requests.rows,
+        requests: formattedRequests,
         pagination: {
             limit: parseInt(limit),
             offset: parseInt(offset),

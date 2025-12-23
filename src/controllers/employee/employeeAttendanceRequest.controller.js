@@ -257,16 +257,17 @@ const applyRegularization = async (req, res) => {
  */
 const getMyRequests = async (req, res) => {
     try {
-        const employee_id = req.user.employee_id;
+        const { body,user } = req;
+        const employee_id = user.employee_id;
 
         // Extract filters from request body
         const filters = {
-            request_type: req.body.request_type, // 1=leave, 2=onduty, 3=wfh, 4=regularization, 5=short-leave
-            status: req.body.status,
-            from_date: req.body.from_date,
-            to_date: req.body.to_date,
-            limit: req.body.limit || 20,
-            offset: req.body.offset || 0
+            request_type: body.request_type, // 1=leave, 2=onduty, 3=wfh, 4=regularization, 5=short-leave
+            status: body.status,
+            from_date: body.from_date,
+            to_date: body.to_date,
+            limit: body.limit || 20,
+            offset: body.offset || 0
         };
 
         // Delegate to service layer
