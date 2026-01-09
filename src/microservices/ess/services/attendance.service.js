@@ -109,8 +109,7 @@ const handlePunch = async (employee_id, company_id, punchData = {}) => {
 
         const shift = shiftResult.shift;
 
-        // 5. Check if daily attendance entry exists (to determine IN/OUT)
-        // No entry = IN, Entry exists = OUT
+        // 5. Check daily attendance and count punches to determine IN/OUT
         let dailyAttendance = await HrmsDailyAttendance.findOne({
             where: {
                 employee_id: employee_id,
@@ -120,7 +119,21 @@ const handlePunch = async (employee_id, company_id, punchData = {}) => {
             }
         });
 
-        const action = !dailyAttendance ? 'in' : 'out';
+        // Count today's valid punches to determine action
+        // Even count (0, 2, 4...) = IN, Odd count (1, 3, 5...) = OUT
+        const punchCount = await HrmsPunchLog.count({
+            where: {
+                employee_id: employee_id,
+                company_id: company_id,
+                is_valid: true,
+                punch_datetime: {
+                    [Op.gte]: moment(punchDate).startOf('day').toDate(),
+                    [Op.lt]: moment(punchDate).endOf('day').toDate()
+                }
+            }
+        });
+
+        const action = punchCount % 2 === 0 ? 'in' : 'out';
 
         // 6. Validate punch timing against shift
         const validation = validatePunchTiming(
@@ -370,29 +383,24 @@ const getTodayPunchStatus = async (employee_id, company_id) => {
     // Get employee's shift for today
     const shiftResult = await getEmployeeShift(employee_id, today);
 
-    // Check daily attendance entry to determine if clocked in
-    const dailyAttendance = await HrmsDailyAttendance.findOne({
-        where: {
-            employee_id: employee_id,
-            company_id: company_id,
-            attendance_date: today,
-            workflow_master_id: null
-        }
-    });
-
-    const isClockedIn = dailyAttendance && !dailyAttendance.punch_out;
-
     // Get all punches for today from punch log
     const punches = await HrmsPunchLog.findAll({
         where: {
             employee_id: employee_id,
             company_id: company_id,
             is_valid: true,
-            daily_attendance_id: dailyAttendance?.id || null
+            punch_datetime: {
+                [Op.gte]: moment(today).startOf('day').toDate(),
+                [Op.lt]: moment(today).endOf('day').toDate()
+            }
         },
         order: [['punch_datetime', 'ASC']],
         attributes: ['id', 'punch_datetime', 'punch_source', 'is_late', 'is_early_out']
     });
+
+    // Determine clocked in status based on punch count
+    // Odd count = clocked in, Even count = clocked out
+    const isClockedIn = punches.length % 2 === 1;
 
     const firstPunch = punches[0];
     const lastPunch = punches[punches.length - 1];
@@ -401,9 +409,9 @@ const getTodayPunchStatus = async (employee_id, company_id) => {
         date: today,
         punch_count: punches.length,
         is_clocked_in: isClockedIn,
-        first_punch: dailyAttendance?.punch_in ? {
-            time: timezoneUtil.formatDateTimeInTimezone(dailyAttendance.punch_in, timezone),
-            is_late: firstPunch?.is_late || false
+        first_punch: firstPunch ? {
+            time: timezoneUtil.formatDateTimeInTimezone(firstPunch.punch_datetime, timezone),
+            is_late: firstPunch.is_late || false
         } : null,
         last_punch: lastPunch ? {
             time: timezoneUtil.formatDateTimeInTimezone(lastPunch.punch_datetime, timezone),
@@ -414,7 +422,7 @@ const getTodayPunchStatus = async (employee_id, company_id) => {
             time: timezoneUtil.formatDateTimeInTimezone(p.punch_datetime, timezone),
             source: p.punch_source
         })),
-        next_action: !dailyAttendance ? 'in' : 'out',
+        next_action: punches.length % 2 === 0 ? 'in' : 'out',
         shift: shiftResult ? {
             name: shiftResult.shift?.shift_name,
             start: shiftResult.shift?.shift_start_time,
