@@ -502,7 +502,7 @@ const getLeaveBalance = async (employee_id, company_id) => {
         include: [{
             model: HrmsLeaveMaster,
             as: 'leaveType',
-            attributes: ['id', 'leave_name', 'leave_code', 'leave_type'],
+            attributes: ['id', 'master_id', 'leave_name', 'leave_code', 'leave_type'],
             where: {
                 company_id: { [Op.in]: [0, company_id] }, // 0 = system default, company_id = company specific
                 is_active: true
@@ -515,6 +515,7 @@ const getLeaveBalance = async (employee_id, company_id) => {
     // Format the response
     const leave_balances = balances.map(balance => ({
         leave_type_id: balance.leave_type_id,
+        master_id: balance.leaveType?.master_id || balance.leaveType?.id,
         leave_name: balance.leaveType?.leave_name || 'Unknown',
         leave_code: balance.leaveType?.leave_code || '',
         is_paid: balance.leaveType?.leave_type === 'paid',
