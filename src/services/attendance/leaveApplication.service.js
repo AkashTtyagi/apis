@@ -504,7 +504,7 @@ const getLeaveBalance = async (employee_id, company_id) => {
             as: 'leaveType',
             attributes: ['id', 'leave_name', 'leave_code', 'leave_type'],
             where: {
-                company_id,
+                company_id: { [Op.in]: [0, company_id] }, // 0 = system default, company_id = company specific
                 is_active: true
             },
             required: true
