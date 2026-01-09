@@ -54,6 +54,13 @@ router.get('/requests/pending-approvals', workflowRequestController.getPendingAp
 router.post('/requests/approval-list', workflowRequestController.getApprovalList);
 
 /**
+ * Get request details with all approvers and action history
+ * POST /api/workflow/requests/details
+ * Body: { request_id: number }
+ */
+router.post('/requests/details', workflowRequestController.getRequestDetailsWithApprovers);
+
+/**
  * Get dashboard statistics
  * GET /api/workflow/requests/dashboard
  */

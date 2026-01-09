@@ -55,7 +55,7 @@ const submitRequest = async (req, res) => {
             employeeId,
             workflow_master_id,
             request_data,
-            req.user.user_id
+            req.user.id
         );
 
         return res.status(201).json({
@@ -94,7 +94,7 @@ const getRequestById = async (req, res) => {
         }
 
         // Check access permission
-        const hasAccess = await checkRequestAccess(requestId, req.user.user_id);
+        const hasAccess = await checkRequestAccess(requestId, req.user.id);
 
         if (!hasAccess) {
             return res.status(403).json({
@@ -130,7 +130,7 @@ const getMyRequests = async (req, res) => {
 
         // Get employee ID from logged-in user
         const employee = await HrmsEmployee.findOne({
-            where: { user_id: req.user.user_id }
+            where: { user_id: req.user.id }
         });
 
         if (!employee) {
@@ -198,7 +198,7 @@ const getPendingApprovals = async (req, res) => {
         const { workflow_master_id, page = 1, limit = 20 } = req.query;
 
         const where = {
-            assigned_to_user_id: req.user.user_id,
+            assigned_to_user_id: req.user.id,
             assignment_status: 'pending'
         };
 
@@ -269,7 +269,7 @@ const approveRequest = async (req, res) => {
 
         const result = await workflowExecutionService.handleApproval(
             request_id,
-            req.user.user_id,
+            req.user.id,
             remarks,
             attachments || [],
             { ip_address: ipAddress, user_agent: req.headers['user-agent'] }
@@ -320,7 +320,7 @@ const rejectRequest = async (req, res) => {
 
         const result = await workflowExecutionService.handleRejection(
             request_id,
-            req.user.user_id,
+            req.user.id,
             remarks,
             attachments || [],
             { ip_address: ipAddress, user_agent: req.headers['user-agent'] }
@@ -365,7 +365,7 @@ const withdrawRequest = async (req, res) => {
             });
         }
 
-        if (request.employee.user_id !== req.user.user_id) {
+        if (request.employee.user_id !== req.user.id) {
             return res.status(403).json({
                 success: false,
                 message: 'Only the request owner can withdraw the request'
@@ -393,7 +393,7 @@ const withdrawRequest = async (req, res) => {
             request_id: requestId,
             stage_id: request.current_stage_id,
             action_type: 'withdraw',
-            action_by_user_id: req.user.user_id,
+            action_by_user_id: req.user.id,
             approver_type: 'employee',
             remarks: reason || 'Request withdrawn by employee',
             action_taken_at: new Date(),
@@ -446,7 +446,7 @@ const getRequestHistory = async (req, res) => {
         const { requestId } = req.params;
 
         // Check access permission
-        const hasAccess = await checkRequestAccess(requestId, req.user.user_id);
+        const hasAccess = await checkRequestAccess(requestId, req.user.id);
 
         if (!hasAccess) {
             return res.status(403).json({
@@ -506,7 +506,7 @@ const getApprovalList = async (req, res) => {
             offset = 0
         } = req.body;
 
-        const userId = req.user.user_id;
+        const userId = req.user.id;
 
         // Build assignment where clause
         const assignmentWhere = {
@@ -542,18 +542,17 @@ const getApprovalList = async (req, res) => {
                 {
                     association: 'request',
                     where: Object.keys(requestWhere).length > 0 ? requestWhere : undefined,
+                    attributes: ['id', 'request_number', 'workflow_master_id', 'request_status', 'from_date', 'to_date', 'submitted_at'],
                     include: [
-                        { association: 'workflowMaster', attributes: ['id', 'workflow_name', 'workflow_code'] },
-                        { association: 'workflowConfig', attributes: ['id', 'workflow_name'] },
-                        { association: 'currentStage', attributes: ['id', 'stage_name', 'stage_order'] },
+                        { association: 'workflowMaster', attributes: ['id', 'workflow_for_name', 'workflow_code'] },
                         {
                             association: 'employee',
-                            attributes: ['id', 'first_name', 'last_name', 'employee_code', 'email']
+                            attributes: ['id', 'first_name', 'last_name', 'employee_code']
                         }
                     ]
-                },
-                { association: 'stage', attributes: ['id', 'stage_name', 'stage_order'] }
+                }
             ],
+            attributes: ['id', 'assignment_status', 'created_at'],
             order: [['created_at', 'DESC']],
             limit: parseInt(limit),
             offset: parseInt(offset)
@@ -581,6 +580,158 @@ const getApprovalList = async (req, res) => {
 };
 
 /**
+ * Get Request Details with all approvers
+ * POST /api/workflow/requests/details
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ */
+const getRequestDetailsWithApprovers = async (req, res) => {
+    try {
+        const { request_id } = req.body;
+
+        if (!request_id) {
+            return res.status(400).json({
+                success: false,
+                message: 'request_id is required'
+            });
+        }
+
+        // Get request details
+        const request = await HrmsWorkflowRequest.findByPk(request_id, {
+            include: [
+                { association: 'workflowMaster', attributes: ['id', 'workflow_for_name', 'workflow_code'] },
+                { association: 'workflowConfig', attributes: ['id', 'workflow_name'] },
+                { association: 'currentStage', attributes: ['id', 'stage_name', 'stage_order'] },
+                {
+                    association: 'employee',
+                    attributes: ['id', 'first_name', 'last_name', 'employee_code', 'email']
+                }
+            ]
+        });
+
+        if (!request) {
+            return res.status(404).json({
+                success: false,
+                message: 'Request not found'
+            });
+        }
+
+        // Get all stage assignments (approvers)
+        const assignments = await HrmsWorkflowStageAssignment.findAll({
+            where: { request_id },
+            include: [
+                { association: 'stage', attributes: ['id', 'stage_name', 'stage_order'] },
+                {
+                    association: 'assignedToUser',
+                    attributes: ['id', 'email'],
+                    include: [{
+                        association: 'employee',
+                        attributes: ['id', 'first_name', 'last_name', 'employee_code']
+                    }]
+                }
+            ],
+            order: [['created_at', 'ASC']]
+        });
+
+        // Get all actions (approval/rejection history)
+        const actions = await HrmsWorkflowAction.findAll({
+            where: { request_id },
+            include: [
+                { association: 'stage', attributes: ['id', 'stage_name', 'stage_order'] },
+                {
+                    association: 'actionByUser',
+                    attributes: ['id', 'email'],
+                    include: [{
+                        association: 'employee',
+                        attributes: ['id', 'first_name', 'last_name', 'employee_code']
+                    }]
+                }
+            ],
+            order: [['action_taken_at', 'ASC']]
+        });
+
+        // Format approvers list
+        const approvers = assignments.map(a => ({
+            assignment_id: a.id,
+            stage_id: a.stage?.id,
+            stage_name: a.stage?.stage_name,
+            stage_order: a.stage?.stage_order,
+            approver_type: a.approver_type, // RM, HR_ADMIN, HOD, etc.
+            approver_id: a.assignedToUser?.id,
+            approver_name: a.assignedToUser?.employee
+                ? `${a.assignedToUser.employee.first_name} ${a.assignedToUser.employee.last_name}`.trim()
+                : a.assignedToUser?.email,
+            approver_code: a.assignedToUser?.employee?.employee_code,
+            assignment_status: a.assignment_status, // pending, approved, rejected, delegated, skipped, expired
+            is_delegated: a.is_delegated,
+            requires_all_approval: a.requires_all_approval,
+            approval_order: a.approval_order,
+            assigned_at: a.assigned_at,
+            action_taken_at: a.action_taken_at,
+            sla_due_date: a.sla_due_date,
+            is_sla_breached: a.is_sla_breached
+        }));
+
+        // Format actions list
+        const actionHistory = actions.map(a => ({
+            action_id: a.id,
+            stage_id: a.stage?.id,
+            stage_name: a.stage?.stage_name,
+            action_type: a.action_type,
+            action_by_type: a.action_by_type, // employee, approver, system, admin
+            action_by_id: a.actionByUser?.id || null,
+            action_by_name: a.action_by_type === 'system'
+                ? 'System'
+                : (a.actionByUser?.employee
+                    ? `${a.actionByUser.employee.first_name} ${a.actionByUser.employee.last_name}`.trim()
+                    : a.actionByUser?.email || 'Unknown'),
+            action_by_code: a.actionByUser?.employee?.employee_code || null,
+            remarks: a.remarks,
+            action_result: a.action_result,
+            action_taken_at: a.action_taken_at
+        }));
+
+        return res.status(200).json({
+            success: true,
+            data: {
+                request: {
+                    id: request.id,
+                    request_number: request.request_number,
+                    workflow_master_id: request.workflow_master_id,
+                    workflow_name: request.workflowMaster?.workflow_for_name,
+                    workflow_code: request.workflowMaster?.workflow_code,
+                    request_status: request.request_status,
+                    overall_status: request.overall_status,
+                    current_stage: request.currentStage?.stage_name,
+                    from_date: request.from_date,
+                    to_date: request.to_date,
+                    request_data: request.request_data,
+                    employee_remarks: request.employee_remarks,
+                    submitted_at: request.submitted_at,
+                    completed_at: request.completed_at,
+                    employee: {
+                        id: request.employee?.id,
+                        name: `${request.employee?.first_name || ''} ${request.employee?.last_name || ''}`.trim(),
+                        employee_code: request.employee?.employee_code,
+                        email: request.employee?.email
+                    }
+                },
+                approvers,
+                action_history: actionHistory
+            }
+        });
+
+    } catch (error) {
+        console.error('Error getting request details:', error);
+        return res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to get request details',
+            error: error.toString()
+        });
+    }
+};
+
+/**
  * Get dashboard statistics
  * GET /api/workflow/requests/dashboard
  * @param {Object} req - Request object
@@ -590,7 +741,7 @@ const getDashboard = async (req, res) => {
     try {
         // Get employee ID from logged-in user
         const employee = await HrmsEmployee.findOne({
-            where: { user_id: req.user.user_id }
+            where: { user_id: req.user.id }
         });
 
         if (!employee) {
@@ -614,7 +765,7 @@ const getDashboard = async (req, res) => {
         // Pending approvals count
         const pendingApprovalsCount = await HrmsWorkflowStageAssignment.count({
             where: {
-                assigned_to_user_id: req.user.user_id,
+                assigned_to_user_id: req.user.id,
                 assignment_status: 'pending'
             }
         });
@@ -622,7 +773,7 @@ const getDashboard = async (req, res) => {
         // SLA breached count (my pending approvals)
         const slaBreachedCount = await HrmsWorkflowStageAssignment.count({
             where: {
-                assigned_to_user_id: req.user.user_id,
+                assigned_to_user_id: req.user.id,
                 assignment_status: 'pending',
                 sla_due_date: {
                     [Op.lt]: new Date()
@@ -710,6 +861,7 @@ module.exports = {
     getMyRequests,
     getPendingApprovals,
     getApprovalList,
+    getRequestDetailsWithApprovers,
     approveRequest,
     rejectRequest,
     withdrawRequest,

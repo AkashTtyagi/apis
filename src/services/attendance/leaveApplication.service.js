@@ -512,28 +512,19 @@ const getLeaveBalance = async (employee_id, company_id) => {
         order: [['leave_type_id', 'ASC']]
     });
 
-    // Format the response
+    // Format the response (same as old hardcoded format + extra keys)
     const leave_balances = balances.map(balance => ({
         leave_type_id: balance.leave_type_id,
         master_id: balance.leaveType?.master_id || balance.leaveType?.id,
-        leave_name: balance.leaveType?.leave_name || 'Unknown',
+        leave_type: balance.leaveType?.leave_name || 'Unknown',
         leave_code: balance.leaveType?.leave_code || '',
-        is_paid: balance.leaveType?.leave_type === 'paid',
-        opening_balance: parseFloat(balance.opening_balance) || 0,
-        total_credited: parseFloat(balance.total_credited) || 0,
-        total_debited: parseFloat(balance.total_debited) || 0,
-        available_balance: parseFloat(balance.available_balance) || 0,
-        carried_forward: parseFloat(balance.carried_forward) || 0,
-        encashed: parseFloat(balance.encashed) || 0,
-        lapsed: parseFloat(balance.lapsed) || 0,
-        year: balance.year,
-        month: balance.month
+        total: parseFloat(balance.opening_balance) + parseFloat(balance.total_credited) || 0,
+        used: parseFloat(balance.total_debited) || 0,
+        remaining: parseFloat(balance.available_balance) || 0
     }));
 
     return {
         employee_id,
-        year: currentYear,
-        month: currentMonth,
         leave_balances
     };
 };

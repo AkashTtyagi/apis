@@ -171,6 +171,18 @@ HrmsWorkflowAction.associate = (models) => {
         foreignKey: 'next_stage_id',
         as: 'nextStage'
     });
+
+    // Belongs to Action By User
+    HrmsWorkflowAction.belongsTo(models.HrmsUserDetails, {
+        foreignKey: 'action_by_user_id',
+        as: 'actionByUser'
+    });
+
+    // Belongs to Approver User
+    HrmsWorkflowAction.belongsTo(models.HrmsUserDetails, {
+        foreignKey: 'approver_user_id',
+        as: 'approverUser'
+    });
 };
 
 module.exports = { HrmsWorkflowAction };

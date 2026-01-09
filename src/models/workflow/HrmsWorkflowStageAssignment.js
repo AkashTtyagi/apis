@@ -33,7 +33,7 @@ const HrmsWorkflowStageAssignment = sequelize.define('HrmsWorkflowStageAssignmen
         comment: 'RM, HR_ADMIN, HOD, etc.'
     },
     assignment_status: {
-        type: DataTypes.ENUM('pending', 'approved', 'rejected', 'delegated', 'skipped', 'expired'),
+        type: DataTypes.ENUM('pending', 'approved', 'rejected', 'delegated', 'skipped', 'expired', 'withdrawn'),
         allowNull: false,
         defaultValue: 'pending',
         comment: 'Assignment status'
@@ -162,6 +162,18 @@ HrmsWorkflowStageAssignment.associate = (models) => {
     HrmsWorkflowStageAssignment.belongsTo(models.HrmsWorkflowAction, {
         foreignKey: 'action_id',
         as: 'action'
+    });
+
+    // Belongs to Assigned User
+    HrmsWorkflowStageAssignment.belongsTo(models.HrmsUserDetails, {
+        foreignKey: 'assigned_to_user_id',
+        as: 'assignedToUser'
+    });
+
+    // Belongs to Delegated User
+    HrmsWorkflowStageAssignment.belongsTo(models.HrmsUserDetails, {
+        foreignKey: 'delegated_to_user_id',
+        as: 'delegatedToUser'
     });
 };
 
