@@ -471,6 +471,104 @@ const getRequestHistory = async (req, res) => {
 };
 
 /**
+ * Get Approval List (Unified API)
+ * POST /api/workflow/requests/approval-list
+ *
+ * Filters based on assignment_status from HrmsWorkflowStageAssignment:
+ * - pending: Requests pending for the logged-in user
+ * - approved: Requests approved by the logged-in user
+ * - rejected: Requests rejected by the logged-in user
+ * - (empty/null): All requests assigned to the logged-in user
+ *
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ */
+const getApprovalList = async (req, res) => {
+    try {
+        const {
+            assignment_status, // pending, approved, rejected (optional - if not passed, returns all)
+            workflow_master_id,
+            from_date,
+            to_date,
+            limit = 20,
+            offset = 0
+        } = req.body;
+
+        const userId = req.user.user_id;
+
+        // Build assignment where clause
+        const assignmentWhere = {
+            assigned_to_user_id: userId
+        };
+
+        // Filter by assignment_status if provided
+        if (assignment_status) {
+            assignmentWhere.assignment_status = assignment_status;
+        }
+
+        // Build request where clause for nested filtering
+        const requestWhere = {};
+        if (workflow_master_id) {
+            requestWhere.workflow_master_id = workflow_master_id;
+        }
+        if (from_date) {
+            requestWhere.submitted_at = {
+                ...requestWhere.submitted_at,
+                [Op.gte]: new Date(from_date)
+            };
+        }
+        if (to_date) {
+            requestWhere.submitted_at = {
+                ...requestWhere.submitted_at,
+                [Op.lte]: new Date(to_date + ' 23:59:59')
+            };
+        }
+
+        const { count, rows } = await HrmsWorkflowStageAssignment.findAndCountAll({
+            where: assignmentWhere,
+            include: [
+                {
+                    association: 'request',
+                    where: Object.keys(requestWhere).length > 0 ? requestWhere : undefined,
+                    include: [
+                        { association: 'workflowMaster', attributes: ['id', 'workflow_name', 'workflow_code'] },
+                        { association: 'workflowConfig', attributes: ['id', 'workflow_name'] },
+                        { association: 'currentStage', attributes: ['id', 'stage_name', 'stage_order'] },
+                        {
+                            association: 'employee',
+                            attributes: ['id', 'first_name', 'last_name', 'employee_code', 'email']
+                        }
+                    ]
+                },
+                { association: 'stage', attributes: ['id', 'stage_name', 'stage_order'] }
+            ],
+            order: [['created_at', 'DESC']],
+            limit: parseInt(limit),
+            offset: parseInt(offset)
+        });
+
+        return res.status(200).json({
+            success: true,
+            data: rows,
+            pagination: {
+                total: count,
+                limit: parseInt(limit),
+                offset: parseInt(offset),
+                totalPages: Math.ceil(count / limit)
+            }
+        });
+
+    } catch (error) {
+        console.error('Error getting approval list:', error);
+        return res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to get approval list',
+            error: error.toString()
+        });
+    }
+};
+
+/**
  * Get dashboard statistics
  * GET /api/workflow/requests/dashboard
  * @param {Object} req - Request object
@@ -599,6 +697,7 @@ module.exports = {
     getRequestById,
     getMyRequests,
     getPendingApprovals,
+    getApprovalList,
     approveRequest,
     rejectRequest,
     withdrawRequest,

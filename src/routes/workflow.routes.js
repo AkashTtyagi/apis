@@ -40,6 +40,20 @@ router.get('/requests/my-requests', workflowRequestController.getMyRequests);
 router.get('/requests/pending-approvals', workflowRequestController.getPendingApprovals);
 
 /**
+ * Get approval list (unified API for pending and actioned requests)
+ * POST /api/workflow/requests/approval-list
+ * Body: {
+ *   assignment_status: 'pending' | 'approved' | 'rejected' (optional - if not passed, returns all),
+ *   workflow_master_id: number (optional - 1=leave, 2=onduty, 3=wfh, 4=regularization, 5=short-leave),
+ *   from_date: 'YYYY-MM-DD' (optional),
+ *   to_date: 'YYYY-MM-DD' (optional),
+ *   limit: number (default 20),
+ *   offset: number (default 0)
+ * }
+ */
+router.post('/requests/approval-list', workflowRequestController.getApprovalList);
+
+/**
  * Get dashboard statistics
  * GET /api/workflow/requests/dashboard
  */
