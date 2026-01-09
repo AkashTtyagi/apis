@@ -77,35 +77,26 @@ const handlePunch = async (employee_id, company_id, punchData = {}) => {
             include: [{
                 model: HrmsTimezoneMaster,
                 as: 'timezone',
-                attributes: ['timezone_name']
-            }]
+                attributes: ['timezone_name'],
+                required: false
+            }],
+            raw: true
         });
 
         if (!employee) {
             throw new Error('Employee not found or inactive');
         }
 
-        const employeeTimezone = employee.timezone?.timezone_name || 'Asia/Kolkata';
-
-        // 2. Get company settings for biometric UTC
-        const company = await HrmsCompany.findByPk(company_id, {
-            attributes: ['id', 'biometric_utc_enabled']
-        });
-
-        // 3. Determine punch datetime
-        let punchDatetime;
-        let isUTCConverted = false;
-        let originalUTCDatetime = null;
-
-        if (punchData.punch_source === 'biometric' && punchData.is_utc && company?.biometric_utc_enabled) {
-            // Biometric sent UTC, need to convert
-            originalUTCDatetime = punchData.punch_datetime || new Date();
-            punchDatetime = timezoneUtil.convertUTCToEmployeeTimezone(originalUTCDatetime, employeeTimezone);
-            isUTCConverted = true;
-        } else {
-            // Web/Mobile or biometric already in employee TZ
-            punchDatetime = timezoneUtil.getCurrentDateTimeInTimezone(employeeTimezone);
+        if (!employee['timezone.timezone_name']) {
+            throw new Error('Timezone not mapped for employee');
         }
+
+        const employeeTimezone = employee['timezone.timezone_name'];
+
+        // 2. Determine punch datetime (Web punch - use current time in employee timezone)
+        const punchDatetime = timezoneUtil.getCurrentDateTimeInTimezone(employeeTimezone);
+        const isUTCConverted = false;
+        const originalUTCDatetime = null;
 
         const punchDate = moment(punchDatetime).tz(employeeTimezone).format('YYYY-MM-DD');
 
@@ -359,12 +350,21 @@ const getTodayPunchStatus = async (employee_id, company_id) => {
         include: [{
             model: HrmsTimezoneMaster,
             as: 'timezone',
-            attributes: ['timezone_name']
+            attributes: ['timezone_name'],
+            required: false
         }],
         raw: true
     });
 
-    const timezone = employee?.timezone?.timezone_name || 'Asia/Kolkata';
+    if (!employee) {
+        throw new Error('Employee not found');
+    }
+
+    if (!employee['timezone.timezone_name']) {
+        throw new Error('Timezone not mapped for employee');
+    }
+
+    const timezone = employee['timezone.timezone_name'];
     const today = moment().tz(timezone).format('YYYY-MM-DD');
 
     // Get employee's shift for today
@@ -440,10 +440,21 @@ const getPunchHistory = async (employee_id, company_id, filters = {}) => {
         include: [{
             model: HrmsTimezoneMaster,
             as: 'timezone',
-            attributes: ['timezone_name']
-        }]
+            attributes: ['timezone_name'],
+            required: false
+        }],
+        raw: true
     });
-    const timezone = employee?.timezone?.timezone_name || 'Asia/Kolkata';
+
+    if (!employee) {
+        throw new Error('Employee not found');
+    }
+
+    if (!employee['timezone.timezone_name']) {
+        throw new Error('Timezone not mapped for employee');
+    }
+
+    const timezone = employee['timezone.timezone_name'];
 
     const startDatetime = moment.tz(from_date, timezone).startOf('day').toDate();
     const endDatetime = moment.tz(to_date, timezone).endOf('day').toDate();
@@ -520,15 +531,21 @@ const pushBiometricPunch = async (biometricData) => {
             include: [{
                 model: HrmsTimezoneMaster,
                 as: 'timezone',
-                attributes: ['timezone_name']
-            }]
+                attributes: ['timezone_name'],
+                required: false
+            }],
+            raw: true
         });
 
         if (!employee) {
             throw new Error(`Employee not found for biometric_device_id: ${biometric_device_id}`);
         }
 
-        const employeeTimezone = employee.timezone?.timezone_name || 'Asia/Kolkata';
+        if (!employee['timezone.timezone_name']) {
+            throw new Error('Timezone not mapped for employee');
+        }
+
+        const employeeTimezone = employee['timezone.timezone_name'];
 
         // 2. Get company settings for UTC conversion
         const company = await HrmsCompany.findByPk(company_id, {
@@ -638,10 +655,12 @@ const processPunchLogs = async (filters = {}) => {
                 model: HrmsEmployee,
                 as: 'employee',
                 attributes: ['id', 'timezone_id'],
+                required: false,
                 include: [{
                     model: HrmsTimezoneMaster,
                     as: 'timezone',
-                    attributes: ['timezone_name']
+                    attributes: ['timezone_name'],
+                    required: false
                 }]
             }]
         });
@@ -658,7 +677,11 @@ const processPunchLogs = async (filters = {}) => {
         const groupedPunches = {};
 
         for (const punch of punchLogs) {
-            const employeeTimezone = punch.employee?.timezone?.timezone_name || 'Asia/Kolkata';
+            if (!punch.employee?.timezone?.timezone_name) {
+                console.warn(`Timezone not mapped for employee_id: ${punch.employee_id}`);
+                continue; // Skip punches without timezone mapping
+            }
+            const employeeTimezone = punch.employee.timezone.timezone_name;
             const punchDate = moment(punch.punch_datetime).tz(employeeTimezone).format('YYYY-MM-DD');
             const key = `${punch.employee_id}_${punchDate}`;
 

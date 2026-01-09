@@ -41,7 +41,8 @@ async function getEmployeeShift(employee_id, date) {
                     required: false
                 }
             ],
-            raw:true
+            raw: true,
+            nest:true
         });
 
         if (!employee) {
@@ -163,12 +164,7 @@ async function getEmployeeShift(employee_id, date) {
             throw new Error('Shift details not found');
         }
 
-        return {
-            success: true,
-            data: resultShift,
-            employee_id: employee_id,
-            date: date
-        };
+        return resultShift;
 
     } catch (error) {
         console.error('Error calculating employee shift:', error);

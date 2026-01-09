@@ -24,7 +24,7 @@ const getEmployeeShift = async (req, res) => {
 
         const result = await shiftCalculationService.getEmployeeShift(employee_id, date);
 
-        return successResponse(res, result.data, 'Employee shift calculated successfully');
+        return successResponse(res, result, 'Employee shift calculated successfully');
 
     } catch (error) {
         console.error('Error in getEmployeeShift controller:', error);

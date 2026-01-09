@@ -65,8 +65,8 @@ async function createShiftSwapRequest(data, requester_employee_id) {
             getEmployeeShift(target_employee_id, swap_date)
         ]);
 
-        const requester_current_shift_id = requesterShiftData.data.shift_id;
-        const target_current_shift_id = targetShiftData.data.shift_id;
+        const requester_current_shift_id = requesterShiftData.shift_id;
+        const target_current_shift_id = targetShiftData.shift_id;
 
         if (!requester_current_shift_id || !target_current_shift_id) {
             throw new Error('Unable to determine current shifts for swap date');

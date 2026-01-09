@@ -146,6 +146,14 @@ const HrmsCompany = sequelize.define('HrmsCompany', {
     comment: 'Path to company profile image/logo'
   },
 
+  // Biometric UTC Settings
+  biometric_utc_enabled: {
+    type: DataTypes.TINYINT(1),
+    allowNull: false,
+    defaultValue: 0,
+    comment: 'Whether biometric devices send UTC timestamps (1=Yes, 0=No)'
+  },
+
   // Created by user ID
   created_by: {
     type: DataTypes.INTEGER,

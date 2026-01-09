@@ -21,7 +21,7 @@ const { sendSuccess, sendCreated } = require('../../../utils/response');
  */
 const handleWebPunch = async (req, res, next) => {
     try {
-        const employee_id = req.user.id;  // From auth middleware
+        const employee_id = req.user.employee_id;  // From auth middleware
         const company_id = req.user.company_id;
 
         const punchData = {
@@ -62,7 +62,7 @@ const handleWebPunch = async (req, res, next) => {
  */
 const handleMobilePunch = async (req, res, next) => {
     try {
-        const employee_id = req.user.id;  // From auth middleware
+        const employee_id = req.user.employee_id;  // From auth middleware
         const company_id = req.user.company_id;
 
         const punchData = {
@@ -121,7 +121,7 @@ const getTodayPunchStatus = async (req, res, next) => {
  */
 const getPunchHistory = async (req, res, next) => {
     try {
-        const employee_id = req.user.id;
+        const employee_id = req.user.employee_id;
         const company_id = req.user.company_id;
 
         const filters = {
