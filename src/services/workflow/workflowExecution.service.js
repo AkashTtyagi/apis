@@ -266,7 +266,20 @@ const handleApproval = async (requestId, approverUserId, remarks = null, attachm
 
     try {
         const request = await HrmsWorkflowRequest.findByPk(requestId);
+
+        if (!request) {
+            throw new Error('Request not found');
+        }
+
+        if (!request.current_stage_id) {
+            throw new Error('Request has no current stage. It may be already completed or auto-approved/rejected.');
+        }
+
         const currentStage = await HrmsWorkflowStage.findByPk(request.current_stage_id);
+
+        if (!currentStage) {
+            throw new Error('Current stage not found');
+        }
 
         // Find assignment for this approver
         const assignment = await HrmsWorkflowStageAssignment.findOne({
@@ -374,7 +387,20 @@ const handleRejection = async (requestId, approverUserId, remarks = null, ipInfo
 
     try {
         const request = await HrmsWorkflowRequest.findByPk(requestId);
+
+        if (!request) {
+            throw new Error('Request not found');
+        }
+
+        if (!request.current_stage_id) {
+            throw new Error('Request has no current stage. It may be already completed or auto-approved/rejected.');
+        }
+
         const currentStage = await HrmsWorkflowStage.findByPk(request.current_stage_id);
+
+        if (!currentStage) {
+            throw new Error('Current stage not found');
+        }
 
         // Find assignment
         const assignment = await HrmsWorkflowStageAssignment.findOne({
