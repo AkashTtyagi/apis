@@ -158,6 +158,11 @@ async function getEmployeeShift(employee_id, date) {
             };
         }
 
+        // Check if shift details were found
+        if (!resultShift.shift_id || !resultShift.shift) {
+            throw new Error('Shift details not found');
+        }
+
         return {
             success: true,
             data: resultShift,
