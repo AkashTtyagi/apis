@@ -249,20 +249,26 @@ const getPendingApprovals = async (req, res) => {
 
 /**
  * Approve request
- * POST /api/workflow/requests/:requestId/approve
+ * POST /api/workflow/requests/approve
  * @param {Object} req - Request object
  * @param {Object} res - Response object
  */
 const approveRequest = async (req, res) => {
     try {
-        const { requestId } = req.params;
-        const { remarks, attachments } = req.body;
+        const { request_id, remarks, attachments } = req.body;
+
+        if (!request_id) {
+            return res.status(400).json({
+                success: false,
+                message: 'request_id is required'
+            });
+        }
 
         // Get IP address
         const ipAddress = req.ip || req.connection.remoteAddress;
 
         const result = await workflowExecutionService.handleApproval(
-            requestId,
+            request_id,
             req.user.user_id,
             remarks,
             attachments || [],
@@ -287,14 +293,20 @@ const approveRequest = async (req, res) => {
 
 /**
  * Reject request
- * POST /api/workflow/requests/:requestId/reject
+ * POST /api/workflow/requests/reject
  * @param {Object} req - Request object
  * @param {Object} res - Response object
  */
 const rejectRequest = async (req, res) => {
     try {
-        const { requestId } = req.params;
-        const { remarks, attachments } = req.body;
+        const { request_id, remarks, attachments } = req.body;
+
+        if (!request_id) {
+            return res.status(400).json({
+                success: false,
+                message: 'request_id is required'
+            });
+        }
 
         if (!remarks) {
             return res.status(400).json({
@@ -307,7 +319,7 @@ const rejectRequest = async (req, res) => {
         const ipAddress = req.ip || req.connection.remoteAddress;
 
         const result = await workflowExecutionService.handleRejection(
-            requestId,
+            request_id,
             req.user.user_id,
             remarks,
             attachments || [],

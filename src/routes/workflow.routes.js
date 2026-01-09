@@ -67,17 +67,17 @@ router.get('/requests/:requestId', workflowRequestController.getRequestById);
 
 /**
  * Approve request
- * POST /api/workflow/requests/:requestId/approve
- * Body: { remarks, attachments }
+ * POST /api/workflow/requests/approve
+ * Body: { request_id, remarks, attachments }
  */
-router.post('/requests/:requestId/approve', workflowRequestController.approveRequest);
+router.post('/requests/approve', workflowRequestController.approveRequest);
 
 /**
  * Reject request
- * POST /api/workflow/requests/:requestId/reject
- * Body: { remarks, attachments }
+ * POST /api/workflow/requests/reject
+ * Body: { request_id, remarks, attachments }
  */
-router.post('/requests/:requestId/reject', workflowRequestController.rejectRequest);
+router.post('/requests/reject', workflowRequestController.rejectRequest);
 
 /**
  * Withdraw request
