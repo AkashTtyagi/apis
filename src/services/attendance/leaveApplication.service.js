@@ -332,7 +332,7 @@ const handleMultipleDatesMode = (data) => {
 };
 
 /**
- * Get employee's leave requests
+ * Get employee's leave requests (Simple List)
  * @param {number} employee_id - Employee ID
  * @param {Object} filters - Filter options (type, status, limit, offset)
  * @returns {Promise<Object>} Leave requests with pagination
@@ -341,7 +341,6 @@ const getEmployeeLeaveRequests = async (employee_id, filters = {}) => {
     const { request_type, status, from_date, to_date, limit = 20, offset = 0 } = filters;
 
     const where = { employee_id };
-    const isLeaveType = request_type === 1;
 
     // Filter by workflow type (request_type: 1=leave, 2=onduty, 3=wfh, 4=regularization, 5=short-leave)
     if (request_type) {
@@ -362,43 +361,42 @@ const getEmployeeLeaveRequests = async (employee_id, filters = {}) => {
         where.from_date = { [Op.lte]: to_date };
     }
 
-    // Build include array
-    const include = [
-        {
-            model: require('../../models/workflow').HrmsWorkflowMaster,
-            as: 'workflowMaster',
-            attributes: ['workflow_for_name', 'workflow_code']
-        }
-    ];
-
-    // Add HrmsLeaveMaster include for leave type requests
-    if (isLeaveType) {
-        include.push({
-            model: HrmsLeaveMaster,
-            as: 'leaveMaster',
-            attributes: ['leave_code', 'leave_name'],
-            required: false
-        });
-    }
-
     const requests = await HrmsWorkflowRequest.findAndCountAll({
         where,
+        attributes: ['id', 'request_number', 'workflow_master_id', 'leave_type', 'request_status', 'from_date', 'to_date', 'submitted_at'],
         limit: parseInt(limit),
         offset: parseInt(offset),
         order: [['submitted_at', 'DESC']],
-        include
+        include: [
+            {
+                model: require('../../models/workflow').HrmsWorkflowMaster,
+                as: 'workflowMaster',
+                attributes: ['id', 'workflow_for_name', 'workflow_code']
+            },
+            {
+                model: HrmsLeaveMaster,
+                as: 'leaveMaster',
+                attributes: ['id', 'leave_code', 'leave_name'],
+                required: false
+            }
+        ]
     });
 
-    // Flatten leaveMaster data for leave type requests
-    const formattedRequests = requests.rows.map(request => {
-        const data = request.toJSON();
-        if (data.leaveMaster) {
-            data.leave_code = data.leaveMaster.leave_code;
-            data.leave_name = data.leaveMaster.leave_name;
-            delete data.leaveMaster;
-        }
-        return data;
-    });
+    // Format simple response
+    const formattedRequests = requests.rows.map(request => ({
+        id: request.id,
+        request_number: request.request_number,
+        workflow_master_id: request.workflow_master_id,
+        workflow_name: request.workflowMaster?.workflow_for_name,
+        workflow_code: request.workflowMaster?.workflow_code,
+        leave_type_id: request.leave_type,
+        leave_code: request.leaveMaster?.leave_code || null,
+        leave_name: request.leaveMaster?.leave_name || null,
+        request_status: request.request_status,
+        from_date: request.from_date,
+        to_date: request.to_date,
+        submitted_at: request.submitted_at
+    }));
 
     return {
         total: requests.count,
@@ -412,12 +410,16 @@ const getEmployeeLeaveRequests = async (employee_id, filters = {}) => {
 };
 
 /**
- * Get leave request details
+ * Get leave request details with approvers and action history
  * @param {number} request_id - Request ID
  * @param {number} employee_id - Employee ID
- * @returns {Promise<Object>} Request details
+ * @returns {Promise<Object>} Request details with approvers and actions
  */
 const getLeaveRequestDetails = async (request_id, employee_id) => {
+    const { HrmsWorkflowMaster, HrmsWorkflowAction, HrmsWorkflowStageAssignment, HrmsWorkflowStage } = require('../../models/workflow');
+    const { HrmsUserDetails } = require('../../models/HrmsUserDetails');
+
+    // Get request details
     const request = await HrmsWorkflowRequest.findOne({
         where: {
             id: request_id,
@@ -425,14 +427,21 @@ const getLeaveRequestDetails = async (request_id, employee_id) => {
         },
         include: [
             {
-                model: require('../../models/workflow').HrmsWorkflowMaster,
+                model: HrmsWorkflowMaster,
                 as: 'workflowMaster',
-                attributes: ['workflow_for_name', 'workflow_code']
+                attributes: ['id', 'workflow_for_name', 'workflow_code']
             },
             {
-                model: require('../../models/workflow').HrmsWorkflowAction,
-                as: 'actions',
-                order: [['action_taken_at', 'DESC']]
+                model: HrmsLeaveMaster,
+                as: 'leaveMaster',
+                attributes: ['id', 'leave_code', 'leave_name'],
+                required: false
+            },
+            {
+                model: HrmsWorkflowStage,
+                as: 'currentStage',
+                attributes: ['id', 'stage_name', 'stage_order'],
+                required: false
             }
         ]
     });
@@ -441,7 +450,116 @@ const getLeaveRequestDetails = async (request_id, employee_id) => {
         throw new Error('Request not found');
     }
 
-    return request;
+    // Get all stage assignments (approvers)
+    const assignments = await HrmsWorkflowStageAssignment.findAll({
+        where: { request_id },
+        include: [
+            {
+                model: HrmsWorkflowStage,
+                as: 'stage',
+                attributes: ['id', 'stage_name', 'stage_order']
+            },
+            {
+                model: HrmsUserDetails,
+                as: 'assignedToUser',
+                attributes: ['id', 'email'],
+                include: [{
+                    model: HrmsEmployee,
+                    as: 'employee',
+                    attributes: ['id', 'first_name', 'last_name', 'employee_code']
+                }],
+                required: false
+            }
+        ],
+        order: [['created_at', 'ASC']]
+    });
+
+    // Get all actions (approval/rejection history)
+    const actions = await HrmsWorkflowAction.findAll({
+        where: { request_id },
+        include: [
+            {
+                model: HrmsWorkflowStage,
+                as: 'stage',
+                attributes: ['id', 'stage_name', 'stage_order']
+            },
+            {
+                model: HrmsUserDetails,
+                as: 'actionByUser',
+                attributes: ['id', 'email'],
+                include: [{
+                    model: HrmsEmployee,
+                    as: 'employee',
+                    attributes: ['id', 'first_name', 'last_name', 'employee_code']
+                }],
+                required: false
+            }
+        ],
+        order: [['action_taken_at', 'ASC']]
+    });
+
+    // Format approvers list
+    const approvers = assignments.map(a => ({
+        assignment_id: a.id,
+        stage_id: a.stage?.id,
+        stage_name: a.stage?.stage_name,
+        stage_order: a.stage?.stage_order,
+        approver_type: a.approver_type,
+        approver_id: a.assignedToUser?.id,
+        approver_name: a.assignedToUser?.employee
+            ? `${a.assignedToUser.employee.first_name} ${a.assignedToUser.employee.last_name}`.trim()
+            : a.assignedToUser?.email,
+        approver_code: a.assignedToUser?.employee?.employee_code,
+        assignment_status: a.assignment_status,
+        is_delegated: a.is_delegated,
+        assigned_at: a.assigned_at,
+        action_taken_at: a.action_taken_at,
+        sla_due_date: a.sla_due_date,
+        is_sla_breached: a.is_sla_breached
+    }));
+
+    // Format actions list
+    const actionHistory = actions.map(a => ({
+        action_id: a.id,
+        stage_id: a.stage?.id,
+        stage_name: a.stage?.stage_name,
+        action_type: a.action_type,
+        action_by_type: a.action_by_type,
+        action_by_id: a.actionByUser?.id || null,
+        action_by_name: a.action_by_type === 'system'
+            ? 'System'
+            : (a.actionByUser?.employee
+                ? `${a.actionByUser.employee.first_name} ${a.actionByUser.employee.last_name}`.trim()
+                : a.actionByUser?.email || 'Unknown'),
+        action_by_code: a.actionByUser?.employee?.employee_code || null,
+        remarks: a.remarks,
+        action_result: a.action_result,
+        action_taken_at: a.action_taken_at
+    }));
+
+    return {
+        request: {
+            id: request.id,
+            request_number: request.request_number,
+            workflow_master_id: request.workflow_master_id,
+            workflow_name: request.workflowMaster?.workflow_for_name,
+            workflow_code: request.workflowMaster?.workflow_code,
+            leave_type_id: request.leave_type,
+            leave_code: request.leaveMaster?.leave_code,
+            leave_name: request.leaveMaster?.leave_name,
+            request_status: request.request_status,
+            overall_status: request.overall_status,
+            current_stage: request.currentStage?.stage_name || null,
+            from_date: request.from_date,
+            to_date: request.to_date,
+            request_data: request.request_data,
+            employee_remarks: request.employee_remarks,
+            submitted_at: request.submitted_at,
+            completed_at: request.completed_at
+        },
+        approvers,
+        action_history: actionHistory
+    };
 };
 
 /**
