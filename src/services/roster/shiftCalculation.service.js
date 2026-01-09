@@ -30,14 +30,18 @@ async function getEmployeeShift(employee_id, date) {
     try {
         // Step 1: Get employee default shift
         const employee = await HrmsEmployee.findOne({
-            where: { id: employee_id, is_active: true },
+            where: {
+                id: employee_id,
+                status: { [Op.in]: [0, 1, 2] } // Active, Probation, Internship
+            },
             include: [
                 {
                     model: HrmsShiftMaster,
                     as: 'shift',
                     required: false
                 }
-            ]
+            ],
+            raw:true
         });
 
         if (!employee) {

@@ -15,6 +15,7 @@ const { HrmsPunchLog } = require('../models/HrmsPunchLog');
 const { HrmsDailyAttendance } = require('../../../models/HrmsDailyAttendance');
 const { HrmsEmployee } = require('../../../models/HrmsEmployee');
 const { HrmsCompany } = require('../../../models/HrmsCompany');
+const { HrmsTimezoneMaster } = require('../../../models/HrmsTimezoneMaster');
 const { getEmployeeShift } = require('../../../services/roster/shiftCalculation.service');
 const { sequelize } = require('../../../utils/database');
 const { Op } = require('sequelize');
@@ -70,16 +71,21 @@ const handlePunch = async (employee_id, company_id, punchData = {}) => {
             where: {
                 id: employee_id,
                 company_id: company_id,
-                is_active: true
+                status: { [Op.in]: [0, 1, 2] } // Active, Probation, Internship
             },
-            attributes: ['id', 'employee_code', 'first_name', 'last_name', 'timezone']
+            attributes: ['id', 'employee_code', 'first_name', 'last_name', 'timezone_id'],
+            include: [{
+                model: HrmsTimezoneMaster,
+                as: 'timezone',
+                attributes: ['timezone_name']
+            }]
         });
 
         if (!employee) {
             throw new Error('Employee not found or inactive');
         }
 
-        const employeeTimezone = employee.timezone || 'Asia/Kolkata';
+        const employeeTimezone = employee.timezone?.timezone_name || 'Asia/Kolkata';
 
         // 2. Get company settings for biometric UTC
         const company = await HrmsCompany.findByPk(company_id, {
@@ -349,10 +355,16 @@ const updateDailyAttendance = async (
  */
 const getTodayPunchStatus = async (employee_id, company_id) => {
     const employee = await HrmsEmployee.findByPk(employee_id, {
-        attributes: ['timezone']
+        attributes: ['timezone_id'],
+        include: [{
+            model: HrmsTimezoneMaster,
+            as: 'timezone',
+            attributes: ['timezone_name']
+        }],
+        raw: true
     });
 
-    const timezone = employee?.timezone || 'Asia/Kolkata';
+    const timezone = employee?.timezone?.timezone_name || 'Asia/Kolkata';
     const today = moment().tz(timezone).format('YYYY-MM-DD');
 
     // Get employee's shift for today
@@ -424,9 +436,14 @@ const getPunchHistory = async (employee_id, company_id, filters = {}) => {
     } = filters;
 
     const employee = await HrmsEmployee.findByPk(employee_id, {
-        attributes: ['timezone']
+        attributes: ['timezone_id'],
+        include: [{
+            model: HrmsTimezoneMaster,
+            as: 'timezone',
+            attributes: ['timezone_name']
+        }]
     });
-    const timezone = employee?.timezone || 'Asia/Kolkata';
+    const timezone = employee?.timezone?.timezone_name || 'Asia/Kolkata';
 
     const startDatetime = moment.tz(from_date, timezone).startOf('day').toDate();
     const endDatetime = moment.tz(to_date, timezone).endOf('day').toDate();
@@ -497,16 +514,21 @@ const pushBiometricPunch = async (biometricData) => {
             where: {
                 biometric_device_id: biometric_device_id,
                 company_id: company_id,
-                is_active: true
+                status: { [Op.in]: [0, 1, 2] } // Active, Probation, Internship
             },
-            attributes: ['id', 'employee_code', 'first_name', 'last_name', 'timezone']
+            attributes: ['id', 'employee_code', 'first_name', 'last_name', 'timezone_id'],
+            include: [{
+                model: HrmsTimezoneMaster,
+                as: 'timezone',
+                attributes: ['timezone_name']
+            }]
         });
 
         if (!employee) {
             throw new Error(`Employee not found for biometric_device_id: ${biometric_device_id}`);
         }
 
-        const employeeTimezone = employee.timezone || 'Asia/Kolkata';
+        const employeeTimezone = employee.timezone?.timezone_name || 'Asia/Kolkata';
 
         // 2. Get company settings for UTC conversion
         const company = await HrmsCompany.findByPk(company_id, {
@@ -615,7 +637,12 @@ const processPunchLogs = async (filters = {}) => {
             include: [{
                 model: HrmsEmployee,
                 as: 'employee',
-                attributes: ['id', 'timezone']
+                attributes: ['id', 'timezone_id'],
+                include: [{
+                    model: HrmsTimezoneMaster,
+                    as: 'timezone',
+                    attributes: ['timezone_name']
+                }]
             }]
         });
 
@@ -631,7 +658,7 @@ const processPunchLogs = async (filters = {}) => {
         const groupedPunches = {};
 
         for (const punch of punchLogs) {
-            const employeeTimezone = punch.employee?.timezone || 'Asia/Kolkata';
+            const employeeTimezone = punch.employee?.timezone?.timezone_name || 'Asia/Kolkata';
             const punchDate = moment(punch.punch_datetime).tz(employeeTimezone).format('YYYY-MM-DD');
             const key = `${punch.employee_id}_${punchDate}`;
 

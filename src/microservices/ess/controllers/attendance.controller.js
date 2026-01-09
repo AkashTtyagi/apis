@@ -97,7 +97,7 @@ const handleMobilePunch = async (req, res, next) => {
  */
 const getTodayPunchStatus = async (req, res, next) => {
     try {
-        const employee_id = req.user.id;
+        const employee_id = req.user.employee_id;
         const company_id = req.user.company_id;
 
         const status = await attendanceService.getTodayPunchStatus(employee_id, company_id);
