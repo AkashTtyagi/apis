@@ -374,9 +374,10 @@ const withdrawRequest = async (req, res) => {
 const getLeaveBalance = async (req, res) => {
     try {
         const employee_id = req.user.employee_id;
+        const company_id = req.user.company_id;
 
         // Delegate to service layer
-        const result = await leaveApplicationService.getLeaveBalance(employee_id);
+        const result = await leaveApplicationService.getLeaveBalance(employee_id, company_id);
 
         return res.status(200).json({
             success: true,

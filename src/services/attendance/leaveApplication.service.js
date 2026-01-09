@@ -8,6 +8,7 @@ const { HrmsEmployee } = require('../../models/HrmsEmployee');
 const { HrmsWorkflowRequest } = require('../../models/workflow');
 const { HrmsDailyAttendance } = require('../../models/HrmsDailyAttendance');
 const { HrmsLeaveMaster } = require('../../models/HrmsLeaveMaster');
+const { HrmsEmployeeLeaveBalance } = require('../../models/HrmsEmployeeLeaveBalance');
 const { validateLeaveRequest } = require('../../validations/attendance/leaveValidation');
 const workflowExecutionService = require('../workflow/workflowExecution.service');
 const moment = require('moment');
@@ -482,19 +483,57 @@ const withdrawLeaveRequest = async (request_id, employee_id, remarks = null) => 
 };
 
 /**
- * Check leave balance (placeholder - to be implemented)
+ * Get leave balance for an employee
  * @param {number} employee_id - Employee ID
+ * @param {number} company_id - Company ID
  * @returns {Promise<Object>} Leave balance data
  */
-const getLeaveBalance = async (employee_id) => {
-    // TODO: Implement actual leave balance calculation
+const getLeaveBalance = async (employee_id, company_id) => {
+    const currentYear = moment().year();
+    const currentMonth = moment().month() + 1; // moment months are 0-indexed
+
+    // Fetch leave balances for current month with leave type details
+    const balances = await HrmsEmployeeLeaveBalance.findAll({
+        where: {
+            employee_id,
+            year: currentYear,
+            month: currentMonth
+        },
+        include: [{
+            model: HrmsLeaveMaster,
+            as: 'leaveType',
+            attributes: ['id', 'leave_name', 'leave_code', 'leave_type'],
+            where: {
+                company_id,
+                is_active: true
+            },
+            required: true
+        }],
+        order: [['leave_type_id', 'ASC']]
+    });
+
+    // Format the response
+    const leave_balances = balances.map(balance => ({
+        leave_type_id: balance.leave_type_id,
+        leave_name: balance.leaveType?.leave_name || 'Unknown',
+        leave_code: balance.leaveType?.leave_code || '',
+        is_paid: balance.leaveType?.leave_type === 'paid',
+        opening_balance: parseFloat(balance.opening_balance) || 0,
+        total_credited: parseFloat(balance.total_credited) || 0,
+        total_debited: parseFloat(balance.total_debited) || 0,
+        available_balance: parseFloat(balance.available_balance) || 0,
+        carried_forward: parseFloat(balance.carried_forward) || 0,
+        encashed: parseFloat(balance.encashed) || 0,
+        lapsed: parseFloat(balance.lapsed) || 0,
+        year: balance.year,
+        month: balance.month
+    }));
+
     return {
         employee_id,
-        leave_balances: [
-            { leave_type: 'Annual Leave', total: 15, used: 3, remaining: 12 },
-            { leave_type: 'Sick Leave', total: 10, used: 2, remaining: 8 },
-            { leave_type: 'Casual Leave', total: 12, used: 5, remaining: 7 }
-        ]
+        year: currentYear,
+        month: currentMonth,
+        leave_balances
     };
 };
 

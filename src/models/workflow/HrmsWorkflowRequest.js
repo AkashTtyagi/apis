@@ -194,6 +194,12 @@ HrmsWorkflowRequest.associate = (models) => {
         as: 'currentStage'
     });
 
+    // Belongs to Employee
+    HrmsWorkflowRequest.belongsTo(models.HrmsEmployee, {
+        foreignKey: 'employee_id',
+        as: 'employee'
+    });
+
     // Has many Actions
     HrmsWorkflowRequest.hasMany(models.HrmsWorkflowAction, {
         foreignKey: 'request_id',
