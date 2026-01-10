@@ -128,7 +128,11 @@ const deletePermission = async (req, res, next) => {
 const assignRoleToUser = async (req, res, next) => {
     try {
         const assignedBy = req.user.id;
-        const assignmentData = req.body;
+        const companyId = req.user.company_id;
+        const assignmentData = {
+            ...req.body,
+            company_id: companyId
+        };
 
         const userRole = await userPermissionService.assignRoleToUser(assignmentData, assignedBy);
 
@@ -168,9 +172,10 @@ const revokeRoleFromUser = async (req, res, next) => {
  */
 const getUserRoles = async (req, res, next) => {
     try {
-        const { user_id, company_id, application_id } = req.body;
+        const { user_id, application_id } = req.body;
+        const companyId = req.user.company_id;
 
-        const roles = await userPermissionService.getUserRoles(user_id, company_id, application_id);
+        const roles = await userPermissionService.getUserRoles(user_id, companyId, application_id);
 
         res.status(200).json({
             success: true,
@@ -189,7 +194,11 @@ const getUserRoles = async (req, res, next) => {
 const grantPermissionToUser = async (req, res, next) => {
     try {
         const grantedBy = req.user.id;
-        const permissionData = req.body;
+        const companyId = req.user.company_id;
+        const permissionData = {
+            ...req.body,
+            company_id: companyId
+        };
 
         const userPermission = await userPermissionService.grantPermissionToUser(
             permissionData,
@@ -213,7 +222,11 @@ const grantPermissionToUser = async (req, res, next) => {
 const revokePermissionFromUser = async (req, res, next) => {
     try {
         const revokedBy = req.user.id;
-        const permissionData = req.body;
+        const companyId = req.user.company_id;
+        const permissionData = {
+            ...req.body,
+            company_id: companyId
+        };
 
         const userPermission = await userPermissionService.revokePermissionFromUser(
             permissionData,
@@ -259,11 +272,12 @@ const removeUserPermissionOverride = async (req, res, next) => {
  */
 const getUserPermissionOverrides = async (req, res, next) => {
     try {
-        const { user_id, company_id, application_id } = req.body;
+        const { user_id, application_id } = req.body;
+        const companyId = req.user.company_id;
 
         const overrides = await userPermissionService.getUserPermissionOverrides(
             user_id,
-            company_id,
+            companyId,
             application_id
         );
 
@@ -284,7 +298,11 @@ const getUserPermissionOverrides = async (req, res, next) => {
 const bulkGrantPermissionsToUser = async (req, res, next) => {
     try {
         const grantedBy = req.user.id;
-        const bulkData = req.body;
+        const companyId = req.user.company_id;
+        const bulkData = {
+            ...req.body,
+            company_id: companyId
+        };
 
         const result = await userPermissionService.bulkGrantPermissionsToUser(bulkData, grantedBy);
 
@@ -306,7 +324,11 @@ const bulkGrantPermissionsToUser = async (req, res, next) => {
 const bulkRevokePermissionsFromUser = async (req, res, next) => {
     try {
         const revokedBy = req.user.id;
-        const bulkData = req.body;
+        const companyId = req.user.company_id;
+        const bulkData = {
+            ...req.body,
+            company_id: companyId
+        };
 
         const result = await userPermissionService.bulkRevokePermissionsFromUser(bulkData, revokedBy);
 
@@ -327,7 +349,8 @@ const bulkRevokePermissionsFromUser = async (req, res, next) => {
  */
 const getUserPermissionAuditLogs = async (req, res, next) => {
     try {
-        const { user_id, company_id, action, entity_type, from_date, limit } = req.body;
+        const { user_id, action, entity_type, from_date, limit } = req.body;
+        const companyId = req.user.company_id;
 
         const filters = {
             action,
@@ -338,7 +361,7 @@ const getUserPermissionAuditLogs = async (req, res, next) => {
 
         const logs = await userPermissionService.getUserPermissionAuditLogs(
             user_id,
-            company_id,
+            companyId,
             filters
         );
 
@@ -346,6 +369,39 @@ const getUserPermissionAuditLogs = async (req, res, next) => {
             success: true,
             data: logs,
             count: logs.length
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Get all users with their roles
+ * POST /api/permissions/users/with-roles
+ */
+const getUsersWithRoles = async (req, res, next) => {
+    try {
+        const { application_id, search, limit, offset } = req.body;
+        const companyId = req.user.company_id;
+
+        const filters = {
+            search,
+            limit: limit || 100,
+            offset: offset || 0
+        };
+
+        const result = await userPermissionService.getUsersWithRoles(
+            companyId,
+            application_id,
+            filters
+        );
+
+        res.status(200).json({
+            success: true,
+            data: result.users,
+            total: result.total,
+            limit: result.limit,
+            offset: result.offset
         });
     } catch (error) {
         next(error);
@@ -368,5 +424,6 @@ module.exports = {
     getUserPermissionOverrides,
     bulkGrantPermissionsToUser,
     bulkRevokePermissionsFromUser,
-    getUserPermissionAuditLogs
+    getUserPermissionAuditLogs,
+    getUsersWithRoles
 };

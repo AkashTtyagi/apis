@@ -37,4 +37,7 @@ router.post('/users/bulk-revoke', permissionController.bulkRevokePermissionsFrom
 // Audit Logs
 router.post('/users/audit-logs', permissionController.getUserPermissionAuditLogs);
 
+// Get all users with roles
+router.post('/users/with-roles', permissionController.getUsersWithRoles);
+
 module.exports = router;

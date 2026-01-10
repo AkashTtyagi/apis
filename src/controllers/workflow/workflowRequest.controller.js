@@ -344,17 +344,23 @@ const rejectRequest = async (req, res) => {
 
 /**
  * Withdraw request
- * POST /api/workflow/requests/:requestId/withdraw
+ * POST /api/workflow/requests/withdraw
  * @param {Object} req - Request object
  * @param {Object} res - Response object
  */
 const withdrawRequest = async (req, res) => {
     try {
-        const { requestId } = req.params;
-        const { reason } = req.body;
+        const { request_id, reason } = req.body;
+
+        if (!request_id) {
+            return res.status(400).json({
+                success: false,
+                message: 'request_id is required'
+            });
+        }
 
         // Check if user is the request owner
-        const request = await HrmsWorkflowRequest.findByPk(requestId, {
+        const request = await HrmsWorkflowRequest.findByPk(request_id, {
             include: [{ association: 'employee' }]
         });
 
@@ -390,10 +396,11 @@ const withdrawRequest = async (req, res) => {
 
         // Create withdrawal action
         await HrmsWorkflowAction.create({
-            request_id: requestId,
+            request_id: request_id,
             stage_id: request.current_stage_id,
             action_type: 'withdraw',
             action_by_user_id: req.user.id,
+            action_by_type: 'employee',
             approver_type: 'employee',
             remarks: reason || 'Request withdrawn by employee',
             action_taken_at: new Date(),
@@ -403,6 +410,7 @@ const withdrawRequest = async (req, res) => {
         // Update request status
         await request.update({
             request_status: 'withdrawn',
+            overall_status: 'withdrawn',
             completed_at: new Date()
         });
 
@@ -411,7 +419,7 @@ const withdrawRequest = async (req, res) => {
             { assignment_status: 'withdrawn' },
             {
                 where: {
-                    request_id: requestId,
+                    request_id: request_id,
                     assignment_status: 'pending'
                 }
             }
@@ -422,7 +430,11 @@ const withdrawRequest = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: 'Request withdrawn successfully',
-            data: await workflowExecutionService.getRequestDetails(requestId)
+            data: {
+                request_id: request_id,
+                request_number: request.request_number,
+                request_status: 'withdrawn'
+            }
         });
 
     } catch (error) {

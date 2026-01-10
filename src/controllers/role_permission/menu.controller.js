@@ -110,9 +110,10 @@ const deleteMenu = async (req, res, next) => {
  */
 const getUserMenus = async (req, res, next) => {
     try {
-        const { user_id, application_id, company_id } = req.body;
+        const { user_id, application_id } = req.body;
+        const companyId = req.user.company_id;
 
-        const menus = await menuService.getUserMenus(user_id, company_id, application_id);
+        const menus = await menuService.getUserMenus(user_id, companyId, application_id);
 
         res.status(200).json({
             success: true,
@@ -129,11 +130,12 @@ const getUserMenus = async (req, res, next) => {
  */
 const getUserScreenPermissions = async (req, res, next) => {
     try {
-        const { user_id, application_id, menu_id, company_id } = req.body;
+        const { user_id, application_id, menu_id } = req.body;
+        const companyId = req.user.company_id;
 
         const permissions = await menuService.getUserScreenPermissions(
             user_id,
-            company_id,
+            companyId,
             application_id,
             menu_id
         );
@@ -153,9 +155,10 @@ const getUserScreenPermissions = async (req, res, next) => {
  */
 const getUserMenusList = async (req, res, next) => {
     try {
-        const { user_id, application_id, company_id } = req.body;
+        const { user_id, application_id } = req.body;
+        const companyId = req.user.company_id;
 
-        const menus = await menuService.getUserMenusList(user_id, company_id, application_id);
+        const menus = await menuService.getUserMenusList(user_id, companyId, application_id);
 
         res.status(200).json({
             success: true,
@@ -172,9 +175,10 @@ const getUserMenusList = async (req, res, next) => {
  */
 const getUserMenusPermissions = async (req, res, next) => {
     try {
-        const { user_id, application_id, company_id } = req.body;
+        const { user_id, application_id } = req.body;
+        const companyId = req.user.company_id;
 
-        const permissions = await menuService.getUserMenuPermissions(user_id, company_id, application_id);
+        const permissions = await menuService.getUserMenuPermissions(user_id, companyId, application_id);
 
         res.status(200).json({
             success: true,

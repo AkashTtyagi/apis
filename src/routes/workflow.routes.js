@@ -88,10 +88,10 @@ router.post('/requests/reject', workflowRequestController.rejectRequest);
 
 /**
  * Withdraw request
- * POST /api/workflow/requests/:requestId/withdraw
- * Body: { reason }
+ * POST /api/workflow/requests/withdraw
+ * Body: { request_id, reason }
  */
-router.post('/requests/:requestId/withdraw', workflowRequestController.withdrawRequest);
+router.post('/requests/withdraw', workflowRequestController.withdrawRequest);
 
 /**
  * Get request history/audit trail

@@ -108,12 +108,13 @@ const deleteRoleMaster = async (req, res, next) => {
  */
 const getCompanyRoles = async (req, res, next) => {
     try {
-        const { company_id, application_id, is_active } = req.body;
+        const { application_id, is_active } = req.body;
+        const companyId = req.user.company_id;
         const filters = {
             is_active
         };
 
-        const roles = await roleService.getCompanyRoles(company_id, application_id, filters);
+        const roles = await roleService.getCompanyRoles(companyId, application_id, filters);
 
         res.status(200).json({
             success: true,
@@ -150,7 +151,12 @@ const getRoleById = async (req, res, next) => {
 const createRoleFromMaster = async (req, res, next) => {
     try {
         const userId = req.user.id;
-        const role = await roleService.createRoleFromMaster(req.body, userId);
+        const companyId = req.user.company_id;
+        const roleData = {
+            ...req.body,
+            company_id: companyId
+        };
+        const role = await roleService.createRoleFromMaster(roleData, userId);
 
         res.status(201).json({
             success: true,
@@ -169,7 +175,12 @@ const createRoleFromMaster = async (req, res, next) => {
 const createCustomRole = async (req, res, next) => {
     try {
         const userId = req.user.id;
-        const role = await roleService.createCustomRole(req.body, userId);
+        const companyId = req.user.company_id;
+        const roleData = {
+            ...req.body,
+            company_id: companyId
+        };
+        const role = await roleService.createCustomRole(roleData, userId);
 
         res.status(201).json({
             success: true,

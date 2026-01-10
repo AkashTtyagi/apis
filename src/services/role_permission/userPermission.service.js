@@ -559,6 +559,93 @@ const getUserPermissionAuditLogs = async (userId, companyId, filters = {}) => {
     return logs;
 };
 
+/**
+ * Get all users with their roles for a company
+ */
+const getUsersWithRoles = async (companyId, applicationId, filters = {}) => {
+    const { HrmsEmployee } = require('../../models/HrmsEmployee');
+
+    // Get all employees for the company (status 0 = Active)
+    const empWhere = {
+        company_id: companyId,
+        is_deleted: 0
+    };
+
+    if (filters.search) {
+        empWhere[Op.or] = [
+            { first_name: { [Op.like]: `%${filters.search}%` } },
+            { last_name: { [Op.like]: `%${filters.search}%` } },
+            { email: { [Op.like]: `%${filters.search}%` } },
+            { employee_code: { [Op.like]: `%${filters.search}%` } }
+        ];
+    }
+
+    const employees = await HrmsEmployee.findAll({
+        where: empWhere,
+        attributes: ['id', 'user_id', 'first_name', 'last_name', 'email', 'employee_code', 'status'],
+        order: [['first_name', 'ASC']],
+        limit: filters.limit || 100,
+        offset: filters.offset || 0,
+        raw: true
+    });
+
+    // Get roles for each user
+    const usersWithRoles = await Promise.all(
+        employees.map(async (emp) => {
+            // Get user's roles for the application (using user_id from employee)
+            const userRoles = await HrmsUserRole.findAll({
+                where: {
+                    user_id: emp.user_id,
+                    [Op.or]: [
+                        { application_id: applicationId },
+                        { application_id: null }  // Include super admin roles
+                    ],
+                    is_active: true
+                },
+                include: [
+                    {
+                        model: HrmsRole,
+                        as: 'role',
+                        where: { is_active: true },
+                        attributes: ['id', 'role_name', 'role_code', 'is_super_admin', 'role_description'],
+                        required: false
+                    }
+                ]
+            });
+
+            return {
+                employee_id: emp.id,
+                user_id: emp.user_id,
+                first_name: emp.first_name,
+                last_name: emp.last_name,
+                full_name: `${emp.first_name || ''} ${emp.last_name || ''}`.trim(),
+                email: emp.email,
+                employee_code: emp.employee_code,
+                status: emp.status,
+                roles: userRoles.filter(ur => ur.role).map(ur => ({
+                    user_role_id: ur.id,
+                    role_id: ur.role.id,
+                    role_name: ur.role.role_name,
+                    role_code: ur.role.role_code,
+                    is_super_admin: ur.role.is_super_admin,
+                    role_description: ur.role.role_description,
+                    assigned_at: ur.assigned_at
+                }))
+            };
+        })
+    );
+
+    // Get total count
+    const totalCount = await HrmsEmployee.count({ where: empWhere });
+
+    return {
+        users: usersWithRoles,
+        total: totalCount,
+        limit: filters.limit || 100,
+        offset: filters.offset || 0
+    };
+};
+
 module.exports = {
     assignRoleToUser,
     revokeRoleFromUser,
@@ -569,5 +656,6 @@ module.exports = {
     getUserPermissionOverrides,
     bulkGrantPermissionsToUser,
     bulkRevokePermissionsFromUser,
-    getUserPermissionAuditLogs
+    getUserPermissionAuditLogs,
+    getUsersWithRoles
 };
