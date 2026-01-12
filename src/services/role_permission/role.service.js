@@ -288,15 +288,15 @@ const createRole = async (roleData, userId) => {
 
             await HrmsRolePermissionAuditLog.create({
                 company_id,
-                action: 'role_created',
+                action: 'create',
                 entity_type: 'role',
                 entity_id: role.id,
                 changed_by: userId,
-                change_details: JSON.stringify({
+                new_value: {
                     role_name: role.role_name,
                     role_master_id,
                     is_super_admin: true
-                })
+                }
             });
 
             return role;
@@ -316,15 +316,15 @@ const createRole = async (roleData, userId) => {
 
             await HrmsRolePermissionAuditLog.create({
                 company_id,
-                action: 'role_created',
+                action: 'create',
                 entity_type: 'role',
                 entity_id: role.id,
                 changed_by: userId,
-                change_details: JSON.stringify({
+                new_value: {
                     role_name: role.role_name,
                     role_master_id,
                     is_super_admin: false
-                })
+                }
             });
 
             return role;
@@ -353,14 +353,14 @@ const createRole = async (roleData, userId) => {
 
     await HrmsRolePermissionAuditLog.create({
         company_id,
-        action: 'role_created',
+        action: 'create',
         entity_type: 'role',
         entity_id: role.id,
         changed_by: userId,
-        change_details: JSON.stringify({
+        new_value: {
             role_name: role.role_name,
             is_custom: true
-        })
+        }
     });
 
     return role;
@@ -407,11 +407,12 @@ const updateRole = async (roleId, updateData, userId) => {
     // Log audit
     await HrmsRolePermissionAuditLog.create({
         company_id: role.company_id,
-        action: 'role_updated',
+        action: 'update',
         entity_type: 'role',
         entity_id: role.id,
         changed_by: userId,
-        change_details: JSON.stringify(changes)
+        old_value: Object.fromEntries(Object.entries(changes).map(([k, v]) => [k, v.old])),
+        new_value: Object.fromEntries(Object.entries(changes).map(([k, v]) => [k, v.new]))
     });
 
     return role;
@@ -444,13 +445,13 @@ const deleteRole = async (roleId, userId) => {
     // Log audit
     await HrmsRolePermissionAuditLog.create({
         company_id: role.company_id,
-        action: 'role_deleted',
+        action: 'delete',
         entity_type: 'role',
         entity_id: role.id,
         changed_by: userId,
-        change_details: JSON.stringify({
+        old_value: {
             role_name: role.role_name
-        })
+        }
     });
 
     return { message: 'Role deleted successfully' };
@@ -517,13 +518,13 @@ const assignPermissionsToRole = async (roleId, permissions, userId) => {
         // Log audit
         await HrmsRolePermissionAuditLog.create({
             company_id: role.company_id,
-            action: 'permissions_assigned',
+            action: 'assign',
             entity_type: 'role',
             entity_id: role.id,
             changed_by: userId,
-            change_details: JSON.stringify({
+            new_value: {
                 permissions: permissionRecords
-            })
+            }
         }, { transaction });
 
         await transaction.commit();
@@ -574,13 +575,13 @@ const revokePermissionsFromRole = async (roleId, permissions, userId) => {
         // Log audit
         await HrmsRolePermissionAuditLog.create({
             company_id: role.company_id,
-            action: 'permissions_revoked',
+            action: 'revoke',
             entity_type: 'role',
             entity_id: role.id,
             changed_by: userId,
-            change_details: JSON.stringify({
+            old_value: {
                 permissions: revokedRecords
-            })
+            }
         }, { transaction });
 
         await transaction.commit();
