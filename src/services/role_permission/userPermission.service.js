@@ -75,18 +75,18 @@ const assignRoleToUser = async (assignmentData, assignedBy) => {
         // Log audit
         await HrmsRolePermissionAuditLog.create({
             company_id,
-            user_id,
-            action: 'role_assigned',
+            action: 'assign',
             entity_type: 'user_role',
             entity_id: userRole.id,
             changed_by: assignedBy,
-            change_details: JSON.stringify({
+            new_value: {
+                user_id,
                 role_id,
                 role_name: role.role_name,
                 application_id: null,
                 is_super_admin: true,
                 note: 'Super admin role - access to all applications'
-            })
+            }
         });
 
         return {
@@ -123,16 +123,16 @@ const assignRoleToUser = async (assignmentData, assignedBy) => {
         // Log audit
         await HrmsRolePermissionAuditLog.create({
             company_id,
-            user_id,
-            action: 'role_assigned',
+            action: 'assign',
             entity_type: 'user_role',
             entity_id: userRole.id,
             changed_by: assignedBy,
-            change_details: JSON.stringify({
+            new_value: {
+                user_id,
                 role_id,
                 role_name: role.role_name,
                 is_super_admin: false
-            })
+            }
         });
 
         return userRole;
@@ -162,14 +162,14 @@ const revokeRoleFromUser = async (userRoleId, revokedBy) => {
     // Log audit
     await HrmsRolePermissionAuditLog.create({
         company_id: userRole.company_id,
-        user_id: userRole.user_id,
-        action: 'role_revoked',
+        action: 'revoke',
         entity_type: 'user_role',
         entity_id: userRole.id,
         changed_by: revokedBy,
-        change_details: JSON.stringify({
+        old_value: {
+            user_id: userRole.user_id,
             role_id: userRole.role_id
-        })
+        }
     });
 
     return { message: 'Role revoked from user successfully' };
@@ -253,9 +253,9 @@ const grantPermissionToUser = async (permissionData, grantedBy) => {
             userPermission = existing;
         } else {
             // Create new grant permission
+            // Note: HrmsUserMenuPermission doesn't have company_id column
             userPermission = await HrmsUserMenuPermission.create({
                 user_id,
-                company_id,
                 application_id,
                 menu_id,
                 permission_id,
@@ -268,17 +268,17 @@ const grantPermissionToUser = async (permissionData, grantedBy) => {
         // Log audit
         await HrmsRolePermissionAuditLog.create({
             company_id,
-            user_id,
-            action: 'permission_granted',
+            action: 'grant',
             entity_type: 'user_permission',
             entity_id: userPermission.id,
             changed_by: grantedBy,
-            change_details: JSON.stringify({
+            new_value: {
+                user_id,
                 menu_id,
                 menu_name: menu.menu_name,
                 permission_id,
                 permission_code: permission.permission_code
-            })
+            }
         }, { transaction });
 
         await transaction.commit();
@@ -341,9 +341,9 @@ const revokePermissionFromUser = async (permissionData, revokedBy) => {
             userPermission = existing;
         } else {
             // Create new revoke permission
+            // Note: HrmsUserMenuPermission doesn't have company_id column
             userPermission = await HrmsUserMenuPermission.create({
                 user_id,
-                company_id,
                 application_id,
                 menu_id,
                 permission_id,
@@ -356,17 +356,17 @@ const revokePermissionFromUser = async (permissionData, revokedBy) => {
         // Log audit
         await HrmsRolePermissionAuditLog.create({
             company_id,
-            user_id,
-            action: 'permission_revoked',
+            action: 'revoke',
             entity_type: 'user_permission',
             entity_id: userPermission.id,
             changed_by: revokedBy,
-            change_details: JSON.stringify({
+            old_value: {
+                user_id,
                 menu_id,
                 menu_name: menu.menu_name,
                 permission_id,
                 permission_code: permission.permission_code
-            })
+            }
         }, { transaction });
 
         await transaction.commit();
@@ -394,18 +394,20 @@ const removeUserPermissionOverride = async (userPermissionId, removedBy) => {
     });
 
     // Log audit
+    // Note: HrmsUserMenuPermission doesn't have company_id, so we can't log it here
+    // This function should ideally receive companyId as parameter
     await HrmsRolePermissionAuditLog.create({
-        company_id: userPermission.company_id,
-        user_id: userPermission.user_id,
-        action: 'permission_override_removed',
+        company_id: null, // Not available from userPermission
+        action: 'delete',
         entity_type: 'user_permission',
         entity_id: userPermission.id,
         changed_by: removedBy,
-        change_details: JSON.stringify({
+        old_value: {
+            user_id: userPermission.user_id,
             menu_id: userPermission.menu_id,
             permission_id: userPermission.permission_id,
             permission_type: userPermission.permission_type
-        })
+        }
     });
 
     return { message: 'User permission override removed successfully' };
@@ -413,12 +415,12 @@ const removeUserPermissionOverride = async (userPermissionId, removedBy) => {
 
 /**
  * Get user permission overrides
+ * Note: company_id is not in hrms_user_menu_permissions table, filter by user_id + application_id
  */
 const getUserPermissionOverrides = async (userId, companyId, applicationId) => {
     const overrides = await HrmsUserMenuPermission.findAll({
         where: {
             user_id: userId,
-            company_id: companyId,
             [Op.or]: [
                 { application_id: applicationId },
                 { application_id: null }  // Include super admin overrides
