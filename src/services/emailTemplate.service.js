@@ -353,6 +353,87 @@ const getEmailTemplateMasters = async (filters = {}) => {
     return masters;
 };
 
+/**
+ * Send test email with template
+ *
+ * @param {number} template_id - Template ID
+ * @param {number} company_id - Company ID
+ * @param {string} recipient_email - Recipient email
+ * @param {string} recipient_name - Recipient name
+ * @param {Object} placeholder_values - Values to replace in template
+ * @returns {Object} Send result
+ */
+const sendTestEmail = async (template_id, company_id, recipient_email, recipient_name, placeholder_values = {}) => {
+    const { replaceVariables } = require('../utils/email');
+    const nodemailer = require('nodemailer');
+    const { HrmsSmtpConfig } = require('../models/HrmsSmtpConfig');
+
+    // Get template
+    const template = await HrmsEmailTemplate.findOne({
+        where: {
+            id: template_id,
+            [Op.or]: [
+                { company_id: company_id },
+                { company_id: null }
+            ]
+        }
+    });
+
+    if (!template) {
+        throw new Error('Email template not found');
+    }
+
+    // Get SMTP config
+    let smtpConfig = await HrmsSmtpConfig.findOne({
+        where: { company_id: company_id, is_active: true },
+        raw: true
+    });
+
+    if (!smtpConfig) {
+        smtpConfig = await HrmsSmtpConfig.findOne({
+            where: { company_id: null, is_active: true },
+            raw: true
+        });
+    }
+
+    if (!smtpConfig) {
+        throw new Error('SMTP configuration not found');
+    }
+
+    // Replace placeholders in subject and body
+    const processedSubject = replaceVariables(template.subject, placeholder_values);
+    const processedBody = replaceVariables(template.body, placeholder_values);
+
+    // Create transporter
+    const transporter = nodemailer.createTransport({
+        host: smtpConfig.smtp_host,
+        port: smtpConfig.smtp_port,
+        secure: smtpConfig.smtp_encryption === 'ssl',
+        auth: {
+            user: smtpConfig.smtp_username,
+            pass: smtpConfig.smtp_password
+        },
+        tls: {
+            rejectUnauthorized: false
+        }
+    });
+
+    // Send test email
+    const info = await transporter.sendMail({
+        from: `"${smtpConfig.from_name}" <${smtpConfig.from_email}>`,
+        to: recipient_email,
+        subject: `[TEST] ${processedSubject}`,
+        html: processedBody
+    });
+
+    return {
+        success: true,
+        messageId: info.messageId,
+        recipient: recipient_email,
+        template_name: template.name
+    };
+};
+
 module.exports = {
     createEmailTemplate,
     updateEmailTemplate,
@@ -361,5 +442,6 @@ module.exports = {
     getEmailTemplateBySlug,
     deleteEmailTemplate,
     cloneTemplateForCompany,
-    getEmailTemplateMasters
+    getEmailTemplateMasters,
+    sendTestEmail
 };

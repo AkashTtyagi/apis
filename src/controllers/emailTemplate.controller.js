@@ -205,6 +205,43 @@ const getEmailTemplateMasters = async (req, res, next) => {
     }
 };
 
+/**
+ * Send test email
+ * POST /api/email-templates/send-test
+ */
+const sendTestEmail = async (req, res, next) => {
+    try {
+        const { template_id, recipient_email, recipient_name, placeholder_values } = req.body;
+        const company_id = req.user.company_id;
+
+        if (!template_id || isNaN(template_id)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Valid template_id is required'
+            });
+        }
+
+        if (!recipient_email) {
+            return res.status(400).json({
+                success: false,
+                message: 'recipient_email is required'
+            });
+        }
+
+        const result = await emailTemplateService.sendTestEmail(
+            parseInt(template_id),
+            company_id,
+            recipient_email,
+            recipient_name || 'Test User',
+            placeholder_values || {}
+        );
+
+        return sendSuccess(res, 'Test email sent successfully', result);
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     createEmailTemplate,
     updateEmailTemplate,
@@ -213,5 +250,6 @@ module.exports = {
     getEmailTemplateBySlug,
     deleteEmailTemplate,
     cloneTemplateForCompany,
-    getEmailTemplateMasters
+    getEmailTemplateMasters,
+    sendTestEmail
 };

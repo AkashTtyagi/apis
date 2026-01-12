@@ -20,6 +20,7 @@ router.post('/details', emailTemplateController.getEmailTemplateById);
 router.post('/by-slug', emailTemplateController.getEmailTemplateBySlug);
 router.post('/delete', emailTemplateController.deleteEmailTemplate);
 router.post('/clone', emailTemplateController.cloneTemplateForCompany);
+router.post('/send-test', emailTemplateController.sendTestEmail);
 
 // Email Template Master routes
 router.post('/masters', emailTemplateController.getEmailTemplateMasters);
