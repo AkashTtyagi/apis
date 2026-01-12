@@ -405,17 +405,25 @@ const sendTestEmail = async (template_id, company_id, recipient_email, recipient
     const processedBody = replaceVariables(template.body, placeholder_values);
 
     // Create transporter
+    // const transporter = nodemailer.createTransport({
+    //     host: smtpConfig.smtp_host,
+    //     port: smtpConfig.smtp_port,
+    //     secure: smtpConfig.smtp_encryption === 'ssl',
+    //     auth: {
+    //         user: smtpConfig.smtp_username,
+    //         pass: smtpConfig.smtp_password
+    //     },
+    //     tls: {
+    //         rejectUnauthorized: false
+    //     }
+    // });
+
     const transporter = nodemailer.createTransport({
-        host: smtpConfig.smtp_host,
-        port: smtpConfig.smtp_port,
-        secure: smtpConfig.smtp_encryption === 'ssl',
+        service: 'gmail',
         auth: {
-            user: smtpConfig.smtp_username,
-            pass: smtpConfig.smtp_password
+            user: 'tyagiakash874@gmail.com',
+            pass: 'pjzb svqm ypwc hmhj', // Not your Gmail password!
         },
-        tls: {
-            rejectUnauthorized: false
-        }
     });
 
     // Send test email
