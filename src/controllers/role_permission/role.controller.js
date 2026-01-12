@@ -145,10 +145,12 @@ const getRoleById = async (req, res, next) => {
 };
 
 /**
- * Create role from role master
- * POST /api/roles/create-from-master
+ * Create role (unified API)
+ * POST /api/roles/create
+ * If role_master_id provided - creates from template
+ * If role_master_id not provided - creates custom role
  */
-const createRoleFromMaster = async (req, res, next) => {
+const createRole = async (req, res, next) => {
     try {
         const userId = req.user.id;
         const companyId = req.user.company_id;
@@ -156,11 +158,11 @@ const createRoleFromMaster = async (req, res, next) => {
             ...req.body,
             company_id: companyId
         };
-        const role = await roleService.createRoleFromMaster(roleData, userId);
+        const role = await roleService.createRole(roleData, userId);
 
         res.status(201).json({
             success: true,
-            message: 'Role created from master successfully',
+            message: 'Role created successfully',
             data: role
         });
     } catch (error) {
@@ -168,28 +170,13 @@ const createRoleFromMaster = async (req, res, next) => {
     }
 };
 
-/**
- * Create custom role
- * POST /api/roles/create-custom
- */
-const createCustomRole = async (req, res, next) => {
-    try {
-        const userId = req.user.id;
-        const companyId = req.user.company_id;
-        const roleData = {
-            ...req.body,
-            company_id: companyId
-        };
-        const role = await roleService.createCustomRole(roleData, userId);
+// Keep old functions for backward compatibility
+const createRoleFromMaster = async (req, res, next) => {
+    return createRole(req, res, next);
+};
 
-        res.status(201).json({
-            success: true,
-            message: 'Custom role created successfully',
-            data: role
-        });
-    } catch (error) {
-        next(error);
-    }
+const createCustomRole = async (req, res, next) => {
+    return createRole(req, res, next);
 };
 
 /**
@@ -314,6 +301,7 @@ module.exports = {
     deleteRoleMaster,
     getCompanyRoles,
     getRoleById,
+    createRole,
     createRoleFromMaster,
     createCustomRole,
     updateRole,

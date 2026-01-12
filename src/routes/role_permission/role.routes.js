@@ -21,8 +21,9 @@ router.post('/masters/delete', roleController.deleteRoleMaster);
 // Company Role routes
 router.post('/get-company-roles', roleController.getCompanyRoles);
 router.post('/get-by-id', roleController.getRoleById);
-router.post('/create-from-master', roleController.createRoleFromMaster);
-router.post('/create-custom', roleController.createCustomRole);
+router.post('/create', roleController.createRole);  // Unified API
+router.post('/create-from-master', roleController.createRoleFromMaster);  // Backward compatibility
+router.post('/create-custom', roleController.createCustomRole);  // Backward compatibility
 router.post('/update', roleController.updateRole);
 router.post('/delete', roleController.deleteRole);
 

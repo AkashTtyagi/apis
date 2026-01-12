@@ -449,40 +449,31 @@ const getUserPermissionOverrides = async (userId, companyId, applicationId) => {
 const bulkGrantPermissionsToUser = async (bulkData, grantedBy) => {
     const { user_id, company_id, application_id, permissions } = bulkData;
 
-    const transaction = await sequelize.transaction();
+    const grantedPermissions = [];
 
-    try {
-        const grantedPermissions = [];
+    for (const perm of permissions) {
+        const { menu_id, permission_id } = perm;
 
-        for (const perm of permissions) {
-            const { menu_id, permission_id } = perm;
+        const userPermission = await grantPermissionToUser({
+            user_id,
+            company_id,
+            application_id,
+            menu_id,
+            permission_id
+        }, grantedBy);
 
-            const userPermission = await grantPermissionToUser({
-                user_id,
-                company_id,
-                application_id,
-                menu_id,
-                permission_id
-            }, grantedBy);
-
-            grantedPermissions.push({
-                menu_id,
-                permission_id,
-                id: userPermission.id
-            });
-        }
-
-        await transaction.commit();
-
-        return {
-            message: 'Permissions granted successfully',
-            count: grantedPermissions.length,
-            permissions: grantedPermissions
-        };
-    } catch (error) {
-        await transaction.rollback();
-        throw error;
+        grantedPermissions.push({
+            menu_id,
+            permission_id,
+            id: userPermission.id
+        });
     }
+
+    return {
+        message: 'Permissions granted successfully',
+        count: grantedPermissions.length,
+        permissions: grantedPermissions
+    };
 };
 
 /**
@@ -491,40 +482,31 @@ const bulkGrantPermissionsToUser = async (bulkData, grantedBy) => {
 const bulkRevokePermissionsFromUser = async (bulkData, revokedBy) => {
     const { user_id, company_id, application_id, permissions } = bulkData;
 
-    const transaction = await sequelize.transaction();
+    const revokedPermissions = [];
 
-    try {
-        const revokedPermissions = [];
+    for (const perm of permissions) {
+        const { menu_id, permission_id } = perm;
 
-        for (const perm of permissions) {
-            const { menu_id, permission_id } = perm;
+        const userPermission = await revokePermissionFromUser({
+            user_id,
+            company_id,
+            application_id,
+            menu_id,
+            permission_id
+        }, revokedBy);
 
-            const userPermission = await revokePermissionFromUser({
-                user_id,
-                company_id,
-                application_id,
-                menu_id,
-                permission_id
-            }, revokedBy);
-
-            revokedPermissions.push({
-                menu_id,
-                permission_id,
-                id: userPermission.id
-            });
-        }
-
-        await transaction.commit();
-
-        return {
-            message: 'Permissions revoked successfully',
-            count: revokedPermissions.length,
-            permissions: revokedPermissions
-        };
-    } catch (error) {
-        await transaction.rollback();
-        throw error;
+        revokedPermissions.push({
+            menu_id,
+            permission_id,
+            id: userPermission.id
+        });
     }
+
+    return {
+        message: 'Permissions revoked successfully',
+        count: revokedPermissions.length,
+        permissions: revokedPermissions
+    };
 };
 
 /**

@@ -18,7 +18,7 @@ const { getCompanyModules } = require('../package/companyPackage.service');
 const { Op } = require('sequelize');
 
 /**
- * Get all menus for an application
+ * Get all menus for an application (returns tree structure)
  */
 const getMenusByApplication = async (applicationId, filters = {}) => {
     const where = { application_id: applicationId };
@@ -38,11 +38,6 @@ const getMenusByApplication = async (applicationId, filters = {}) => {
             },
             attributes: ['id', 'module_code', 'module_name'],
             required: false
-        },
-        {
-            model: HrmsMenu,
-            as: 'children',
-            required: false
         }
     ];
 
@@ -52,13 +47,18 @@ const getMenusByApplication = async (applicationId, filters = {}) => {
         includeOptions[0].required = true;
     }
 
+    // Get all menus for this application
     const menus = await HrmsMenu.findAll({
         where,
         include: includeOptions,
-        order: [['display_order', 'ASC']]
+        order: [['display_order', 'ASC']],
+        raw:true
     });
 
-    return menus;
+    // Build tree structure (returns only root menus with nested children)
+    const menuTree = buildMenuTree(menus);
+
+    return menuTree;
 };
 
 /**

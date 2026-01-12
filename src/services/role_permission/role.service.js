@@ -44,7 +44,8 @@ const getAllRoleMasters = async (filters = {}) => {
 
     const roleMasters = await HrmsRoleMaster.findAll({
         where,
-        order: [['display_order', 'ASC']]
+        order: [['display_order', 'ASC']],
+        raw:true
     });
 
     return roleMasters;
@@ -236,142 +237,142 @@ const getRoleById = async (roleId) => {
 };
 
 /**
- * Create company role from role master
+ * Create company role - unified API
+ * If role_master_id is provided, creates from template
+ * If role_master_id is not provided, creates custom role
  */
-const createRoleFromMaster = async (roleData, userId) => {
+const createRole = async (roleData, userId) => {
     const {
         company_id,
         application_id,
         role_master_id,
         role_name,
+        role_code,
         role_description
     } = roleData;
 
-    // Validate role master exists
-    const roleMaster = await HrmsRoleMaster.findByPk(role_master_id);
-    if (!roleMaster) {
-        throw new Error('Role master not found');
-    }
-
-    // Check if this is a super admin role (application_id is NULL)
-    if (roleMaster.application_id === null) {
-        // Super Admin Role - Create ONE role with application_id = NULL
-        // This role will automatically cover ALL applications (present and future)
-
-        // Check if super admin role already exists for this company
-        const existingSuperAdmin = await HrmsRole.findOne({
-            where: {
-                company_id,
-                application_id: null,
-                is_super_admin: true,
-                is_active: true
-            }
-        });
-
-        if (existingSuperAdmin) {
-            throw new Error('Super admin role already exists for this company');
+    // If role_master_id provided - create from template
+    if (role_master_id) {
+        const roleMaster = await HrmsRoleMaster.findByPk(role_master_id);
+        if (!roleMaster) {
+            throw new Error('Role master not found');
         }
 
-        const role = await HrmsRole.create({
-            company_id,
-            application_id: null, // NULL = covers ALL applications
-            role_master_id,
-            role_code: roleMaster.role_code,
-            role_name: role_name || roleMaster.role_name,
-            role_description: role_description || roleMaster.role_description,
-            is_super_admin: true,
-            is_active: true,
-            created_by: userId
-        });
+        // Check if this is a super admin role (application_id is NULL)
+        if (roleMaster.application_id === null) {
+            // Check if super admin role already exists for this company
+            const existingSuperAdmin = await HrmsRole.findOne({
+                where: {
+                    company_id,
+                    application_id: null,
+                    is_super_admin: true,
+                    is_active: true
+                }
+            });
 
-        // Log audit
-        await HrmsRolePermissionAuditLog.create({
-            company_id,
-            action: 'role_created',
-            entity_type: 'role',
-            entity_id: role.id,
-            changed_by: userId,
-            change_details: JSON.stringify({
-                role_name: role.role_name,
-                role_master_id,
+            if (existingSuperAdmin) {
+                throw new Error('Super admin role already exists for this company');
+            }
+
+            const role = await HrmsRole.create({
+                company_id,
                 application_id: null,
-                is_super_admin: true,
-                note: 'Super admin role with access to all applications'
-            })
-        });
-
-        return {
-            message: 'Super admin role created successfully. This role provides access to ALL applications.',
-            role,
-            is_super_admin: true
-        };
-
-    } else {
-        // Normal Role - Create for specific application
-        const role = await HrmsRole.create({
-            company_id,
-            application_id: application_id || roleMaster.application_id,
-            role_master_id,
-            role_code: roleMaster.role_code,
-            role_name: role_name || roleMaster.role_name,
-            role_description: role_description || roleMaster.role_description,
-            is_super_admin: false,
-            is_active: true,
-            created_by: userId
-        });
-
-        // Log audit
-        await HrmsRolePermissionAuditLog.create({
-            company_id,
-            action: 'role_created',
-            entity_type: 'role',
-            entity_id: role.id,
-            changed_by: userId,
-            change_details: JSON.stringify({
-                role_name: role.role_name,
                 role_master_id,
-                is_super_admin: false
-            })
-        });
+                role_code: roleMaster.role_code,
+                role_name: role_name || roleMaster.role_name,
+                role_description: role_description || roleMaster.role_description,
+                is_super_admin: true,
+                is_active: true,
+                created_by: userId
+            });
 
-        return role;
+            await HrmsRolePermissionAuditLog.create({
+                company_id,
+                action: 'role_created',
+                entity_type: 'role',
+                entity_id: role.id,
+                changed_by: userId,
+                change_details: JSON.stringify({
+                    role_name: role.role_name,
+                    role_master_id,
+                    is_super_admin: true
+                })
+            });
+
+            return role;
+        } else {
+            // Normal role from template
+            const role = await HrmsRole.create({
+                company_id,
+                application_id: application_id || roleMaster.application_id,
+                role_master_id,
+                role_code: roleMaster.role_code,
+                role_name: role_name || roleMaster.role_name,
+                role_description: role_description || roleMaster.role_description,
+                is_super_admin: false,
+                is_active: true,
+                created_by: userId
+            });
+
+            await HrmsRolePermissionAuditLog.create({
+                company_id,
+                action: 'role_created',
+                entity_type: 'role',
+                entity_id: role.id,
+                changed_by: userId,
+                change_details: JSON.stringify({
+                    role_name: role.role_name,
+                    role_master_id,
+                    is_super_admin: false
+                })
+            });
+
+            return role;
+        }
     }
-};
 
-/**
- * Create custom company role (without role master)
- */
-const createCustomRole = async (roleData, userId) => {
-    const {
-        company_id,
-        application_id,
-        role_name,
-        role_description
-    } = roleData;
+    // No role_master_id - create custom role
+    if (!role_name) {
+        throw new Error('role_name is required for custom role');
+    }
+    if (!application_id) {
+        throw new Error('application_id is required for custom role');
+    }
 
     const role = await HrmsRole.create({
         company_id,
         application_id,
         role_master_id: null,
+        role_code: role_code || role_name.toUpperCase().replace(/\s+/g, '_'),
         role_name,
         role_description,
+        is_super_admin: false,
         is_active: true,
         created_by: userId
     });
 
-    // Log audit
     await HrmsRolePermissionAuditLog.create({
         company_id,
-        action: 'custom_role_created',
+        action: 'role_created',
         entity_type: 'role',
         entity_id: role.id,
         changed_by: userId,
         change_details: JSON.stringify({
-            role_name: role.role_name
+            role_name: role.role_name,
+            is_custom: true
         })
     });
 
     return role;
+};
+
+// Keep old functions for backward compatibility
+const createRoleFromMaster = async (roleData, userId) => {
+    return createRole(roleData, userId);
+};
+
+const createCustomRole = async (roleData, userId) => {
+    return createRole(roleData, userId);
 };
 
 /**
@@ -682,6 +683,7 @@ module.exports = {
     deleteRoleMaster,
     getCompanyRoles,
     getRoleById,
+    createRole,
     createRoleFromMaster,
     createCustomRole,
     updateRole,
