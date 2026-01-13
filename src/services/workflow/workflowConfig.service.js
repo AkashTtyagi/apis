@@ -16,7 +16,8 @@ const {
     HrmsWorkflowCondition,
     HrmsWorkflowConditionRule,
     HrmsWorkflowApplicability,
-    HrmsWorkflowVersion
+    HrmsWorkflowVersion,
+    HrmsWorkflowEmailTemplate
 } = require('../../models/workflow');
 const { Op } = require('sequelize');
 const { sequelize: db } = require('../../utils/database');
@@ -187,6 +188,33 @@ const getWorkflowConfigById = async (configId) => {
                 }
             ]
         });
+
+        // Fetch email config for each stage and attach it
+        if (config && config.stages) {
+            for (const stage of config.stages) {
+                const emailConfigs = await HrmsWorkflowEmailTemplate.findAll({
+                    where: { stage_id: stage.id },
+                    raw: true
+                });
+
+                // Convert array to object keyed by event_type
+                const emailConfigObj = {};
+                for (const ec of emailConfigs) {
+                    emailConfigObj[ec.event_type] = {
+                        enabled: ec.enabled,
+                        template_id: ec.email_template_id,
+                        recipients: {
+                            to: ec.to_recipients || [],
+                            cc: ec.cc_recipients || [],
+                            bcc: ec.bcc_recipients || []
+                        },
+                        custom_emails: ec.custom_emails || [],
+                        trigger_before_hours: ec.trigger_before_hours
+                    };
+                }
+                stage.dataValues.email_config = emailConfigObj;
+            }
+        }
 
         return config;
 
@@ -527,7 +555,8 @@ const createStage = async (workflowConfigId, stageData, transaction = null) => {
             on_approve_next_stage_id,
             on_reject_action,
             on_reject_stage_id,
-            approvers = []
+            approvers = [],
+            email_config = null
         } = stageData;
 
         // Validate required stage fields
@@ -577,6 +606,37 @@ const createStage = async (workflowConfigId, stageData, transaction = null) => {
             for (const approverData of approvers) {
                 await createStageApprover(stage.id, approverData, transaction);
             }
+        }
+
+        // Save email config if provided
+        if (email_config && typeof email_config === 'object') {
+            // Get workflow config to get company_id
+            const workflowConfig = await HrmsWorkflowConfig.findByPk(workflowConfigId, {
+                attributes: ['company_id'],
+                transaction
+            });
+
+            const companyId = workflowConfig?.company_id;
+
+            // Save each event type config
+            for (const [eventType, eventConfig] of Object.entries(email_config)) {
+                if (eventConfig && typeof eventConfig === 'object') {
+                    await HrmsWorkflowEmailTemplate.create({
+                        company_id: companyId,
+                        workflow_config_id: workflowConfigId,
+                        stage_id: stage.id,
+                        event_type: eventType,
+                        email_template_id: eventConfig.template_id || null,
+                        enabled: eventConfig.enabled !== false,
+                        to_recipients: eventConfig.recipients?.to || [],
+                        cc_recipients: eventConfig.recipients?.cc || [],
+                        bcc_recipients: eventConfig.recipients?.bcc || [],
+                        custom_emails: eventConfig.custom_emails || [],
+                        trigger_before_hours: eventConfig.trigger_before_hours || null
+                    }, { transaction });
+                }
+            }
+            console.log(`✓ Email config saved for stage: ${stage.stage_name}`);
         }
 
         return stage;

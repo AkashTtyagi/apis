@@ -1,6 +1,7 @@
 /**
- * Workflow Email Template Model
- * Stores email templates for workflow notifications
+ * Workflow Email Template Config Model
+ * Stores email CONFIGURATION per workflow stage and event
+ * Links to hrms_email_templates for actual email content
  */
 
 const { DataTypes } = require('sequelize');
@@ -13,94 +14,97 @@ const HrmsWorkflowEmailTemplate = sequelize.define('HrmsWorkflowEmailTemplate', 
         autoIncrement: true
     },
     company_id: {
-        type: DataTypes.INTEGER.UNSIGNED,
+        type: DataTypes.INTEGER,
         allowNull: false
     },
-    workflow_master_id: {
+
+    // Link to workflow config and stage
+    workflow_config_id: {
         type: DataTypes.INTEGER.UNSIGNED,
         allowNull: true,
-        comment: 'FK to hrms_workflow_master (NULL for global templates)'
+        comment: 'FK to hrms_workflow_config'
     },
-    template_name: {
-        type: DataTypes.STRING(255),
-        allowNull: false,
-        comment: 'Template name'
+    stage_id: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: true,
+        comment: 'FK to hrms_workflow_stages (NULL for workflow-level config)'
     },
-    template_code: {
-        type: DataTypes.STRING(100),
-        allowNull: false,
-        comment: 'Unique template code'
-    },
+
+    // Event type
     event_type: {
         type: DataTypes.ENUM(
-            'submission',
-            'approval',
-            'rejection',
-            'auto_approval',
-            'auto_rejection',
-            'escalation',
-            'sla_breach',
-            'withdrawal',
-            'delegation',
-            'pending_reminder',
-            'final_approval',
-            'final_rejection'
+            'on_submission',
+            'on_stage_assigned',
+            'on_approval',
+            'on_rejection',
+            'on_auto_approval',
+            'on_auto_rejection',
+            'on_escalation',
+            'on_sla_breach',
+            'on_withdrawal',
+            'on_delegation',
+            'on_pending_reminder',
+            'on_final_approval',
+            'on_final_rejection'
         ),
         allowNull: false,
-        comment: 'When to trigger this template'
+        comment: 'Event type that triggers email'
     },
-    subject: {
-        type: DataTypes.STRING(500),
-        allowNull: false,
-        comment: 'Email subject (supports placeholders)'
-    },
-    body_html: {
-        type: DataTypes.TEXT,
-        allowNull: false,
-        comment: 'HTML email body (supports placeholders)'
-    },
-    body_text: {
-        type: DataTypes.TEXT,
+
+    // Link to hrms_email_templates for actual content
+    email_template_id: {
+        type: DataTypes.INTEGER,
         allowNull: true,
-        comment: 'Plain text email body (optional)'
+        comment: 'FK to hrms_email_templates (NULL = use default/no email)'
     },
+
+    // Enable/Disable
+    enabled: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
+        comment: 'Is email enabled for this event'
+    },
+
+    // Recipients Configuration (JSON)
+    // Format: [{"type": "approver"}, {"type": "requester"}, {"type": "hr"}, {"type": "custom"}]
     to_recipients: {
         type: DataTypes.JSON,
         allowNull: true,
-        comment: 'Array of recipient types/emails'
+        comment: 'TO recipients array'
     },
     cc_recipients: {
         type: DataTypes.JSON,
         allowNull: true,
-        comment: 'CC recipients (can include placeholders like {{rm_email}}, {{hr_email}})'
+        comment: 'CC recipients array'
     },
     bcc_recipients: {
         type: DataTypes.JSON,
         allowNull: true,
-        comment: 'BCC recipients'
+        comment: 'BCC recipients array'
     },
-    available_placeholders: {
+
+    // Custom email addresses
+    custom_emails: {
         type: DataTypes.JSON,
         allowNull: true,
-        comment: 'List of available placeholders for this template'
+        comment: 'Array of custom email addresses'
     },
-    is_active: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-        defaultValue: true
+
+    // Additional settings per event
+    trigger_before_hours: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'For pending_reminder: hours before SLA breach'
     },
-    is_default: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-        defaultValue: false,
-        comment: 'Default template for this event'
-    },
+
+    // Audit
     created_by: {
-        type: DataTypes.INTEGER.UNSIGNED,
+        type: DataTypes.INTEGER,
         allowNull: true
     },
     updated_by: {
-        type: DataTypes.INTEGER.UNSIGNED,
+        type: DataTypes.INTEGER,
         allowNull: true
     }
 }, {
@@ -109,30 +113,50 @@ const HrmsWorkflowEmailTemplate = sequelize.define('HrmsWorkflowEmailTemplate', 
     underscored: true,
     indexes: [
         {
-            name: 'unique_company_template_code',
-            unique: true,
-            fields: ['company_id', 'template_code']
-        },
-        {
             name: 'idx_company_id',
             fields: ['company_id']
         },
         {
-            name: 'idx_workflow_master_id',
-            fields: ['workflow_master_id']
+            name: 'idx_workflow_config',
+            fields: ['workflow_config_id']
+        },
+        {
+            name: 'idx_stage_id',
+            fields: ['stage_id']
         },
         {
             name: 'idx_event_type',
             fields: ['event_type']
+        },
+        {
+            name: 'idx_email_template',
+            fields: ['email_template_id']
+        },
+        {
+            name: 'unique_stage_event',
+            unique: true,
+            fields: ['stage_id', 'event_type']
         }
     ]
 });
 
 HrmsWorkflowEmailTemplate.associate = (models) => {
-    // Belongs to Workflow Master
-    HrmsWorkflowEmailTemplate.belongsTo(models.HrmsWorkflowMaster, {
-        foreignKey: 'workflow_master_id',
-        as: 'workflowMaster'
+    // Belongs to Workflow Config
+    HrmsWorkflowEmailTemplate.belongsTo(models.HrmsWorkflowConfig, {
+        foreignKey: 'workflow_config_id',
+        as: 'workflowConfig'
+    });
+
+    // Belongs to Workflow Stage
+    HrmsWorkflowEmailTemplate.belongsTo(models.HrmsWorkflowStage, {
+        foreignKey: 'stage_id',
+        as: 'stage'
+    });
+
+    // Belongs to Email Template (hrms_email_templates)
+    HrmsWorkflowEmailTemplate.belongsTo(models.HrmsEmailTemplate, {
+        foreignKey: 'email_template_id',
+        as: 'emailTemplate'
     });
 };
 

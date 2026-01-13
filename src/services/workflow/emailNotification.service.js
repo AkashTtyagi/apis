@@ -1,31 +1,63 @@
 /**
  * Email Notification Service
  * Sends workflow-related email notifications
+ * Uses hrms_workflow_email_templates for config and hrms_email_templates for content
  */
 
 const { HrmsWorkflowEmailTemplate, HrmsWorkflowRequest, HrmsWorkflowAction } = require('../../models/workflow');
+const { HrmsEmailTemplate } = require('../../models/HrmsEmailTemplate');
 const { HrmsEmployee } = require('../../models/HrmsEmployee');
+const { HrmsSmtpConfig } = require('../../models/HrmsSmtpConfig');
 const nodemailer = require('nodemailer');
 
-// Configure email transporter (update with your SMTP settings)
-const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: process.env.SMTP_PORT || 587,
-    secure: false,
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASSWORD
+/**
+ * Get SMTP transporter for company
+ * @param {number} companyId - Company ID
+ * @returns {Promise<Object>} Nodemailer transporter
+ */
+const getTransporter = async (companyId) => {
+    try {
+        const smtpConfig = await HrmsSmtpConfig.findOne({
+            where: { company_id: companyId, is_active: 1 }
+        });
+
+        if (smtpConfig) {
+            return nodemailer.createTransport({
+                host: smtpConfig.smtp_host,
+                port: smtpConfig.smtp_port,
+                secure: smtpConfig.smtp_encryption === 'ssl',
+                auth: {
+                    user: smtpConfig.smtp_username,
+                    pass: smtpConfig.smtp_password
+                }
+            });
+        }
+
+        // Fallback to environment config
+        return nodemailer.createTransport({
+            host: process.env.SMTP_HOST || 'smtp.gmail.com',
+            port: process.env.SMTP_PORT || 587,
+            secure: false,
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASSWORD
+            }
+        });
+    } catch (error) {
+        console.error('Error getting transporter:', error);
+        throw error;
     }
-});
+};
 
 /**
  * Send workflow notification email
  * @param {number} requestId - Request ID
- * @param {string} eventType - Event type (submission, approval, rejection, etc.)
- * @param {Array|string} customRecipients - Custom recipients (optional)
+ * @param {number} stageId - Stage ID
+ * @param {string} eventType - Event type (on_submission, on_approval, etc.)
+ * @param {Object} additionalContext - Additional context data
  * @returns {Promise<Object>} Email send result
  */
-const sendNotification = async (requestId, eventType, customRecipients = null) => {
+const sendNotification = async (requestId, stageId, eventType, additionalContext = {}) => {
     try {
         // Get request details with related data
         const request = await HrmsWorkflowRequest.findByPk(requestId, {
@@ -42,19 +74,36 @@ const sendNotification = async (requestId, eventType, customRecipients = null) =
 
         // Get employee details
         const employee = await HrmsEmployee.findByPk(request.employee_id, {
-            attributes: ['id', 'user_id', 'first_name', 'last_name', 'email', 'employee_code', 'designation_id', 'department_id']
+            attributes: ['id', 'user_id', 'first_name', 'last_name', 'email', 'employee_code', 'designation_id', 'department_id', 'reporting_manager_id']
         });
 
         if (!employee) {
             throw new Error('Employee not found');
         }
 
-        // Get email template
-        const template = await getEmailTemplate(request.workflow_master_id, eventType, request.company_id);
+        // Get email config for this stage and event
+        const emailConfig = await HrmsWorkflowEmailTemplate.findOne({
+            where: {
+                stage_id: stageId,
+                event_type: eventType
+            }
+        });
 
-        if (!template) {
-            console.log(`No email template found for event: ${eventType}`);
-            return { sent: false, reason: 'No template configured' };
+        // Check if email is enabled
+        if (!emailConfig || !emailConfig.enabled) {
+            console.log(`Email disabled for event: ${eventType}, stage: ${stageId}`);
+            return { sent: false, reason: 'Email disabled for this event' };
+        }
+
+        // Get email template from hrms_email_templates
+        let emailTemplate = null;
+        if (emailConfig.email_template_id) {
+            emailTemplate = await HrmsEmailTemplate.findByPk(emailConfig.email_template_id);
+        }
+
+        if (!emailTemplate) {
+            console.log(`No email template configured for event: ${eventType}`);
+            return { sent: false, reason: 'No email template configured' };
         }
 
         // Get latest action (if any)
@@ -64,19 +113,40 @@ const sendNotification = async (requestId, eventType, customRecipients = null) =
         });
 
         // Build context for placeholder replacement
-        const context = await buildEmailContext(request, employee, latestAction);
+        const context = await buildEmailContext(request, employee, latestAction, additionalContext);
 
         // Replace placeholders in subject and body
-        const subject = replacePlaceholders(template.subject, context);
-        const bodyHtml = replacePlaceholders(template.body_html, context);
+        const subject = replacePlaceholders(emailTemplate.subject, context);
+        const bodyHtml = replacePlaceholders(emailTemplate.body_html, context);
 
         // Resolve recipients
-        const toRecipients = customRecipients || await resolveRecipients(template.to_recipients, context, request);
-        const ccRecipients = await resolveRecipients(template.cc_recipients, context, request);
-        const bccRecipients = await resolveRecipients(template.bcc_recipients, context, request);
+        const toRecipients = await resolveRecipients(
+            emailConfig.to_recipients,
+            emailConfig.custom_emails,
+            context,
+            request
+        );
+        const ccRecipients = await resolveRecipients(
+            emailConfig.cc_recipients,
+            emailConfig.custom_emails,
+            context,
+            request
+        );
+        const bccRecipients = await resolveRecipients(
+            emailConfig.bcc_recipients,
+            emailConfig.custom_emails,
+            context,
+            request
+        );
+
+        if (toRecipients.length === 0) {
+            console.log(`No recipients resolved for event: ${eventType}`);
+            return { sent: false, reason: 'No recipients' };
+        }
 
         // Send email
-        const emailResult = await sendEmail(toRecipients, ccRecipients, bccRecipients, subject, bodyHtml);
+        const transporter = await getTransporter(request.company_id);
+        const emailResult = await sendEmail(transporter, toRecipients, ccRecipients, bccRecipients, subject, bodyHtml, request.company_id);
 
         // Log email sent
         await logEmailSent(requestId, eventType, toRecipients, emailResult);
@@ -98,53 +168,14 @@ const sendNotification = async (requestId, eventType, customRecipients = null) =
 };
 
 /**
- * Get email template for event type
- * @param {number} workflowMasterId - Workflow master ID
- * @param {string} eventType - Event type
- * @param {number} companyId - Company ID
- * @returns {Promise<Object>} Email template
- */
-const getEmailTemplate = async (workflowMasterId, eventType, companyId) => {
-    try {
-        // Try to find workflow-specific template
-        let template = await HrmsWorkflowEmailTemplate.findOne({
-            where: {
-                company_id: companyId,
-                workflow_master_id: workflowMasterId,
-                event_type: eventType,
-                is_active: true
-            }
-        });
-
-        // If not found, try global template (workflow_master_id = NULL)
-        if (!template) {
-            template = await HrmsWorkflowEmailTemplate.findOne({
-                where: {
-                    company_id: companyId,
-                    workflow_master_id: null,
-                    event_type: eventType,
-                    is_active: true,
-                    is_default: true
-                }
-            });
-        }
-
-        return template;
-
-    } catch (error) {
-        console.error('Error getting email template:', error);
-        return null;
-    }
-};
-
-/**
  * Build email context for placeholder replacement
  * @param {Object} request - Request object
  * @param {Object} employee - Employee object
  * @param {Object} action - Latest action object
+ * @param {Object} additionalContext - Additional context
  * @returns {Promise<Object>} Context object
  */
-const buildEmailContext = async (request, employee, action = null) => {
+const buildEmailContext = async (request, employee, action = null, additionalContext = {}) => {
     try {
         const context = {
             // Employee details
@@ -183,8 +214,11 @@ const buildEmailContext = async (request, employee, action = null) => {
             current_time: new Date().toLocaleTimeString(),
             system_url: process.env.APP_URL || 'http://localhost:3000',
 
-            // Company details (to be populated if needed)
-            company_name: 'Company Name', // TODO: Get from company table
+            // Company details
+            company_name: 'Company Name',
+
+            // Merge additional context
+            ...additionalContext
         };
 
         // Get approver details if action exists
@@ -200,7 +234,7 @@ const buildEmailContext = async (request, employee, action = null) => {
             }
         }
 
-        // Get RM details for cc
+        // Get RM details
         if (employee.reporting_manager_id) {
             const rm = await HrmsEmployee.findByPk(employee.reporting_manager_id, {
                 attributes: ['first_name', 'last_name', 'email']
@@ -211,9 +245,6 @@ const buildEmailContext = async (request, employee, action = null) => {
                 context.rm_email = rm.email;
             }
         }
-
-        // Get HR admin email (placeholder - implement based on your HR structure)
-        context.hr_email = 'hr@company.com'; // TODO: Get from HR admin table
 
         return context;
 
@@ -245,41 +276,98 @@ const replacePlaceholders = (text, context) => {
 };
 
 /**
- * Resolve email recipients
- * @param {Array|string} recipientConfig - Recipient configuration (can include placeholders)
- * @param {Object} context - Context data
+ * Resolve email recipients based on recipient types
+ * @param {Array} recipientConfig - Array of recipient objects [{"type": "approver"}, {"type": "hr"}]
+ * @param {Array} customEmails - Array of custom email addresses
+ * @param {Object} context - Context data with emails
  * @param {Object} request - Request object
  * @returns {Promise<Array>} Array of email addresses
  */
-const resolveRecipients = async (recipientConfig, context, request) => {
+const resolveRecipients = async (recipientConfig, customEmails = [], context, request) => {
     try {
-        if (!recipientConfig) return [];
+        if (!recipientConfig || !Array.isArray(recipientConfig)) return [];
 
-        let recipients = [];
-
-        // If string, convert to array
-        if (typeof recipientConfig === 'string') {
-            recipientConfig = [recipientConfig];
-        }
-
-        // If not array, return empty
-        if (!Array.isArray(recipientConfig)) {
-            return [];
-        }
+        const recipients = new Set();
 
         for (const recipient of recipientConfig) {
-            // Replace placeholders in recipient
-            const resolvedRecipient = replacePlaceholders(recipient, context);
+            const recipientType = recipient.type;
 
-            // Validate email format
-            if (isValidEmail(resolvedRecipient)) {
-                recipients.push(resolvedRecipient);
-            } else {
-                console.warn(`Invalid email address: ${resolvedRecipient}`);
+            switch (recipientType) {
+                case 'requester':
+                    if (context.employee_email) {
+                        recipients.add(context.employee_email);
+                    }
+                    break;
+
+                case 'approver':
+                    if (context.approver_email) {
+                        recipients.add(context.approver_email);
+                    }
+                    break;
+
+                case 'next_approver':
+                    // TODO: Get next stage approver email
+                    break;
+
+                case 'hr':
+                    // Get HR admin email
+                    const hrAdmin = await HrmsEmployee.findOne({
+                        where: {
+                            company_id: request.company_id,
+                            // Add HR role condition if needed
+                        },
+                        attributes: ['email']
+                    });
+                    if (hrAdmin?.email) {
+                        recipients.add(hrAdmin.email);
+                    }
+                    break;
+
+                case 'finance':
+                    // TODO: Get finance team email
+                    break;
+
+                case 'delegatee':
+                    if (context.delegatee_email) {
+                        recipients.add(context.delegatee_email);
+                    }
+                    break;
+
+                case 'original_approver':
+                    if (context.original_approver_email) {
+                        recipients.add(context.original_approver_email);
+                    }
+                    break;
+
+                case 'escalation_approver':
+                    if (context.escalation_approver_email) {
+                        recipients.add(context.escalation_approver_email);
+                    }
+                    break;
+
+                case 'approver_manager':
+                    if (context.approver_manager_email) {
+                        recipients.add(context.approver_manager_email);
+                    }
+                    break;
+
+                case 'custom':
+                    // Add custom emails
+                    if (customEmails && Array.isArray(customEmails)) {
+                        for (const email of customEmails) {
+                            if (isValidEmail(email)) {
+                                recipients.add(email);
+                            }
+                        }
+                    }
+                    break;
+
+                default:
+                    console.warn(`Unknown recipient type: ${recipientType}`);
             }
         }
 
-        return recipients;
+        return Array.from(recipients);
 
     } catch (error) {
         console.error('Error resolving recipients:', error);
@@ -289,22 +377,32 @@ const resolveRecipients = async (recipientConfig, context, request) => {
 
 /**
  * Send email using nodemailer
+ * @param {Object} transporter - Nodemailer transporter
  * @param {Array|string} to - To recipients
  * @param {Array|string} cc - CC recipients
  * @param {Array|string} bcc - BCC recipients
  * @param {string} subject - Email subject
  * @param {string} html - Email HTML body
+ * @param {number} companyId - Company ID
  * @returns {Promise<Object>} Send result
  */
-const sendEmail = async (to, cc, bcc, subject, html) => {
+const sendEmail = async (transporter, to, cc, bcc, subject, html, companyId) => {
     try {
+        // Get sender info
+        const smtpConfig = await HrmsSmtpConfig.findOne({
+            where: { company_id: companyId, is_active: 1 }
+        });
+
+        const fromEmail = smtpConfig?.from_email || process.env.SMTP_FROM || 'noreply@company.com';
+        const fromName = smtpConfig?.from_name || 'HRMS System';
+
         // Convert arrays to comma-separated strings
         const toStr = Array.isArray(to) ? to.join(', ') : to;
         const ccStr = Array.isArray(cc) ? cc.join(', ') : cc;
         const bccStr = Array.isArray(bcc) ? bcc.join(', ') : bcc;
 
         const mailOptions = {
-            from: process.env.SMTP_FROM || 'noreply@company.com',
+            from: `"${fromName}" <${fromEmail}>`,
             to: toStr,
             cc: ccStr || undefined,
             bcc: bccStr || undefined,
@@ -363,8 +461,9 @@ const logEmailSent = async (requestId, eventType, recipients, emailResult) => {
  * @returns {boolean} True if valid
  */
 const isValidEmail = (email) => {
+    if (!email || typeof email !== 'string') return false;
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
+    return regex.test(email.trim());
 };
 
 /**
@@ -378,8 +477,9 @@ const sendBulkNotifications = async (notifications) => {
     for (const notification of notifications) {
         const result = await sendNotification(
             notification.requestId,
+            notification.stageId,
             notification.eventType,
-            notification.customRecipients
+            notification.additionalContext
         );
         results.push(result);
     }
@@ -390,20 +490,21 @@ const sendBulkNotifications = async (notifications) => {
 /**
  * Send reminder email for pending approval
  * @param {number} requestId - Request ID
+ * @param {number} stageId - Stage ID
  * @returns {Promise<Object>} Send result
  */
-const sendReminderEmail = async (requestId) => {
-    return await sendNotification(requestId, 'pending_reminder');
+const sendReminderEmail = async (requestId, stageId) => {
+    return await sendNotification(requestId, stageId, 'on_pending_reminder');
 };
 
 module.exports = {
     sendNotification,
-    getEmailTemplate,
     buildEmailContext,
     replacePlaceholders,
     resolveRecipients,
     sendEmail,
     logEmailSent,
     sendBulkNotifications,
-    sendReminderEmail
+    sendReminderEmail,
+    getTransporter
 };
