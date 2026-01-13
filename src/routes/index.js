@@ -37,6 +37,7 @@ const essPolicyRoutes = require('./policy/ess.policy.routes');
 
 // ESS Microservice routes
 const essAttendanceRoutes = require('../microservices/ess/routes/attendance.routes');
+const essBreakRoutes = require('../microservices/ess/routes/break.routes');
 
 // Organizational routes
 const channelRoutes = require('./organizational/channel.routes');
@@ -137,6 +138,9 @@ router.use('/ess/policy', essPolicyRoutes);
 
 // ESS Attendance routes (Clock IN/OUT, Punch status, History)
 router.use('/ess/attendance', essAttendanceRoutes);
+
+// ESS Break routes (Start/End Break, Break status, History)
+router.use('/ess/break', essBreakRoutes);
 
 // Organizational structure routes
 router.use('/channels', channelRoutes);
