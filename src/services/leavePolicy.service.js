@@ -370,11 +370,235 @@ const deleteLeavePolicy = async (policy_id, company_id) => {
     }
 };
 
+/**
+ * Assign leave policy to employees
+ * Updates employee records and initializes leave balances
+ *
+ * @param {number} policy_id - Leave policy ID
+ * @param {Array} employee_ids - Array of employee IDs
+ * @param {number} company_id - Company ID
+ * @param {boolean} initialize_balance - Whether to initialize leave balance (default: true)
+ * @param {number} user_id - User performing the action
+ * @returns {Object} Assignment result
+ */
+const assignLeavePolicyToEmployees = async (policy_id, employee_ids, company_id, initialize_balance = true, user_id = null) => {
+    const transaction = await sequelize.transaction();
+
+    try {
+        // Validate policy exists and belongs to company
+        const policy = await HrmsLeavePolicyMaster.findOne({
+            where: { id: policy_id, company_id },
+            include: [{
+                model: HrmsLeavePolicyMapping,
+                as: 'policyMappings',
+                where: { is_active: true },
+                required: false,
+                include: [{
+                    model: HrmsLeaveMaster,
+                    as: 'leaveType',
+                    where: { is_active: true },
+                    required: true
+                }]
+            }]
+        });
+
+        if (!policy) {
+            throw new Error('Leave policy not found');
+        }
+
+        // Import models here to avoid circular dependency
+        const { HrmsEmployee } = require('../models/HrmsEmployee');
+        const { HrmsLeaveLedger } = require('../models/HrmsLeaveLedger');
+        const { Op } = require('sequelize');
+
+        // Validate employees exist and belong to company
+        const employees = await HrmsEmployee.findAll({
+            where: {
+                id: { [Op.in]: employee_ids },
+                company_id,
+                status: { [Op.in]: [0, 1, 2] } // Active, Probation, Internship
+            },
+            attributes: ['id', 'employee_code', 'first_name', 'last_name', 'status', 'leave_policy_id'],
+            raw: true,
+            transaction
+        });
+
+        if (employees.length === 0) {
+            throw new Error('No valid employees found');
+        }
+
+        const validEmployeeIds = employees.map(e => e.id);
+        const invalidEmployeeIds = employee_ids.filter(id => !validEmployeeIds.includes(id));
+
+        // Update employees with leave policy
+        await HrmsEmployee.update(
+            { leave_policy_id: policy_id },
+            {
+                where: { id: { [Op.in]: validEmployeeIds } },
+                transaction
+            }
+        );
+
+        // Initialize leave balances if requested
+        let balanceResults = [];
+        if (initialize_balance && policy.policyMappings && policy.policyMappings.length > 0) {
+            const currentYear = new Date().getFullYear();
+            const currentDate = new Date();
+
+            for (const employee of employees) {
+                for (const mapping of policy.policyMappings) {
+                    const leaveType = mapping.leaveType;
+
+                    // Check if balance already exists for this employee and leave type
+                    const existingLedger = await HrmsLeaveLedger.findOne({
+                        where: {
+                            employee_id: employee.id,
+                            leave_type_id: leaveType.id,
+                            leave_cycle_year: currentYear
+                        },
+                        transaction
+                    });
+
+                    // Skip if balance already exists
+                    if (existingLedger) {
+                        continue;
+                    }
+
+                    // Determine credit amount based on employee status
+                    let creditAmount = parseFloat(leaveType.number_of_leaves_to_credit) || 0;
+
+                    switch (employee.status) {
+                        case 0: // Active
+                            if (leaveType.active_leaves_to_credit !== null) {
+                                creditAmount = parseFloat(leaveType.active_leaves_to_credit);
+                            }
+                            break;
+                        case 1: // Probation
+                            if (leaveType.probation_leaves_to_credit !== null) {
+                                creditAmount = parseFloat(leaveType.probation_leaves_to_credit);
+                            }
+                            break;
+                        case 2: // Internship
+                            if (leaveType.intern_leaves_to_credit !== null) {
+                                creditAmount = parseFloat(leaveType.intern_leaves_to_credit);
+                            }
+                            break;
+                    }
+
+                    // Create initial ledger entry
+                    if (creditAmount > 0) {
+                        await HrmsLeaveLedger.create({
+                            employee_id: employee.id,
+                            leave_type_id: leaveType.id,
+                            leave_cycle_year: currentYear,
+                            transaction_type: 'credit',
+                            amount: creditAmount,
+                            balance_after_transaction: creditAmount,
+                            transaction_date: currentDate,
+                            reference_type: 'policy_assignment',
+                            reference_id: policy_id,
+                            remarks: `Initial balance on policy assignment: ${policy.policy_name}`,
+                            created_by: user_id
+                        }, { transaction });
+
+                        balanceResults.push({
+                            employee_id: employee.id,
+                            leave_type_id: leaveType.id,
+                            leave_code: leaveType.leave_code,
+                            credited: creditAmount
+                        });
+                    }
+                }
+            }
+        }
+
+        await transaction.commit();
+
+        return {
+            success: true,
+            policy_id,
+            policy_name: policy.policy_name,
+            assigned_count: validEmployeeIds.length,
+            assigned_employees: validEmployeeIds,
+            invalid_employees: invalidEmployeeIds,
+            balance_initialized: initialize_balance,
+            balance_credits: balanceResults
+        };
+    } catch (error) {
+        await transaction.rollback();
+        throw error;
+    }
+};
+
+/**
+ * Remove leave policy from employees
+ *
+ * @param {Array} employee_ids - Array of employee IDs
+ * @param {number} company_id - Company ID
+ * @returns {Object} Removal result
+ */
+const removeLeavePolicyFromEmployees = async (employee_ids, company_id) => {
+    const transaction = await sequelize.transaction();
+
+    try {
+        const { HrmsEmployee } = require('../models/HrmsEmployee');
+        const { Op } = require('sequelize');
+
+        const [updatedCount] = await HrmsEmployee.update(
+            { leave_policy_id: null },
+            {
+                where: {
+                    id: { [Op.in]: employee_ids },
+                    company_id
+                },
+                transaction
+            }
+        );
+
+        await transaction.commit();
+
+        return {
+            success: true,
+            removed_count: updatedCount
+        };
+    } catch (error) {
+        await transaction.rollback();
+        throw error;
+    }
+};
+
+/**
+ * Get employees by leave policy
+ *
+ * @param {number} policy_id - Leave policy ID
+ * @param {number} company_id - Company ID
+ * @returns {Array} Employees with the policy
+ */
+const getEmployeesByPolicy = async (policy_id, company_id) => {
+    const { HrmsEmployee } = require('../models/HrmsEmployee');
+    const { Op } = require('sequelize');
+
+    const employees = await HrmsEmployee.findAll({
+        where: {
+            leave_policy_id: policy_id,
+            company_id,
+            status: { [Op.in]: [0, 1, 2] }
+        },
+        attributes: ['id', 'employee_code', 'first_name', 'last_name', 'email', 'department_id', 'designation_id', 'status'],
+        order: [['first_name', 'ASC']]
+    });
+
+    return employees;
+};
+
 module.exports = {
     createLeavePolicy,
     updateLeavePolicy,
     toggleLeaveTypeInPolicy,
     getLeavePolicies,
     getPolicyById,
-    deleteLeavePolicy
+    deleteLeavePolicy,
+    assignLeavePolicyToEmployees,
+    removeLeavePolicyFromEmployees,
+    getEmployeesByPolicy
 };

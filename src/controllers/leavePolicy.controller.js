@@ -133,11 +133,50 @@ const deleteLeavePolicy = async (req, res, next) => {
     }
 };
 
+/**
+ * Assign leave policy to employees
+ * POST /api/leave-policies/assign
+ */
+const assignLeavePolicyToEmployees = async (req, res, next) => {
+    try {
+        const { policy_id, employee_ids, initialize_balance = true } = req.body;
+        const company_id = req.user.company_id;
+        const user_id = req.user.id;
+
+        if (!policy_id) {
+            return res.status(400).json({
+                success: false,
+                message: 'policy_id is required'
+            });
+        }
+
+        if (!employee_ids || !Array.isArray(employee_ids) || employee_ids.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'employee_ids array is required'
+            });
+        }
+
+        const result = await leavePolicyService.assignLeavePolicyToEmployees(
+            parseInt(policy_id),
+            employee_ids,
+            company_id,
+            initialize_balance,
+            user_id
+        );
+
+        return sendSuccess(res, 'Leave policy assigned successfully', result);
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     createLeavePolicy,
     updateLeavePolicy,
     toggleLeaveTypeInPolicy,
     getLeavePolicies,
     getLeavePolicyById,
-    deleteLeavePolicy
+    deleteLeavePolicy,
+    assignLeavePolicyToEmployees
 };

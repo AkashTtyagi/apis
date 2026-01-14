@@ -20,4 +20,7 @@ router.delete('/:id', leavePolicyController.deleteLeavePolicy);
 // Toggle leave type in policy (activate/deactivate without deleting)
 router.patch('/:policyId/leave-types/:leaveTypeId/toggle', leavePolicyController.toggleLeaveTypeInPolicy);
 
+// Assign leave policy to employees
+router.post('/assign', leavePolicyController.assignLeavePolicyToEmployees);
+
 module.exports = router;
