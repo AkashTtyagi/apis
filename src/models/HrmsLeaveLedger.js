@@ -207,6 +207,21 @@ const HrmsLeaveLedger = sequelize.define('HrmsLeaveLedger', {
     }
 });
 
+// Define associations
+HrmsLeaveLedger.associate = (models) => {
+    // Ledger belongs to Leave Type
+    HrmsLeaveLedger.belongsTo(models.HrmsLeaveMaster, {
+        foreignKey: 'leave_type_id',
+        as: 'leaveType'
+    });
+
+    // Ledger belongs to Employee
+    HrmsLeaveLedger.belongsTo(models.HrmsEmployee, {
+        foreignKey: 'employee_id',
+        as: 'employee'
+    });
+};
+
 module.exports = {
     HrmsLeaveLedger
 };
