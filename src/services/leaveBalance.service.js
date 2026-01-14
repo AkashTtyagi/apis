@@ -331,16 +331,21 @@ const reverseLeaveTransaction = async (original_transaction_id, created_by = nul
 };
 
 /**
- * Get leave ledger history for an employee
+ * Get leave ledger history for an employee with pagination
  * @param {number} employee_id - Employee ID
- * @param {number} leave_type_id - Leave type ID (optional)
- * @param {number} leave_cycle_year - Leave cycle year (optional)
- * @param {number} limit - Limit number of records (optional)
- * @param {string} reference_type - Reference type filter (optional)
- * @returns {Array} Ledger entries
+ * @param {Object} filters - Filter options
+ * @returns {Object} Paginated ledger entries
  */
-const getEmployeeLeaveLedger = async (employee_id, leave_type_id = null, leave_cycle_year = null, limit = 100, reference_type = null) => {
+const getEmployeeLeaveLedger = async (employee_id, filters = {}) => {
     try {
+        const {
+            leave_type_id = null,
+            leave_cycle_year = null,
+            reference_type = null,
+            page_number = 1,
+            total_number_of_record = 20
+        } = filters;
+
         const whereClause = { employee_id };
 
         if (leave_type_id) {
@@ -357,7 +362,13 @@ const getEmployeeLeaveLedger = async (employee_id, leave_type_id = null, leave_c
             whereClause.reference_type = reference_type;
         }
 
-        const ledgerEntries = await HrmsLeaveLedger.findAll({
+        // Calculate offset
+        const page = Math.max(1, parseInt(page_number));
+        const limit = Math.max(1, Math.min(100, parseInt(total_number_of_record)));
+        const offset = (page - 1) * limit;
+
+        // Get total count and records
+        const { count, rows } = await HrmsLeaveLedger.findAndCountAll({
             where: whereClause,
             include: [{
                 model: HrmsLeaveMaster,
@@ -365,10 +376,23 @@ const getEmployeeLeaveLedger = async (employee_id, leave_type_id = null, leave_c
                 attributes: ['id', 'leave_code', 'leave_name', 'leave_type']
             }],
             order: [['transaction_date', 'DESC'], ['id', 'DESC']],
-            limit
+            limit,
+            offset
         });
 
-        return ledgerEntries;
+        const totalPages = Math.ceil(count / limit);
+
+        return {
+            records: rows,
+            pagination: {
+                current_page: page,
+                total_pages: totalPages,
+                total_records: count,
+                records_per_page: limit,
+                has_next_page: page < totalPages,
+                has_previous_page: page > 1
+            }
+        };
     } catch (error) {
         console.error('Error fetching leave ledger:', error.message);
         throw error;

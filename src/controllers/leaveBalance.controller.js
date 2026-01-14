@@ -119,17 +119,17 @@ const getSavedLeaveBalance = async (req, res, next) => {
 const getLeaveLedger = async (req, res, next) => {
     try {
         const employee_id = req.user.employee_id;
-        const { leave_type_id, leave_cycle_year, reference_type, limit } = req.body;
+        const { leave_type_id, leave_cycle_year, reference_type, page_number, total_number_of_record } = req.body;
 
-        const ledger = await leaveBalanceService.getEmployeeLeaveLedger(
-            employee_id,
-            leave_type_id ? parseInt(leave_type_id) : null,
-            leave_cycle_year ? parseInt(leave_cycle_year) : null,
-            limit ? parseInt(limit) : 100,
-            reference_type || null
-        );
+        const result = await leaveBalanceService.getEmployeeLeaveLedger(employee_id, {
+            leave_type_id: leave_type_id ? parseInt(leave_type_id) : null,
+            leave_cycle_year: leave_cycle_year ? parseInt(leave_cycle_year) : null,
+            reference_type: reference_type || null,
+            page_number: page_number || 1,
+            total_number_of_record: total_number_of_record || 20
+        });
 
-        return sendSuccess(res, 'Leave ledger fetched successfully', { ledger });
+        return sendSuccess(res, 'Leave ledger fetched successfully', result);
     } catch (error) {
         next(error);
     }
