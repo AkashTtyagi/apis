@@ -336,9 +336,10 @@ const reverseLeaveTransaction = async (original_transaction_id, created_by = nul
  * @param {number} leave_type_id - Leave type ID (optional)
  * @param {number} leave_cycle_year - Leave cycle year (optional)
  * @param {number} limit - Limit number of records (optional)
+ * @param {string} reference_type - Reference type filter (optional)
  * @returns {Array} Ledger entries
  */
-const getEmployeeLeaveLedger = async (employee_id, leave_type_id = null, leave_cycle_year = null, limit = 100) => {
+const getEmployeeLeaveLedger = async (employee_id, leave_type_id = null, leave_cycle_year = null, limit = 100, reference_type = null) => {
     try {
         const whereClause = { employee_id };
 
@@ -350,6 +351,10 @@ const getEmployeeLeaveLedger = async (employee_id, leave_type_id = null, leave_c
             whereClause.leave_cycle_year = leave_cycle_year;
         } else {
             whereClause.leave_cycle_year = new Date().getFullYear();
+        }
+
+        if (reference_type) {
+            whereClause.reference_type = reference_type;
         }
 
         const ledgerEntries = await HrmsLeaveLedger.findAll({

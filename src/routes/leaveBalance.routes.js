@@ -14,7 +14,7 @@ router.use(authenticate);
 router.get('/saved/:employeeId', leaveBalanceController.getSavedLeaveBalance);
 
 // Get leave ledger history
-router.get('/ledger/:employeeId', leaveBalanceController.getLeaveLedger);
+router.post('/ledger', leaveBalanceController.getLeaveLedger);
 
 // Get employee leave balance (calculated from ledger)
 router.get('/:employeeId', leaveBalanceController.getEmployeeLeaveBalance);
