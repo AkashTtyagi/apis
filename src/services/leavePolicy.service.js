@@ -89,7 +89,8 @@ const updateLeavePolicy = async (policy_id, updateData) => {
             where: {
                 id: policy_id,
                 company_id
-            }
+            },
+            raw:true
         });
 
         if (!existingPolicy) {
@@ -119,6 +120,7 @@ const updateLeavePolicy = async (policy_id, updateData) => {
             const existingMappings = await HrmsLeavePolicyMapping.findAll({
                 where: { policy_id },
                 paranoid: false, // Include soft deleted
+                raw: true,
                 transaction
             });
 
@@ -143,15 +145,23 @@ const updateLeavePolicy = async (policy_id, updateData) => {
             // Update display order for existing mappings and restore if deleted
             for (const leave_type_id of toKeep) {
                 const mapping = existingMappings.find(m => m.leave_type_id === leave_type_id);
+
+                // If mapping was soft-deleted, restore it first
+                // if (mapping.deleted_at) {
+                //     await HrmsLeavePolicyMapping.restore({
+                //         where: { id: mapping.id },
+                //         transaction
+                //     });
+                // }
+
+                // Update display order and is_active
                 await HrmsLeavePolicyMapping.update(
                     {
                         display_order: leave_type_ids.indexOf(leave_type_id) + 1,
-                        is_active: true,
-                        deleted_at: null // Restore if soft deleted
+                        is_active: true
                     },
                     {
                         where: { id: mapping.id },
-                        paranoid: false,
                         transaction
                     }
                 );

@@ -63,7 +63,7 @@ const toggleBreak = async (employee_id, company_id, breakData = {}) => {
             where: {
                 employee_id: employee_id,
                 company_id: company_id,
-                punch_time: {
+                punch_datetime: {
                     [Op.between]: [todayStart, todayEnd]
                 }
             }
