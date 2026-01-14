@@ -485,9 +485,13 @@ const assignLeavePolicyToEmployees = async (policy_id, employee_ids, company_id,
                             break;
                     }
 
-                    // Create initial ledger entry
+                    // Create initial ledger entry and balance record
                     if (creditAmount > 0) {
-                        await HrmsLeaveLedger.create({
+                        const { HrmsEmployeeLeaveBalance } = require('../models/HrmsEmployeeLeaveBalance');
+                        const currentMonth = currentDate.getMonth() + 1;
+
+                        // Create ledger entry
+                        const ledgerEntry = await HrmsLeaveLedger.create({
                             employee_id: employee.id,
                             leave_type_id: leaveType.id,
                             leave_cycle_year: currentYear,
@@ -500,6 +504,39 @@ const assignLeavePolicyToEmployees = async (policy_id, employee_ids, company_id,
                             remarks: `Initial balance on policy assignment: ${policy.policy_name}`,
                             created_by: user_id
                         }, { transaction });
+
+                        // Create or update balance record
+                        const [balanceRecord, created] = await HrmsEmployeeLeaveBalance.findOrCreate({
+                            where: {
+                                employee_id: employee.id,
+                                leave_type_id: leaveType.id,
+                                year: currentYear,
+                                month: currentMonth
+                            },
+                            defaults: {
+                                leave_cycle_year: currentYear,
+                                available_balance: creditAmount,
+                                opening_balance: 0,
+                                total_credited: creditAmount,
+                                total_debited: 0,
+                                carried_forward: 0,
+                                encashed: 0,
+                                lapsed: 0,
+                                last_transaction_id: ledgerEntry.id,
+                                last_updated_date: currentDate
+                            },
+                            transaction
+                        });
+
+                        // If record already existed, update it
+                        if (!created) {
+                            await balanceRecord.update({
+                                available_balance: parseFloat(balanceRecord.available_balance) + creditAmount,
+                                total_credited: parseFloat(balanceRecord.total_credited) + creditAmount,
+                                last_transaction_id: ledgerEntry.id,
+                                last_updated_date: currentDate
+                            }, { transaction });
+                        }
 
                         balanceResults.push({
                             employee_id: employee.id,
