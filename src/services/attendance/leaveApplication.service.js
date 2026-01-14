@@ -607,6 +607,9 @@ const withdrawLeaveRequest = async (request_id, employee_id, remarks = null) => 
  * @returns {Promise<Object>} Leave balance data
  */
 const getLeaveBalance = async (employee_id, company_id) => {
+    const { HrmsLeaveLedger } = require('../../models/HrmsLeaveLedger');
+    const { sequelize } = require('../../utils/database');
+
     const currentYear = moment().year();
     const currentMonth = moment().month() + 1; // moment months are 0-indexed
 
@@ -630,7 +633,51 @@ const getLeaveBalance = async (employee_id, company_id) => {
         order: [['leave_type_id', 'ASC']]
     });
 
-    // Format the response (same as old hardcoded format + extra keys)
+    // Get pending leave requests (workflow_master_id = 1 for leave)
+    const pendingRequests = await HrmsWorkflowRequest.findAll({
+        where: {
+            employee_id,
+            company_id,
+            workflow_master_id: 1, // Leave workflow
+            request_status: 'pending'
+        },
+        attributes: ['id', 'request_data'],
+        raw: true
+    });
+
+    // Calculate pending leaves per leave type
+    const pendingByLeaveType = {};
+    for (const req of pendingRequests) {
+        const requestData = typeof req.request_data === 'string' ? JSON.parse(req.request_data) : req.request_data;
+        const leaveTypeId = requestData?.leave_type;
+        const duration = parseFloat(requestData?.duration) || 0;
+        if (leaveTypeId) {
+            pendingByLeaveType[leaveTypeId] = (pendingByLeaveType[leaveTypeId] || 0) + duration;
+        }
+    }
+
+    // Get total consumed for the year (Jan-Dec) from ledger
+    const yearlyConsumption = await HrmsLeaveLedger.findAll({
+        where: {
+            employee_id,
+            leave_cycle_year: currentYear,
+            transaction_type: { [Op.in]: ['debit', 'adjustment_debit'] }
+        },
+        attributes: [
+            'leave_type_id',
+            [sequelize.fn('SUM', sequelize.fn('ABS', sequelize.col('amount'))), 'total_consumed']
+        ],
+        group: ['leave_type_id'],
+        raw: true
+    });
+
+    // Map yearly consumption by leave type
+    const consumedByLeaveType = {};
+    for (const item of yearlyConsumption) {
+        consumedByLeaveType[item.leave_type_id] = parseFloat(item.total_consumed) || 0;
+    }
+
+    // Format the response
     const leave_balances = balances.map(balance => ({
         leave_type_id: balance.leave_type_id,
         master_id: balance.leaveType?.master_id || balance.leaveType?.id,
@@ -638,11 +685,14 @@ const getLeaveBalance = async (employee_id, company_id) => {
         leave_code: balance.leaveType?.leave_code || '',
         total: parseFloat(balance.opening_balance) + parseFloat(balance.total_credited) || 0,
         used: parseFloat(balance.total_debited) || 0,
-        remaining: parseFloat(balance.available_balance) || 0
+        remaining: parseFloat(balance.available_balance) || 0,
+        pending: pendingByLeaveType[balance.leave_type_id] || 0,
+        total_consumed_ytd: consumedByLeaveType[balance.leave_type_id] || 0
     }));
 
     return {
         employee_id,
+        year: currentYear,
         leave_balances
     };
 };
