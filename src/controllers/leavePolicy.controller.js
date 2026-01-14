@@ -33,7 +33,7 @@ const createLeavePolicy = async (req, res, next) => {
  */
 const updateLeavePolicy = async (req, res, next) => {
     try {
-        const policy_id = parseInt(req.body.policy_id);
+        const policy_id = parseInt(req.params.id) || parseInt(req.body.policy_id);
         const user_id = req.user.id;
         const company_id = req.user.company_id;
 

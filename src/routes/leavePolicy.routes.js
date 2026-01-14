@@ -12,7 +12,7 @@ router.use(authenticate);
 
 // Leave policy CRUD routes
 router.post('/create', leavePolicyController.createLeavePolicy);
-router.post('/update', leavePolicyController.updateLeavePolicy);
+router.put('/:id', leavePolicyController.updateLeavePolicy);
 router.get('/', leavePolicyController.getLeavePolicies);
 router.get('/:id', leavePolicyController.getLeavePolicyById);
 router.delete('/:id', leavePolicyController.deleteLeavePolicy);
