@@ -326,7 +326,7 @@ const handleApproval = async (requestId, approverUserId, remarks = null, attachm
         console.log(`✓ Approval recorded for request ${request.request_number}`);
 
         // Check if all required approvals are complete
-        const canMoveForward = await checkStageApprovalComplete(requestId, currentStage.id, currentStage.approver_logic);
+        const canMoveForward = await checkStageApprovalComplete(requestId, currentStage.id, currentStage.approver_logic, transaction.trans_id);
 
         if (canMoveForward) {
             // Move to next stage or finalize
@@ -479,13 +479,14 @@ const handleRejection = async (requestId, approverUserId, remarks = null, ipInfo
  * @param {string} approverLogic - AND or OR
  * @returns {Promise<boolean>} Can move forward
  */
-const checkStageApprovalComplete = async (requestId, stageId, approverLogic) => {
+const checkStageApprovalComplete = async (requestId, stageId, approverLogic, transaction = null) => {
     try {
         const assignments = await HrmsWorkflowStageAssignment.findAll({
             where: {
                 request_id: requestId,
                 stage_id: stageId
-            }
+            },
+            transaction
         });
 
         if (approverLogic === 'AND') {
@@ -564,6 +565,9 @@ const finalizeRequest = async (requestId, status, transaction = null) => {
     try {
         const overallStatus = ['approved', 'auto_approved'].includes(status) ? 'completed' : 'rejected';
 
+        // Get request details
+        const request = await HrmsWorkflowRequest.findByPk(requestId, { transaction });
+
         await HrmsWorkflowRequest.update({
             request_status: status,
             overall_status: overallStatus,
@@ -575,9 +579,94 @@ const finalizeRequest = async (requestId, status, transaction = null) => {
 
         console.log(`✓ Request ${requestId} finalized with status: ${status}`);
 
+        // If approved and it's a leave request (workflow_master_id = 1), debit leave balance
+        if (['approved', 'auto_approved'].includes(status) && request.workflow_master_id === 1) {
+            await processLeaveApproval(request, transaction);
+        }
+
     } catch (error) {
         console.error('Error finalizing request:', error);
         throw error;
+    }
+};
+
+/**
+ * Process leave approval - debit leave balance
+ * @param {Object} request - Workflow request
+ * @param {Object} transaction - Transaction
+ */
+const processLeaveApproval = async (request, transaction = null) => {
+    try {
+        const { HrmsLeaveLedger } = require('../../models/HrmsLeaveLedger');
+        const { HrmsEmployeeLeaveBalance } = require('../../models/HrmsEmployeeLeaveBalance');
+
+        const requestData = typeof request.request_data === 'string'
+            ? JSON.parse(request.request_data)
+            : request.request_data;
+
+        const leaveTypeId = requestData.leave_type;
+        const duration = parseFloat(requestData.duration) || 0;
+        const currentYear = new Date().getFullYear();
+        const currentMonth = new Date().getMonth() + 1;
+
+        if (!leaveTypeId || duration <= 0) {
+            console.log('No leave type or duration found in request data');
+            return;
+        }
+
+        // Get current balance from ledger
+        const latestLedger = await HrmsLeaveLedger.findOne({
+            where: {
+                employee_id: request.employee_id,
+                leave_type_id: leaveTypeId,
+                leave_cycle_year: currentYear
+            },
+            order: [['id', 'DESC']],
+            transaction
+        });
+
+        const currentBalance = latestLedger ? parseFloat(latestLedger.balance_after_transaction) : 0;
+        const newBalance = currentBalance - duration;
+
+        // Create debit entry in ledger
+        await HrmsLeaveLedger.create({
+            employee_id: request.employee_id,
+            leave_type_id: leaveTypeId,
+            leave_cycle_year: currentYear,
+            transaction_type: 'debit',
+            amount: -duration,
+            balance_after_transaction: newBalance,
+            transaction_date: new Date(),
+            reference_type: 'leave_request',
+            reference_id: request.id,
+            remarks: `Leave approved: ${requestData.from_date} to ${requestData.to_date || requestData.from_date}`,
+            created_by: null
+        }, { transaction });
+
+        // Update employee leave balance table
+        const balanceRecord = await HrmsEmployeeLeaveBalance.findOne({
+            where: {
+                employee_id: request.employee_id,
+                leave_type_id: leaveTypeId,
+                year: currentYear,
+                month: currentMonth
+            },
+            transaction
+        });
+
+        if (balanceRecord) {
+            await balanceRecord.update({
+                available_balance: newBalance,
+                total_debited: parseFloat(balanceRecord.total_debited) + duration,
+                last_updated_date: new Date()
+            }, { transaction });
+        }
+
+        console.log(`✓ Leave balance debited: ${duration} days for employee ${request.employee_id}`);
+
+    } catch (error) {
+        console.error('Error processing leave approval:', error);
+        // Don't throw - we don't want to fail the approval if balance update fails
     }
 };
 
