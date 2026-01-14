@@ -7,11 +7,11 @@ const holidayBankService = require('../../services/holiday/holidayBank.service')
 
 /**
  * Get all holidays
- * GET /api/holiday-bank
+ * POST /api/holiday/bank/list
  */
 const getAllHolidays = async (req, res) => {
     try {
-        const { year, is_national_holiday, start_date, end_date } = req.query;
+        const { year, is_national_holiday, start_date, end_date } = req.body;
 
         const filters = {};
         if (year) filters.year = year;
@@ -39,12 +39,11 @@ const getAllHolidays = async (req, res) => {
 
 /**
  * Get holiday by ID
- * GET /api/holiday-bank/:id
+ * POST /api/holiday/bank/detail
  */
 const getHolidayById = async (req, res) => {
     try {
-        const { id } = req.params;
-
+        const { id } = req.body;
         const holiday = await holidayBankService.getHolidayById(id);
 
         res.status(200).json({
@@ -88,14 +87,12 @@ const createHoliday = async (req, res) => {
 
 /**
  * Update holiday
- * PUT /api/holiday-bank/:id
+ * POST /api/holiday/bank/update
  */
 const updateHoliday = async (req, res) => {
     try {
-        const { id } = req.params;
+        const { id, ...holidayData } = req.body;
         const userId = req.user?.id || null;
-        const holidayData = req.body;
-
         const holiday = await holidayBankService.updateHoliday(id, holidayData, userId);
 
         res.status(200).json({
@@ -114,12 +111,11 @@ const updateHoliday = async (req, res) => {
 
 /**
  * Delete holiday
- * DELETE /api/holiday-bank/:id
+ * POST /api/holiday/bank/delete
  */
 const deleteHoliday = async (req, res) => {
     try {
-        const { id } = req.params;
-
+        const { id } = req.body;
         const result = await holidayBankService.deleteHoliday(id);
 
         res.status(200).json({
@@ -137,20 +133,12 @@ const deleteHoliday = async (req, res) => {
 
 /**
  * Bulk create holidays
- * POST /api/holiday-bank/bulk
+ * POST /api/holiday/bank/bulk
  */
 const bulkCreateHolidays = async (req, res) => {
     try {
         const userId = req.user?.id || null;
         const { holidays } = req.body;
-
-        if (!holidays || !Array.isArray(holidays) || holidays.length === 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'Holidays array is required'
-            });
-        }
-
         const createdHolidays = await holidayBankService.bulkCreateHolidays(holidays, userId);
 
         res.status(201).json({

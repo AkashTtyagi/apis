@@ -7,14 +7,14 @@ const holidayPolicyService = require('../../services/holiday/holidayPolicy.servi
 
 /**
  * Get all holiday policies
- * GET /api/holiday-policy
+ * POST /api/holiday/policy/list
  */
 const getAllPolicies = async (req, res) => {
     try {
-        const { company_id, year } = req.query;
+        const company_id = req.user.company_id;
+        const { year } = req.body;
 
-        const filters = {};
-        if (company_id) filters.company_id = company_id;
+        const filters = { company_id };
         if (year) filters.year = year;
 
         const policies = await holidayPolicyService.getAllPolicies(filters);
@@ -35,12 +35,11 @@ const getAllPolicies = async (req, res) => {
 
 /**
  * Get holiday policy by ID
- * GET /api/holiday-policy/:id
+ * POST /api/holiday/policy/detail
  */
 const getPolicyById = async (req, res) => {
     try {
-        const { id } = req.params;
-
+        const { id } = req.body;
         const policy = await holidayPolicyService.getPolicyById(id);
 
         res.status(200).json({
@@ -64,7 +63,8 @@ const getPolicyById = async (req, res) => {
 const createPolicy = async (req, res) => {
     try {
         const userId = req.user?.id || null;
-        const policyData = req.body;
+        const company_id = req.user.company_id;
+        const policyData = { ...req.body, company_id };
 
         const policy = await holidayPolicyService.createPolicy(policyData, userId);
 
@@ -84,14 +84,12 @@ const createPolicy = async (req, res) => {
 
 /**
  * Update holiday policy
- * PUT /api/holiday-policy/:id
+ * POST /api/holiday/policy/update
  */
 const updatePolicy = async (req, res) => {
     try {
-        const { id } = req.params;
+        const { id, ...policyData } = req.body;
         const userId = req.user?.id || null;
-        const policyData = req.body;
-
         const policy = await holidayPolicyService.updatePolicy(id, policyData, userId);
 
         res.status(200).json({
@@ -110,12 +108,11 @@ const updatePolicy = async (req, res) => {
 
 /**
  * Delete holiday policy
- * DELETE /api/holiday-policy/:id
+ * POST /api/holiday/policy/delete
  */
 const deletePolicy = async (req, res) => {
     try {
-        const { id } = req.params;
-
+        const { id } = req.body;
         const result = await holidayPolicyService.deletePolicy(id);
 
         res.status(200).json({
@@ -133,21 +130,12 @@ const deletePolicy = async (req, res) => {
 
 /**
  * Add holidays to policy
- * POST /api/holiday-policy/:id/holidays
+ * POST /api/holiday/policy/add-holidays
  */
 const addHolidaysToPolicy = async (req, res) => {
     try {
-        const { id } = req.params;
-        const { holiday_ids } = req.body;
-
-        if (!holiday_ids || !Array.isArray(holiday_ids) || holiday_ids.length === 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'Holiday IDs array is required'
-            });
-        }
-
-        const result = await holidayPolicyService.addHolidaysToPolicy(id, holiday_ids);
+        const { policy_id, holiday_ids } = req.body;
+        const result = await holidayPolicyService.addHolidaysToPolicy(policy_id, holiday_ids);
 
         res.status(200).json({
             success: true,
@@ -164,13 +152,12 @@ const addHolidaysToPolicy = async (req, res) => {
 
 /**
  * Remove holiday from policy
- * DELETE /api/holiday-policy/:policyId/holidays/:holidayId
+ * POST /api/holiday/policy/remove-holiday
  */
 const removeHolidayFromPolicy = async (req, res) => {
     try {
-        const { policyId, holidayId } = req.params;
-
-        const result = await holidayPolicyService.removeHolidayFromPolicy(policyId, holidayId);
+        const { policy_id, holiday_id } = req.body;
+        const result = await holidayPolicyService.removeHolidayFromPolicy(policy_id, holiday_id);
 
         res.status(200).json({
             success: true,

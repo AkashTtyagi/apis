@@ -10,6 +10,21 @@ const router = express.Router();
 const holidayBankController = require('../controllers/holiday/holidayBank.controller');
 const holidayPolicyController = require('../controllers/holiday/holidayPolicy.controller');
 
+// Validators
+const {
+    validateHolidayDetail,
+    validateCreateHoliday,
+    validateUpdateHoliday,
+    validateDeleteHoliday,
+    validateBulkCreateHolidays,
+    validatePolicyDetail,
+    validateCreatePolicy,
+    validateUpdatePolicy,
+    validateDeletePolicy,
+    validateAddHolidaysToPolicy,
+    validateRemoveHolidayFromPolicy
+} = require('../middlewares/validators/holiday.validator');
+
 // Middleware (add authentication/authorization as needed)
 // const { authenticate } = require('../middleware/auth.middleware');
 
@@ -18,27 +33,28 @@ const holidayPolicyController = require('../controllers/holiday/holidayPolicy.co
 // ========================================
 
 /**
- * @route   GET /api/holiday/bank
+ * @route   POST /api/holiday/bank/list
  * @desc    Get all holidays from holiday bank
  * @access  Private
- * @query   year, is_national_holiday, start_date, end_date
+ * @body    { year, is_national_holiday, start_date, end_date }
  */
-router.get('/bank', holidayBankController.getAllHolidays);
+router.post('/bank/list', holidayBankController.getAllHolidays);
 
 /**
- * @route   GET /api/holiday/bank/:id
+ * @route   POST /api/holiday/bank/detail
  * @desc    Get holiday by ID
  * @access  Private
+ * @body    { id }
  */
-router.get('/bank/:id', holidayBankController.getHolidayById);
+router.post('/bank/detail', validateHolidayDetail, holidayBankController.getHolidayById);
 
 /**
- * @route   POST /api/holiday/bank
+ * @route   POST /api/holiday/bank/create
  * @desc    Create new holiday
  * @access  Private (Admin only)
  * @body    { holiday_name, holiday_date, is_national_holiday, description }
  */
-router.post('/bank', holidayBankController.createHoliday);
+router.post('/bank/create', validateCreateHoliday, holidayBankController.createHoliday);
 
 /**
  * @route   POST /api/holiday/bank/bulk
@@ -46,48 +62,49 @@ router.post('/bank', holidayBankController.createHoliday);
  * @access  Private (Admin only)
  * @body    { holidays: [{ holiday_name, holiday_date, is_national_holiday, description }] }
  */
-router.post('/bank/bulk', holidayBankController.bulkCreateHolidays);
+router.post('/bank/bulk', validateBulkCreateHolidays, holidayBankController.bulkCreateHolidays);
 
 /**
- * @route   PUT /api/holiday/bank/:id
+ * @route   POST /api/holiday/bank/update
  * @desc    Update holiday
  * @access  Private (Admin only)
- * @body    { holiday_name, holiday_date, is_national_holiday, description }
+ * @body    { id, holiday_name, holiday_date, is_national_holiday, description }
  */
-router.put('/bank/:id', holidayBankController.updateHoliday);
+router.post('/bank/update', validateUpdateHoliday, holidayBankController.updateHoliday);
 
 /**
- * @route   DELETE /api/holiday/bank/:id
+ * @route   POST /api/holiday/bank/delete
  * @desc    Delete holiday (soft delete)
  * @access  Private (Admin only)
+ * @body    { id }
  */
-router.delete('/bank/:id', holidayBankController.deleteHoliday);
+router.post('/bank/delete', validateDeleteHoliday, holidayBankController.deleteHoliday);
 
 // ========================================
 // HOLIDAY POLICY ROUTES
 // ========================================
 
 /**
- * @route   GET /api/holiday/policy
+ * @route   POST /api/holiday/policy/list
  * @desc    Get all holiday policies
  * @access  Private
- * @query   company_id, year
+ * @body    { year }
  */
-router.get('/policy', holidayPolicyController.getAllPolicies);
+router.post('/policy/list', holidayPolicyController.getAllPolicies);
 
 /**
- * @route   GET /api/holiday/policy/:id
+ * @route   POST /api/holiday/policy/detail
  * @desc    Get holiday policy by ID
  * @access  Private
+ * @body    { id }
  */
-router.get('/policy/:id', holidayPolicyController.getPolicyById);
+router.post('/policy/detail', validatePolicyDetail, holidayPolicyController.getPolicyById);
 
 /**
- * @route   POST /api/holiday/policy
+ * @route   POST /api/holiday/policy/create
  * @desc    Create new holiday policy
  * @access  Private (Admin only)
  * @body    {
- *            company_id,
  *            calendar_name,
  *            year,
  *            is_restricted_holiday_applicable,
@@ -104,36 +121,38 @@ router.get('/policy/:id', holidayPolicyController.getPolicyById);
  *            }]
  *          }
  */
-router.post('/policy', holidayPolicyController.createPolicy);
+router.post('/policy/create', validateCreatePolicy, holidayPolicyController.createPolicy);
 
 /**
- * @route   PUT /api/holiday/policy/:id
+ * @route   POST /api/holiday/policy/update
  * @desc    Update holiday policy
  * @access  Private (Admin only)
- * @body    Same as create, all fields optional
+ * @body    { id, ...policyData }
  */
-router.put('/policy/:id', holidayPolicyController.updatePolicy);
+router.post('/policy/update', validateUpdatePolicy, holidayPolicyController.updatePolicy);
 
 /**
- * @route   DELETE /api/holiday/policy/:id
+ * @route   POST /api/holiday/policy/delete
  * @desc    Delete holiday policy (soft delete)
  * @access  Private (Admin only)
+ * @body    { id }
  */
-router.delete('/policy/:id', holidayPolicyController.deletePolicy);
+router.post('/policy/delete', validateDeletePolicy, holidayPolicyController.deletePolicy);
 
 /**
- * @route   POST /api/holiday/policy/:id/holidays
+ * @route   POST /api/holiday/policy/add-holidays
  * @desc    Add holidays to policy
  * @access  Private (Admin only)
- * @body    { holiday_ids: [] }
+ * @body    { policy_id, holiday_ids: [] }
  */
-router.post('/policy/:id/holidays', holidayPolicyController.addHolidaysToPolicy);
+router.post('/policy/add-holidays', validateAddHolidaysToPolicy, holidayPolicyController.addHolidaysToPolicy);
 
 /**
- * @route   DELETE /api/holiday/policy/:policyId/holidays/:holidayId
+ * @route   POST /api/holiday/policy/remove-holiday
  * @desc    Remove holiday from policy
  * @access  Private (Admin only)
+ * @body    { policy_id, holiday_id }
  */
-router.delete('/policy/:policyId/holidays/:holidayId', holidayPolicyController.removeHolidayFromPolicy);
+router.post('/policy/remove-holiday', validateRemoveHolidayFromPolicy, holidayPolicyController.removeHolidayFromPolicy);
 
 module.exports = router;
