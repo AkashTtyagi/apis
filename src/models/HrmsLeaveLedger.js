@@ -116,7 +116,8 @@ const HrmsLeaveLedger = sequelize.define('HrmsLeaveLedger', {
             'encashment_process',      // Encashment process
             'year_end_lapse',          // Year-end lapse process
             'penalty_deduction',       // Penalty deduction
-            'leave_cancellation'       // Leave cancelled/deleted - reversal
+            'leave_cancellation',      // Leave cancelled/deleted - reversal
+            'policy_assignment'        // Leave policy assigned to employee
         ),
         allowNull: true,
         comment: 'Source/trigger of this transaction'
