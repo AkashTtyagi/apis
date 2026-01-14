@@ -8,6 +8,7 @@ const { HrmsEmployee } = require('../../../models/HrmsEmployee');
 const { HrmsTimezoneMaster } = require('../../../models/HrmsTimezoneMaster');
 const { HrmsShiftBreakRules } = require('../../../models/HrmsShiftBreakRules');
 const { HrmsDailyAttendance } = require('../../../models/HrmsDailyAttendance');
+const { HrmsPunchLog } = require('../models/HrmsPunchLog');
 const { getEmployeeShift } = require('../../../services/roster/shiftCalculation.service');
 const { sequelize } = require('../../../utils/database');
 const { Op } = require('sequelize');
@@ -53,23 +54,29 @@ const toggleBreak = async (employee_id, company_id, breakData = {}) => {
         const currentDatetime = timezoneUtil.getCurrentDateTimeInTimezone(employeeTimezone);
         const today = moment(currentDatetime).tz(employeeTimezone).format('YYYY-MM-DD');
 
-        // 2. Check if employee has clocked in today
-        const dailyAttendance = await HrmsDailyAttendance.findOne({
+        // 2. Check if employee is currently clocked in using punch count logic
+        // Odd punch count = clocked IN, Even punch count = clocked OUT
+        const todayStart = moment(today).startOf('day').toDate();
+        const todayEnd = moment(today).endOf('day').toDate();
+
+        const punchCount = await HrmsPunchLog.count({
             where: {
                 employee_id: employee_id,
                 company_id: company_id,
-                attendance_date: today,
-                punch_in: { [Op.ne]: null },
-                workflow_master_id: null
+                punch_time: {
+                    [Op.between]: [todayStart, todayEnd]
+                }
             }
         });
 
-        if (!dailyAttendance) {
+        if (punchCount === 0) {
             throw new Error('You must clock in before taking a break');
         }
 
-        if (dailyAttendance.punch_out) {
-            throw new Error('You have already clocked out for the day');
+        const isClockedIn = punchCount % 2 === 1; // Odd = clocked in, Even = clocked out
+
+        if (!isClockedIn) {
+            throw new Error('You are currently clocked out. Please clock in first to take a break');
         }
 
         // 3. Check if already on break - if yes, end it; if no, start new one
