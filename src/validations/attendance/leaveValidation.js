@@ -43,7 +43,8 @@ const validateLeaveRequest = async (params) => {
             company_id: company_id,
             leave_code: leave_type,
             is_active: true
-        }
+        },
+        raw: true
     });
 
     if (!leaveMaster) {
@@ -53,7 +54,8 @@ const validateLeaveRequest = async (params) => {
     // Get employee details
     const employee = await HrmsEmployee.findByPk(employee_id, {
         attributes: ['id', 'employee_code', 'first_name', 'last_name', 'gender',
-                     'status', 'date_of_joining', 'company_id']
+                     'status', 'date_of_joining', 'company_id'],
+        raw: true
     });
 
     if (!employee) {
@@ -225,7 +227,8 @@ const validateLeaveRequest = async (params) => {
                     }
                 ]
             },
-            attributes: ['id', 'request_number', 'from_date', 'to_date', 'request_data']
+            attributes: ['id', 'request_number', 'from_date', 'to_date', 'request_data'],
+            raw: true
         });
 
         // Check for date overlap considering half-day scenarios
@@ -325,7 +328,8 @@ const validateLeaveRequest = async (params) => {
                 from_date: {
                     [Op.between]: [monthStart, monthEnd]
                 }
-            }
+            },
+            raw: true
         });
 
         let totalLeavesThisMonth = duration;
@@ -359,7 +363,8 @@ const validateLeaveRequest = async (params) => {
                 from_date: {
                     [Op.between]: [yearStart, yearEnd]
                 }
-            }
+            },
+            raw: true
         });
 
         let totalLeavesThisYear = duration;

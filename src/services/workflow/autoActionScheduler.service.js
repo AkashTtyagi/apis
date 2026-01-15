@@ -40,7 +40,7 @@ const processAutoActions = async () => {
         // 2. Process each expired request
         for (const request of expiredRequests) {
             try {
-                const stage = await HrmsWorkflowStage.findByPk(request.current_stage_id);
+                const stage = await HrmsWorkflowStage.findByPk(request.current_stage_id, { raw: true });
 
                 if (!stage) {
                     console.warn(`⚠️  Stage not found for request ${request.request_number}`);
@@ -258,7 +258,7 @@ const autoRejectExpiredRequest = async (requestId, stageId) => {
  */
 const escalateRequest = async (requestId, currentStageId, escalateToStageId) => {
     try {
-        const request = await HrmsWorkflowRequest.findByPk(requestId);
+        const request = await HrmsWorkflowRequest.findByPk(requestId, { raw: true });
 
         if (!request) {
             throw new Error('Request not found');
@@ -279,7 +279,7 @@ const escalateRequest = async (requestId, currentStageId, escalateToStageId) => 
         });
 
         // Get escalation stage
-        const escalationStage = await HrmsWorkflowStage.findByPk(escalateToStageId);
+        const escalationStage = await HrmsWorkflowStage.findByPk(escalateToStageId, { raw: true });
 
         if (!escalationStage) {
             throw new Error('Escalation stage not found');
@@ -328,7 +328,7 @@ const escalateRequest = async (requestId, currentStageId, escalateToStageId) => 
  */
 const sendPendingReminders = async (requestId, stageId) => {
     try {
-        const request = await HrmsWorkflowRequest.findByPk(requestId);
+        const request = await HrmsWorkflowRequest.findByPk(requestId, { raw: true });
 
         if (!request) {
             throw new Error('Request not found');

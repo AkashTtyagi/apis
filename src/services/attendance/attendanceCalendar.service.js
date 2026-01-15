@@ -43,7 +43,7 @@ const PAY_DAY = {
  */
 const getAttendanceCalendar = async (employee_id, from_date, to_date) => {
     // Validate employee
-    const employee = await HrmsEmployee.findByPk(employee_id);
+    const employee = await HrmsEmployee.findByPk(employee_id, { raw: true });
     if (!employee) {
         throw new Error('Employee not found');
     }
@@ -61,7 +61,8 @@ const getAttendanceCalendar = async (employee_id, from_date, to_date) => {
                 [Op.between]: [from_date, to_date]
             }
         },
-        order: [['attendance_date', 'ASC']]
+        order: [['attendance_date', 'ASC']],
+        raw: true
     });
 
     // Group by date

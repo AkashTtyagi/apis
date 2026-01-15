@@ -157,7 +157,8 @@ const resolveApproverUser = async (approverType, employeeId, config = {}) => {
 const resolveRM = async (employeeId) => {
     try {
         const employee = await HrmsEmployee.findByPk(employeeId, {
-            attributes: ['id', 'reporting_manager_id']
+            attributes: ['id', 'reporting_manager_id'],
+            raw: true
         });
 
         if (!employee || !employee.reporting_manager_id) {
@@ -165,7 +166,8 @@ const resolveRM = async (employeeId) => {
         }
 
         const rm = await HrmsEmployee.findByPk(employee.reporting_manager_id, {
-            attributes: ['id', 'user_id', 'first_name', 'last_name', 'email']
+            attributes: ['id', 'user_id', 'first_name', 'last_name', 'email'],
+            raw: true
         });
 
         if (!rm) {
@@ -208,7 +210,8 @@ const resolveRMOfRM = async (employeeId) => {
         }
 
         const rmOfRM = await HrmsEmployee.findByPk(rm.reporting_manager_id, {
-            attributes: ['id', 'user_id', 'first_name', 'last_name', 'email']
+            attributes: ['id', 'user_id', 'first_name', 'last_name', 'email'],
+            raw: true
         });
 
         if (!rmOfRM) {
@@ -235,7 +238,8 @@ const resolveRMOfRM = async (employeeId) => {
 const resolveHOD = async (employeeId) => {
     try {
         const employee = await HrmsEmployee.findByPk(employeeId, {
-            attributes: ['department_id']
+            attributes: ['department_id'],
+            raw: true
         });
 
         if (!employee || !employee.department_id) {
@@ -250,7 +254,8 @@ const resolveHOD = async (employeeId) => {
                 is_hod: true, // Assuming this field exists
                 is_active: true
             },
-            attributes: ['id', 'user_id', 'first_name', 'last_name', 'email']
+            attributes: ['id', 'user_id', 'first_name', 'last_name', 'email'],
+            raw: true
         });
 
         if (!hod) {
@@ -292,7 +297,8 @@ const resolveFunctionalHead = async (employeeId) => {
                 is_functional_head: true, // Assuming this field exists
                 is_active: true
             },
-            attributes: ['id', 'user_id', 'first_name', 'last_name', 'email']
+            attributes: ['id', 'user_id', 'first_name', 'last_name', 'email'],
+            raw: true
         });
 
         if (!functionalHead) {
@@ -326,7 +332,8 @@ const resolveHRAdmin = async (companyId) => {
                 is_hr_admin: true, // Assuming this field exists
                 is_active: true
             },
-            attributes: ['id', 'user_id', 'first_name', 'last_name', 'email']
+            attributes: ['id', 'user_id', 'first_name', 'last_name', 'email'],
+            raw: true
         });
 
         if (!hrAdmin) {
@@ -358,7 +365,8 @@ const resolveSubAdmin = async (companyId) => {
                 is_sub_admin: true, // Assuming this field exists
                 is_active: true
             },
-            attributes: ['id', 'user_id', 'first_name', 'last_name', 'email']
+            attributes: ['id', 'user_id', 'first_name', 'last_name', 'email'],
+            raw: true
         });
 
         if (!subAdmin) {
@@ -393,7 +401,8 @@ const resolveSecondaryRM = async (employeeId) => {
         }
 
         const secondaryRM = await HrmsEmployee.findByPk(employee.secondary_reporting_manager_id, {
-            attributes: ['id', 'user_id', 'first_name', 'last_name', 'email']
+            attributes: ['id', 'user_id', 'first_name', 'last_name', 'email'],
+            raw: true
         });
 
         if (!secondaryRM) {
@@ -420,7 +429,8 @@ const resolveSecondaryRM = async (employeeId) => {
 const resolveSelf = async (employeeId) => {
     try {
         const employee = await HrmsEmployee.findByPk(employeeId, {
-            attributes: ['id', 'user_id', 'first_name', 'last_name', 'email']
+            attributes: ['id', 'user_id', 'first_name', 'last_name', 'email'],
+            raw: true
         });
 
         if (!employee) {
@@ -448,7 +458,8 @@ const resolveCustomUser = async (userId) => {
     try {
         const employee = await HrmsEmployee.findOne({
             where: { user_id: userId, is_active: true },
-            attributes: ['id', 'user_id', 'first_name', 'last_name', 'email']
+            attributes: ['id', 'user_id', 'first_name', 'last_name', 'email'],
+            raw: true
         });
 
         if (!employee) {

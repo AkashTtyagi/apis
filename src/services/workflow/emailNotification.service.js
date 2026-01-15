@@ -18,7 +18,8 @@ const nodemailer = require('nodemailer');
 const getTransporter = async (companyId) => {
     try {
         const smtpConfig = await HrmsSmtpConfig.findOne({
-            where: { company_id: companyId, is_active: 1 }
+            where: { company_id: companyId, is_active: 1 },
+            raw: true
         });
 
         if (smtpConfig) {
@@ -390,7 +391,8 @@ const sendEmail = async (transporter, to, cc, bcc, subject, html, companyId) => 
     try {
         // Get sender info
         const smtpConfig = await HrmsSmtpConfig.findOne({
-            where: { company_id: companyId, is_active: 1 }
+            where: { company_id: companyId, is_active: 1 },
+            raw: true
         });
 
         const fromEmail = smtpConfig?.from_email || process.env.SMTP_FROM || 'noreply@company.com';

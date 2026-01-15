@@ -57,7 +57,7 @@ const submitRequest = async (employeeId, workflowMasterId, requestData, submitte
         };
 
         // 5. Generate request number
-        const workflowMaster = await HrmsWorkflowMaster.findByPk(workflowMasterId);
+        const workflowMaster = await HrmsWorkflowMaster.findByPk(workflowMasterId, { raw: true });
         const requestNumber = await generateRequestNumber(workflowMaster.workflow_code, employee.company_id);
 
         // 6. Create workflow request
@@ -116,7 +116,8 @@ const submitRequest = async (employeeId, workflowMasterId, requestData, submitte
                 workflow_config_id: workflow.id,
                 stage_order: 1,
                 is_active: true
-            }
+            },
+            raw: true
         });
 
         if (!firstStage) {
@@ -319,7 +320,7 @@ const handleApproval = async (requestId, approverUserId, remarks = null, attachm
     const transaction = await db.beginTransaction();
 
     try {
-        const request = await HrmsWorkflowRequest.findByPk(requestId);
+        const request = await HrmsWorkflowRequest.findByPk(requestId, { raw: true });
 
         if (!request) {
             throw new Error('Request not found');
@@ -329,7 +330,7 @@ const handleApproval = async (requestId, approverUserId, remarks = null, attachm
             throw new Error('Request has no current stage. It may be already completed or auto-approved/rejected.');
         }
 
-        const currentStage = await HrmsWorkflowStage.findByPk(request.current_stage_id);
+        const currentStage = await HrmsWorkflowStage.findByPk(request.current_stage_id, { raw: true });
 
         if (!currentStage) {
             throw new Error('Current stage not found');
@@ -342,7 +343,8 @@ const handleApproval = async (requestId, approverUserId, remarks = null, attachm
                 stage_id: currentStage.id,
                 assigned_to_user_id: approverUserId,
                 assignment_status: 'pending'
-            }
+            },
+            raw: true
         });
 
         if (!assignment) {
@@ -385,7 +387,7 @@ const handleApproval = async (requestId, approverUserId, remarks = null, attachm
         if (canMoveForward) {
             // Move to next stage or finalize
             if (currentStage.on_approve_next_stage_id) {
-                const nextStage = await HrmsWorkflowStage.findByPk(currentStage.on_approve_next_stage_id);
+                const nextStage = await HrmsWorkflowStage.findByPk(currentStage.on_approve_next_stage_id, { raw: true });
 
                 // Update action with next stage
                 await HrmsWorkflowAction.update({
@@ -440,7 +442,7 @@ const handleRejection = async (requestId, approverUserId, remarks = null, ipInfo
     const transaction = await db.beginTransaction();
 
     try {
-        const request = await HrmsWorkflowRequest.findByPk(requestId);
+        const request = await HrmsWorkflowRequest.findByPk(requestId, { raw: true });
 
         if (!request) {
             throw new Error('Request not found');
@@ -450,7 +452,7 @@ const handleRejection = async (requestId, approverUserId, remarks = null, ipInfo
             throw new Error('Request has no current stage. It may be already completed or auto-approved/rejected.');
         }
 
-        const currentStage = await HrmsWorkflowStage.findByPk(request.current_stage_id);
+        const currentStage = await HrmsWorkflowStage.findByPk(request.current_stage_id, { raw: true });
 
         if (!currentStage) {
             throw new Error('Current stage not found');
@@ -463,7 +465,8 @@ const handleRejection = async (requestId, approverUserId, remarks = null, ipInfo
                 stage_id: currentStage.id,
                 assigned_to_user_id: approverUserId,
                 assignment_status: 'pending'
-            }
+            },
+            raw: true
         });
 
         if (!assignment) {
@@ -502,7 +505,7 @@ const handleRejection = async (requestId, approverUserId, remarks = null, ipInfo
             await finalizeRequest(requestId, 'rejected', transaction.trans_id);
         } else if (currentStage.on_reject_action === 'move_to_stage') {
             // Move to rejection stage
-            const rejectStage = await HrmsWorkflowStage.findByPk(currentStage.on_reject_stage_id);
+            const rejectStage = await HrmsWorkflowStage.findByPk(currentStage.on_reject_stage_id, { raw: true });
             const employee = await getEmployeeData(request.employee_id);
             const context = { employee, request: request.request_data };
             await processStage(requestId, rejectStage.id, context, transaction.trans_id);
@@ -732,15 +735,15 @@ const processLeaveApproval = async (request, transaction = null) => {
  */
 const moveToNextStage = async (requestId, currentStageId, transaction = null) => {
     try {
-        const currentStage = await HrmsWorkflowStage.findByPk(currentStageId);
-        const nextStage = await HrmsWorkflowStage.findByPk(currentStage.on_approve_next_stage_id);
+        const currentStage = await HrmsWorkflowStage.findByPk(currentStageId, { raw: true });
+        const nextStage = await HrmsWorkflowStage.findByPk(currentStage.on_approve_next_stage_id, { raw: true });
 
         if (!nextStage) {
             await finalizeRequest(requestId, 'approved', transaction);
             return;
         }
 
-        const request = await HrmsWorkflowRequest.findByPk(requestId);
+        const request = await HrmsWorkflowRequest.findByPk(requestId, { raw: true });
         const employee = await getEmployeeData(request.employee_id);
         const context = { employee, request: request.request_data };
 

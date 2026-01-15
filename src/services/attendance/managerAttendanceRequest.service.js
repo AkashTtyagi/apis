@@ -24,13 +24,13 @@ const moment = require('moment');
  */
 const applyLeaveOnBehalf = async (leaveData, target_employee_id, requester_user_id, requester_employee_id, requester_role = 'manager') => {
     // Validate target employee exists
-    const targetEmployee = await HrmsEmployee.findByPk(target_employee_id);
+    const targetEmployee = await HrmsEmployee.findByPk(target_employee_id, { raw: true });
     if (!targetEmployee) {
         throw new Error('Target employee not found');
     }
 
     // Validate requester
-    const requester = await HrmsEmployee.findByPk(requester_employee_id);
+    const requester = await HrmsEmployee.findByPk(requester_employee_id, { raw: true });
     if (!requester) {
         throw new Error('Requester not found');
     }
@@ -60,7 +60,7 @@ const applyLeaveOnBehalf = async (leaveData, target_employee_id, requester_user_
  */
 const applyOnDutyOnBehalf = async (onDutyData, target_employee_id, requester_user_id, requester_employee_id, requester_role = 'manager') => {
     // Validate target employee exists
-    const targetEmployee = await HrmsEmployee.findByPk(target_employee_id);
+    const targetEmployee = await HrmsEmployee.findByPk(target_employee_id, { raw: true });
     if (!targetEmployee) {
         throw new Error('Target employee not found');
     }
@@ -82,7 +82,7 @@ const applyOnDutyOnBehalf = async (onDutyData, target_employee_id, requester_use
  */
 const applyWFHOnBehalf = async (wfhData, target_employee_id, requester_user_id, requester_employee_id, requester_role = 'manager') => {
     // Validate target employee exists
-    const targetEmployee = await HrmsEmployee.findByPk(target_employee_id);
+    const targetEmployee = await HrmsEmployee.findByPk(target_employee_id, { raw: true });
     if (!targetEmployee) {
         throw new Error('Target employee not found');
     }
@@ -104,7 +104,7 @@ const applyWFHOnBehalf = async (wfhData, target_employee_id, requester_user_id, 
  */
 const applyShortLeaveOnBehalf = async (shortLeaveData, target_employee_id, requester_user_id, requester_employee_id, requester_role = 'manager') => {
     // Validate target employee exists
-    const targetEmployee = await HrmsEmployee.findByPk(target_employee_id);
+    const targetEmployee = await HrmsEmployee.findByPk(target_employee_id, { raw: true });
     if (!targetEmployee) {
         throw new Error('Target employee not found');
     }
@@ -126,7 +126,7 @@ const applyShortLeaveOnBehalf = async (shortLeaveData, target_employee_id, reque
  */
 const applyRegularizationOnBehalf = async (regularizationData, target_employee_id, requester_user_id, requester_employee_id, requester_role = 'manager') => {
     // Validate target employee exists
-    const targetEmployee = await HrmsEmployee.findByPk(target_employee_id);
+    const targetEmployee = await HrmsEmployee.findByPk(target_employee_id, { raw: true });
     if (!targetEmployee) {
         throw new Error('Target employee not found');
     }

@@ -52,7 +52,7 @@ const applyWFH = async (wfhData, employee_id, user_id) => {
     }
 
     // Get employee details
-    const employee = await HrmsEmployee.findByPk(employee_id);
+    const employee = await HrmsEmployee.findByPk(employee_id, { raw: true });
     if (!employee) {
         throw new Error('Employee not found');
     }
