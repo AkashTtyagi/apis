@@ -55,7 +55,7 @@ async function createRoster(data, user_id) {
             where: {
                 id: { [Op.in]: shiftIds },
                 company_id: company_id,
-                is_active: true
+                is_active: 1
             }
         });
 
@@ -153,7 +153,7 @@ async function updateRoster(roster_id, updateData, user_id) {
                 where: {
                     id: { [Op.in]: shiftIds },
                     company_id: roster.company_id,
-                    is_active: true
+                    is_active: 1
                 }
             });
 
@@ -321,10 +321,10 @@ async function getRosterById(roster_id) {
                             as: 'shift',
                             attributes: ['id', 'shift_name', 'shift_code', 'shift_start_time', 'shift_end_time']
                         }
-                    ],
-                    order: [['roster_date', 'ASC']]
+                    ]
                 }
-            ]
+            ],
+            order: [[{ model: HrmsRosterDetail, as: 'details' }, 'roster_date', 'ASC']]
         });
 
         if (!roster) {
