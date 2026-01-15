@@ -97,7 +97,7 @@ async function createRoster(data, user_id) {
                         {
                             model: HrmsShiftMaster,
                             as: 'shift',
-                            attributes: ['id', 'shift_name', 'shift_code', 'start_time', 'end_time']
+                            attributes: ['id', 'shift_name', 'shift_code', 'shift_start_time', 'shift_end_time']
                         }
                     ]
                 }
@@ -192,7 +192,7 @@ async function updateRoster(roster_id, updateData, user_id) {
                         {
                             model: HrmsShiftMaster,
                             as: 'shift',
-                            attributes: ['id', 'shift_name', 'shift_code', 'start_time', 'end_time']
+                            attributes: ['id', 'shift_name', 'shift_code', 'shift_start_time', 'shift_end_time']
                         }
                     ]
                 }
@@ -319,7 +319,7 @@ async function getRosterById(roster_id) {
                         {
                             model: HrmsShiftMaster,
                             as: 'shift',
-                            attributes: ['id', 'shift_name', 'shift_code', 'start_time', 'end_time']
+                            attributes: ['id', 'shift_name', 'shift_code', 'shift_start_time', 'shift_end_time']
                         }
                     ],
                     order: [['roster_date', 'ASC']]
