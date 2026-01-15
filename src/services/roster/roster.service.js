@@ -231,12 +231,12 @@ async function assignRosterToEmployees(roster_id, employee_ids, user_id) {
             throw new Error('employee_ids must be a non-empty array');
         }
 
-        // Validate all employees exist
+        // Validate all employees exist (status 0,1,2 are active employees)
         const employees = await HrmsEmployee.findAll({
             where: {
                 id: { [Op.in]: employee_ids },
                 company_id: roster.company_id,
-                is_active: true
+                status: { [Op.in]: [0, 1, 2] }
             }
         });
 
