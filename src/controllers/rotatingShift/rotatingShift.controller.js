@@ -12,7 +12,8 @@ const rotatingShiftService = require('../../services/rotatingShift/rotatingShift
 const createRotatingShiftPattern = async (req, res) => {
     try {
         const user_id = req.user.id;
-        const patternData = req.body;
+        const { company_id } = req.user;
+        const patternData = { ...req.body, company_id };
 
         const result = await rotatingShiftService.createRotatingShiftPattern(patternData, user_id);
 

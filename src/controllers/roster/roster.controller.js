@@ -13,7 +13,8 @@ const { successResponse, errorResponse } = require('../../utils/responseHandler'
 const createRoster = async (req, res) => {
     try {
         const user_id = req.user.id;
-        const rosterData = req.body;
+        const { company_id } = req.user;
+        const rosterData = { ...req.body, company_id };
 
         const result = await rosterService.createRoster(rosterData, user_id);
 
