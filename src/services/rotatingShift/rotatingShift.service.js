@@ -71,7 +71,7 @@ async function createRotatingShiftPattern(data, user_id) {
             where: {
                 id: { [Op.in]: shift_order },
                 company_id: company_id,
-                is_active: true
+                is_active: 1
             }
         });
 
@@ -101,8 +101,6 @@ async function createRotatingShiftPattern(data, user_id) {
                     applicability_value: rule.applicability_value,
                     company_id: company_id,
                     is_excluded: rule.is_excluded || false,
-                    advanced_applicability_type: rule.advanced_applicability_type || 'none',
-                    advanced_applicability_value: rule.advanced_applicability_value || null,
                     priority: rule.priority || 1,
                     is_active: true,
                     created_by: user_id
@@ -130,7 +128,7 @@ async function createRotatingShiftPattern(data, user_id) {
         // Get shift details
         const shiftDetails = await HrmsShiftMaster.findAll({
             where: { id: { [Op.in]: shift_order } },
-            attributes: ['id', 'shift_name', 'shift_code', 'start_time', 'end_time']
+            attributes: ['id', 'shift_name', 'shift_code', 'shift_start_time', 'shift_end_time']
         });
 
         return {
@@ -176,7 +174,7 @@ async function updateRotatingShiftPattern(pattern_id, updateData, user_id) {
                 where: {
                     id: { [Op.in]: updateData.shift_order },
                     company_id: pattern.company_id,
-                    is_active: true
+                    is_active: 1
                 }
             });
 
@@ -222,8 +220,6 @@ async function updateRotatingShiftPattern(pattern_id, updateData, user_id) {
                     applicability_value: rule.applicability_value,
                     company_id: pattern.company_id,
                     is_excluded: rule.is_excluded || false,
-                    advanced_applicability_type: rule.advanced_applicability_type || 'none',
-                    advanced_applicability_value: rule.advanced_applicability_value || null,
                     priority: rule.priority || 1,
                     is_active: true,
                     created_by: user_id
@@ -251,7 +247,7 @@ async function updateRotatingShiftPattern(pattern_id, updateData, user_id) {
         // Get shift details
         const shiftDetails = await HrmsShiftMaster.findAll({
             where: { id: { [Op.in]: updatedPattern.shift_order } },
-            attributes: ['id', 'shift_name', 'shift_code', 'start_time', 'end_time']
+            attributes: ['id', 'shift_name', 'shift_code', 'shift_start_time', 'shift_end_time']
         });
 
         return {
@@ -298,7 +294,7 @@ async function getRotatingShiftPatternById(pattern_id) {
         // Get shift details
         const shiftDetails = await HrmsShiftMaster.findAll({
             where: { id: { [Op.in]: pattern.shift_order } },
-            attributes: ['id', 'shift_name', 'shift_code', 'start_time', 'end_time']
+            attributes: ['id', 'shift_name', 'shift_code', 'shift_start_time', 'shift_end_time']
         });
 
         return {
