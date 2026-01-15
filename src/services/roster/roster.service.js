@@ -372,6 +372,20 @@ async function getRosters(filters = {}) {
 
         const { count, rows } = await HrmsRoster.findAndCountAll({
             where,
+            attributes: {
+                include: [
+                    [
+                        sequelize.literal(`(
+                            SELECT COUNT(*)
+                            FROM hrms_roster_employees
+                            WHERE hrms_roster_employees.roster_id = HrmsRoster.id
+                            AND hrms_roster_employees.is_active = 1
+                            AND hrms_roster_employees.deleted_at IS NULL
+                        )`),
+                        'employee_count'
+                    ]
+                ]
+            },
             include: [
                 {
                     model: HrmsCompany,
