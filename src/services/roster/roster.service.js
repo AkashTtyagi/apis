@@ -42,12 +42,16 @@ async function createRoster(data, user_id) {
     const transaction = await sequelize.transaction();
 
     try {
-        const { company_id, roster_name, roster_description, roster_pattern } = data;
+        const { company_id, roster_name, roster_description, roster_pattern, status } = data;
 
         // Validate input
         if (!Array.isArray(roster_pattern) || roster_pattern.length === 0) {
             throw new Error('roster_pattern must be a non-empty array');
         }
+
+        // Convert status string to numeric (0=draft, 1=published)
+        const statusMap = { 'draft': 0, 'published': 1 };
+        const numericStatus = typeof status === 'string' ? (statusMap[status] ?? 0) : (status ?? 0);
 
         // Validate all shifts in pattern exist
         const shiftIds = [...new Set(roster_pattern.map(r => r.shift_id))];
@@ -68,6 +72,7 @@ async function createRoster(data, user_id) {
             company_id,
             roster_name,
             roster_description,
+            status: numericStatus,
             is_active: true,
             created_by: user_id
         }, { transaction });
@@ -134,16 +139,24 @@ async function updateRoster(roster_id, updateData, user_id) {
             throw new Error('Roster not found');
         }
 
-        // Update roster master if name or description provided
-        if (updateData.roster_name || updateData.roster_description) {
-            await roster.update({
-                roster_name: updateData.roster_name || roster.roster_name,
-                roster_description: updateData.roster_description !== undefined
-                    ? updateData.roster_description
-                    : roster.roster_description,
-                updated_by: user_id
-            }, { transaction });
+        // Convert status string to numeric if provided
+        const statusMap = { 'draft': 0, 'published': 1 };
+        let numericStatus = roster.status;
+        if (updateData.status !== undefined) {
+            numericStatus = typeof updateData.status === 'string'
+                ? (statusMap[updateData.status] ?? roster.status)
+                : updateData.status;
         }
+
+        // Update roster master
+        await roster.update({
+            roster_name: updateData.roster_name !== undefined ? updateData.roster_name : roster.roster_name,
+            roster_description: updateData.roster_description !== undefined
+                ? updateData.roster_description
+                : roster.roster_description,
+            status: numericStatus,
+            updated_by: user_id
+        }, { transaction });
 
         // Update roster pattern if provided
         if (updateData.roster_pattern && Array.isArray(updateData.roster_pattern)) {

@@ -37,7 +37,14 @@ const HrmsRoster = sequelize.define('HrmsRoster', {
         comment: 'Description of roster pattern'
     },
 
-    // Status
+    // Status: 0=draft, 1=published
+    status: {
+        type: DataTypes.TINYINT,
+        allowNull: false,
+        defaultValue: 0,
+        comment: '0=draft, 1=published'
+    },
+
     is_active: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
@@ -70,6 +77,7 @@ const HrmsRoster = sequelize.define('HrmsRoster', {
 
     indexes: [
         { fields: ['company_id'] },
+        { fields: ['status'] },
         { fields: ['is_active'] },
         { fields: ['roster_name'] }
     ]

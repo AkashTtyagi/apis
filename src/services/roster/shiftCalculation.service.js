@@ -71,6 +71,7 @@ async function getEmployeeShift(employee_id, date) {
         }
 
         // Step 3: Check for roster assignment (new roster system)
+        // Only consider published rosters (status: 1)
         const rosterEmployee = await HrmsRosterEmployee.findOne({
             where: {
                 employee_id: employee_id,
@@ -80,7 +81,10 @@ async function getEmployeeShift(employee_id, date) {
                 {
                     model: HrmsRoster,
                     as: 'roster',
-                    where: { is_active: true },
+                    where: {
+                        is_active: true,
+                        status: 1  // Only published rosters
+                    },
                     required: true,
                     include: [
                         {
