@@ -29,42 +29,27 @@ const applyLeave = async (leaveData, employee_id, user_id, requested_by_role = '
         from_date,
         to_date,
         specific_dates,
-        duration,
         reason,
-        attachment,
-        day_type  // 'full_day' | 'first_half' | 'second_half' (for date range mode)
+        attachments,
+        contact_number,
+        leave_mode  // 'full_day' | 'first_half' | 'second_half'
     } = leaveData;
+
+    // Use leave_mode directly as day_type, default to 'full_day'
+    const day_type = leave_mode || 'full_day';
 
     // Determine leave application mode
     const isDateRangeMode = from_date && to_date;
     const isMultipleDatesMode = specific_dates && Array.isArray(specific_dates) && specific_dates.length > 0;
 
-    // Validation - either date range OR specific dates is required
-    if (!leave_type || !reason) {
-        throw new Error('Required fields: leave_type (leave master ID), reason');
-    }
-
-    // Validate leave_type is valid leave master ID
+    // Get leave master configuration
     const leaveMaster = await HrmsLeaveMaster.findByPk(leave_type);
     if (!leaveMaster) {
         throw new Error('Invalid leave_type. Must be valid leave master ID.');
     }
 
-    // Derive is_paid from leave master (NOT from user input)
+    // Derive is_paid from leave master
     const is_paid = leaveMaster.leave_type === 'paid';
-
-    if (!isDateRangeMode && !isMultipleDatesMode) {
-        throw new Error('Either provide date range (from_date, to_date) OR specific_dates array');
-    }
-
-    if (isDateRangeMode && isMultipleDatesMode) {
-        throw new Error('Cannot use both date range and specific_dates. Choose one mode.');
-    }
-
-    // Validate day_type for date range mode
-    if (isDateRangeMode && day_type && !['full_day', 'first_half', 'second_half'].includes(day_type)) {
-        throw new Error('day_type must be one of: full_day, first_half, second_half');
-    }
 
     // Get employee details
     const employee = await HrmsEmployee.findByPk(employee_id);
@@ -73,7 +58,7 @@ const applyLeave = async (leaveData, employee_id, user_id, requested_by_role = '
     }
 
     let requestData;
-    let calculatedDuration = duration ? parseFloat(duration) : 0;
+    let calculatedDuration = 0;
     let leaveDates = [];
 
     // Calculate from_date for validation (use first specific_date if multiple dates mode)
@@ -87,15 +72,15 @@ const applyLeave = async (leaveData, employee_id, user_id, requested_by_role = '
                               (typeof specific_dates[specific_dates.length - 1] === 'string' ? specific_dates[specific_dates.length - 1] : specific_dates[specific_dates.length - 1].date) :
                               null);
 
-    // Auto-calculate duration for validation if not provided
-    if (!calculatedDuration && isDateRangeMode) {
+    // Always calculate duration based on dates and leave_mode
+    if (isDateRangeMode) {
         const totalDays = moment(to_date).diff(moment(from_date), 'days') + 1;
         if (day_type === 'first_half' || day_type === 'second_half') {
             calculatedDuration = totalDays * 0.5;
         } else {
             calculatedDuration = totalDays;
         }
-    } else if (!calculatedDuration && isMultipleDatesMode) {
+    } else if (isMultipleDatesMode) {
         calculatedDuration = specific_dates.reduce((total, item) => {
             const itemDayType = typeof item === 'string' ? 'full_day' : (item.day_type || 'full_day');
             return total + (itemDayType === 'first_half' || itemDayType === 'second_half' ? 0.5 : 1);
@@ -112,7 +97,7 @@ const applyLeave = async (leaveData, employee_id, user_id, requested_by_role = '
         specific_dates: isMultipleDatesMode ? specific_dates : null,
         duration: calculatedDuration,
         requested_by_role: requested_by_role,
-        attachment: attachment
+        attachment: attachments
     });
 
     // Handle Date Range Mode
@@ -120,12 +105,12 @@ const applyLeave = async (leaveData, employee_id, user_id, requested_by_role = '
         const rangeResult = handleDateRangeMode({
             from_date,
             to_date,
-            duration,
             leave_type,
             reason,
             is_paid,
-            attachment,
-            day_type: day_type || 'full_day'  // Default to full_day
+            attachments,
+            contact_number,
+            day_type
         });
 
         requestData = rangeResult.requestData;
@@ -137,11 +122,11 @@ const applyLeave = async (leaveData, employee_id, user_id, requested_by_role = '
     if (isMultipleDatesMode) {
         const multipleDatesResult = handleMultipleDatesMode({
             specific_dates,
-            duration,
             leave_type,
             reason,
             is_paid,
-            attachment
+            attachments,
+            contact_number
         });
 
         requestData = multipleDatesResult.requestData;
@@ -187,44 +172,29 @@ const applyLeave = async (leaveData, employee_id, user_id, requested_by_role = '
  * @returns {Object} Processed request data
  */
 const handleDateRangeMode = (data) => {
-    const { from_date, to_date, duration, leave_type, reason, is_paid, attachment, day_type } = data;
+    const { from_date, to_date, leave_type, reason, is_paid, attachments, contact_number, day_type } = data;
 
-    // Validate dates
-    if (moment(to_date).isBefore(from_date)) {
-        throw new Error('to_date cannot be before from_date');
-    }
+    // Calculate duration based on dates and day_type
+    const totalDays = moment(to_date).diff(moment(from_date), 'days') + 1;
+    let calculatedDuration;
 
-    // Validate date format
-    if (!moment(from_date, 'YYYY-MM-DD', true).isValid() || !moment(to_date, 'YYYY-MM-DD', true).isValid()) {
-        throw new Error('Invalid date format. Use YYYY-MM-DD format.');
-    }
-
-    // Auto-calculate duration if not provided
-    let calculatedDuration = duration ? parseFloat(duration) : 0;
-    if (!duration) {
-        const totalDays = moment(to_date).diff(moment(from_date), 'days') + 1;
-
-        // Calculate duration based on day_type
-        if (day_type === 'first_half' || day_type === 'second_half') {
-            // Half day for each date in range
-            calculatedDuration = totalDays * 0.5;
-        } else {
-            // Full day
-            calculatedDuration = totalDays;
-        }
+    if (day_type === 'first_half' || day_type === 'second_half') {
+        calculatedDuration = totalDays * 0.5;
+    } else {
+        calculatedDuration = totalDays;
     }
 
     const requestData = {
         leave_type,
-        leave_mode: 'date_range',
+        leave_mode: day_type || 'full_day',  // first_half/second_half/full_day
         from_date,
         to_date,
         specific_dates: null,
         duration: calculatedDuration,
         reason,
         is_paid: is_paid,
-        day_type: day_type || 'full_day',  // Store day_type in request
-        attachment: attachment || null,
+        attachments: attachments || null,
+        contact_number: contact_number || null,
         applied_at: new Date()
     };
 
@@ -246,7 +216,7 @@ const handleDateRangeMode = (data) => {
  * Array of strings: ['YYYY-MM-DD', 'YYYY-MM-DD'] (defaults to full_day)
  */
 const handleMultipleDatesMode = (data) => {
-    const { specific_dates, duration, leave_type, reason, is_paid, attachment } = data;
+    const { specific_dates, leave_type, reason, is_paid, attachments, contact_number } = data;
 
     // Validate dates array
     if (specific_dates.length === 0) {
@@ -299,17 +269,13 @@ const handleMultipleDatesMode = (data) => {
         throw new Error(`Cannot apply leave for past dates: ${pastDates.map(d => d.date).join(', ')}`);
     }
 
-    // Auto-calculate duration if not provided
-    let calculatedDuration = duration ? parseFloat(duration) : 0;
-    if (!duration) {
-        // Calculate based on day_type of each date
-        calculatedDuration = uniqueDates.reduce((total, item) => {
-            if (item.day_type === 'first_half' || item.day_type === 'second_half') {
-                return total + 0.5;
-            }
-            return total + 1;
-        }, 0);
-    }
+    // Always calculate duration based on day_type of each date
+    const calculatedDuration = uniqueDates.reduce((total, item) => {
+        if (item.day_type === 'first_half' || item.day_type === 'second_half') {
+            return total + 0.5;
+        }
+        return total + 1;
+    }, 0);
 
     const requestData = {
         leave_type,
@@ -320,7 +286,8 @@ const handleMultipleDatesMode = (data) => {
         duration: calculatedDuration,
         reason,
         is_paid: is_paid,
-        attachment: attachment || null,
+        attachments: attachments || null,
+        contact_number: contact_number || null,
         applied_at: new Date()
     };
 

@@ -169,7 +169,7 @@ const autoApproveExpiredRequest = async (requestId, stageId) => {
             console.log(`✓ Request moved to stage ${currentStage.on_approve_next_stage_id}`);
 
             // Send notification
-            await sendNotification(requestId, 'auto_approval').catch(err => {
+            await sendNotification(requestId, stageId, 'on_auto_approval').catch(err => {
                 console.error('Error sending auto-approval email:', err);
             });
 
@@ -186,7 +186,7 @@ const autoApproveExpiredRequest = async (requestId, stageId) => {
             console.log(`✓ Request ${request.request_number} auto-approved (final)`);
 
             // Send final approval notification
-            await sendNotification(requestId, 'final_approval').catch(err => {
+            await sendNotification(requestId, stageId, 'on_final_approval').catch(err => {
                 console.error('Error sending final approval email:', err);
             });
         }
@@ -239,7 +239,7 @@ const autoRejectExpiredRequest = async (requestId, stageId) => {
         console.log(`✓ Request ${request.request_number} auto-rejected`);
 
         // Send rejection notification
-        await sendNotification(requestId, 'auto_rejection').catch(err => {
+        await sendNotification(requestId, stageId, 'on_auto_rejection').catch(err => {
             console.error('Error sending auto-rejection email:', err);
         });
 
@@ -307,7 +307,7 @@ const escalateRequest = async (requestId, currentStageId, escalateToStageId) => 
         console.log(`✓ Request escalated to stage: ${escalationStage.stage_name}`);
 
         // Send escalation notification
-        await sendNotification(requestId, 'escalation').catch(err => {
+        await sendNotification(requestId, escalateToStageId, 'on_escalation').catch(err => {
             console.error('Error sending escalation email:', err);
         });
 
@@ -428,7 +428,7 @@ const processSLAWarnings = async () => {
 
         for (const request of requests) {
             try {
-                await sendNotification(request.id, 'sla_warning').catch(err => {
+                await sendNotification(request.id, request.current_stage_id, 'on_sla_warning').catch(err => {
                     console.error('Error sending SLA warning:', err);
                 });
                 warningsSent++;

@@ -131,7 +131,7 @@ const submitRequest = async (employeeId, workflowMasterId, requestData, submitte
 
         // 10. Send submission email (async - don't wait)
         if (workflow.send_submission_email) {
-            sendNotification(request.id, 'submission').catch(err => {
+            sendNotification(request.id, firstStage.id, 'on_submission').catch(err => {
                 console.error('Error sending submission email:', err);
             });
         }
@@ -157,7 +157,10 @@ const processStage = async (requestId, stageId, context, transaction = null) => 
     try {
         const queryOptions = transaction ? { transaction } : {};
         const stage = await HrmsWorkflowStage.findByPk(stageId, queryOptions);
-        const request = await HrmsWorkflowRequest.findByPk(requestId, queryOptions);
+        const request = await HrmsWorkflowRequest.findByPk(requestId, {
+            ...queryOptions,
+            include: [{ association: 'workflowConfig' }]
+        });
 
         if (!request) {
             throw new Error(`Workflow request not found with ID: ${requestId}`);
@@ -179,6 +182,57 @@ const processStage = async (requestId, stageId, context, transaction = null) => 
 
         if (!approvers || approvers.length === 0) {
             throw new Error(`No approvers found for stage: ${stage.stage_name}`);
+        }
+
+        // Get requester's user_id
+        const { HrmsEmployee } = require('../../models/HrmsEmployee');
+        const requesterEmployee = await HrmsEmployee.findByPk(request.employee_id, {
+            attributes: ['user_id']
+        });
+        const requesterUserId = requesterEmployee?.user_id;
+
+        // Check for self-approval scenario
+        const selfApprover = approvers.find(a => a.user_id === requesterUserId);
+
+        if (selfApprover) {
+            const allowSelfApproval = request.workflowConfig?.allow_self_approval || false;
+
+            if (allowSelfApproval) {
+                // Auto-approve for this stage (self-approval allowed)
+                console.log(`🤖 Self-approval detected for stage ${stage.stage_name} - Auto-approving`);
+
+                // Create auto-approval action
+                await HrmsWorkflowAction.create({
+                    request_id: requestId,
+                    stage_id: stageId,
+                    action_type: 'approve',
+                    action_by_user_id: requesterUserId,
+                    action_by_type: 'self',
+                    approver_type: selfApprover.approver_type,
+                    remarks: 'Auto-approved (Self-approval)',
+                    action_taken_at: new Date(),
+                    is_system_action: true
+                }, queryOptions);
+
+                // Move to next stage
+                await moveToNextStage(requestId, stageId, transaction);
+                return;
+            } else {
+                // Filter out self from approvers if self-approval not allowed
+                const filteredApprovers = approvers.filter(a => a.user_id !== requesterUserId);
+
+                if (filteredApprovers.length === 0) {
+                    // No other approvers, skip this stage
+                    console.log(`⏭️ Skipping stage ${stage.stage_name} - Only self as approver and self-approval not allowed`);
+                    await moveToNextStage(requestId, stageId, transaction);
+                    return;
+                }
+
+                // Use filtered approvers
+                approvers.length = 0;
+                approvers.push(...filteredApprovers);
+                console.log(`ℹ️ Self removed from approvers - ${filteredApprovers.length} approver(s) remaining`);
+            }
         }
 
         // Create stage assignments
@@ -203,7 +257,7 @@ const processStage = async (requestId, stageId, context, transaction = null) => 
         // Send stage assignment emails (async)
         if (stage.send_email_on_assign) {
             for (const approver of approvers) {
-                sendNotification(requestId, 'stage_assignment', approver.user_id).catch(err => {
+                sendNotification(requestId, stageId, 'on_stage_assignment', { approver_user_id: approver.user_id }).catch(err => {
                     console.error('Error sending stage assignment email:', err);
                 });
             }
@@ -360,7 +414,7 @@ const handleApproval = async (requestId, approverUserId, remarks = null, attachm
 
         // Send approval email (async)
         if (currentStage.send_email_on_approve) {
-            sendNotification(requestId, 'approval').catch(err => {
+            sendNotification(requestId, currentStage.id, 'on_approval').catch(err => {
                 console.error('Error sending approval email:', err);
             });
         }
@@ -458,7 +512,7 @@ const handleRejection = async (requestId, approverUserId, remarks = null, ipInfo
 
         // Send rejection email (async)
         if (currentStage.send_email_on_reject) {
-            sendNotification(requestId, 'rejection').catch(err => {
+            sendNotification(requestId, currentStage.id, 'on_rejection').catch(err => {
                 console.error('Error sending rejection email:', err);
             });
         }

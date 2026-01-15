@@ -15,6 +15,17 @@ const calendarController = require('../controllers/employee/attendanceCalendar.c
 // Middleware
 const { authenticate } = require('../middlewares/auth.middleware');
 
+// Validators
+const {
+    validateApplyLeave,
+    validateRequestDetails,
+    validateWithdrawRequest,
+    validateApplyOnDuty,
+    validateApplyWFH,
+    validateApplyShortLeave,
+    validateApplyRegularization
+} = require('../middlewares/validators/attendance.validator');
+
 // Apply authentication middleware to all routes
 router.use(authenticate);
 
@@ -27,35 +38,35 @@ router.use(authenticate);
  * @desc    Employee applies for leave
  * @access  Employee
  */
-router.post('/employee/leave/apply', employeeController.applyLeave);
+router.post('/employee/leave/apply', validateApplyLeave, employeeController.applyLeave);
 
 /**
  * @route   POST /api/attendance/employee/onduty/apply
  * @desc    Employee applies for on duty
  * @access  Employee
  */
-router.post('/employee/onduty/apply', employeeController.applyOnDuty);
+router.post('/employee/onduty/apply', validateApplyOnDuty, employeeController.applyOnDuty);
 
 /**
  * @route   POST /api/attendance/employee/wfh/apply
  * @desc    Employee applies for WFH
  * @access  Employee
  */
-router.post('/employee/wfh/apply', employeeController.applyWFH);
+router.post('/employee/wfh/apply', validateApplyWFH, employeeController.applyWFH);
 
 /**
  * @route   POST /api/attendance/employee/short-leave/apply
  * @desc    Employee applies for short leave
  * @access  Employee
  */
-router.post('/employee/short-leave/apply', employeeController.applyShortLeave);
+router.post('/employee/short-leave/apply', validateApplyShortLeave, employeeController.applyShortLeave);
 
 /**
  * @route   POST /api/attendance/employee/regularization/apply
  * @desc    Employee applies for attendance regularization
  * @access  Employee
  */
-router.post('/employee/regularization/apply', employeeController.applyRegularization);
+router.post('/employee/regularization/apply', validateApplyRegularization, employeeController.applyRegularization);
 
 /**
  * @route   POST /api/attendance/employee/requests/my-requests
@@ -76,7 +87,7 @@ router.post('/employee/requests/my-requests', employeeController.getMyRequests);
  * @body    request_id: number (required)
  * @access  Employee
  */
-router.post('/employee/requests/details', employeeController.getRequestDetails);
+router.post('/employee/requests/details', validateRequestDetails, employeeController.getRequestDetails);
 
 /**
  * @route   POST /api/attendance/employee/requests/withdraw
@@ -85,7 +96,7 @@ router.post('/employee/requests/details', employeeController.getRequestDetails);
  * @body    withdrawal_reason: string (optional)
  * @access  Employee
  */
-router.post('/employee/requests/withdraw', employeeController.withdrawRequest);
+router.post('/employee/requests/withdraw', validateWithdrawRequest, employeeController.withdrawRequest);
 
 /**
  * @route   POST /api/attendance/employee/leave/balance
