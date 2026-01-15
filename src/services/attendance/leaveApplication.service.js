@@ -52,7 +52,7 @@ const applyLeave = async (leaveData, employee_id, user_id, requested_by_role = '
     const leaveMaster = await HrmsLeaveMaster.findOne({
         where: {
             id: leave_type,
-            company_id: employee.company_id,
+            // company_id: employee.company_id,
             is_active: true
         },
         raw: true
