@@ -377,7 +377,7 @@ async function getSwapRequestById(id) {
                 {
                     model: HrmsCompany,
                     as: 'company',
-                    attributes: ['id', 'company_name']
+                    attributes: ['id', 'org_name']
                 },
                 {
                     model: HrmsEmployee,

@@ -310,7 +310,7 @@ async function getRosterById(roster_id) {
                 {
                     model: HrmsCompany,
                     as: 'company',
-                    attributes: ['id', 'company_name']
+                    attributes: ['id', 'org_name']
                 },
                 {
                     model: HrmsRosterDetail,
@@ -376,7 +376,7 @@ async function getRosters(filters = {}) {
                 {
                     model: HrmsCompany,
                     as: 'company',
-                    attributes: ['id', 'company_name']
+                    attributes: ['id', 'org_name']
                 },
                 {
                     model: HrmsRosterDetail,

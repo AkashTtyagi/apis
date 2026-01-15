@@ -94,7 +94,7 @@ async function createRotatingShiftPattern(data, user_id) {
                 {
                     model: HrmsCompany,
                     as: 'company',
-                    attributes: ['id', 'company_name']
+                    attributes: ['id', 'org_name']
                 },
                 {
                     model: HrmsRotatingShiftApplicability,
@@ -128,7 +128,7 @@ async function getRotatingShiftPatternById(id) {
                 {
                     model: HrmsCompany,
                     as: 'company',
-                    attributes: ['id', 'company_name']
+                    attributes: ['id', 'org_name']
                 },
                 {
                     model: HrmsRotatingShiftApplicability,
@@ -201,7 +201,7 @@ async function getRotatingShiftPatterns(filters = {}) {
                 {
                     model: HrmsCompany,
                     as: 'company',
-                    attributes: ['id', 'company_name']
+                    attributes: ['id', 'org_name']
                 },
                 {
                     model: HrmsRotatingShiftApplicability,
@@ -305,7 +305,7 @@ async function updateRotatingShiftPattern(id, updateData, user_id) {
                 {
                     model: HrmsCompany,
                     as: 'company',
-                    attributes: ['id', 'company_name']
+                    attributes: ['id', 'org_name']
                 },
                 {
                     model: HrmsRotatingShiftApplicability,
