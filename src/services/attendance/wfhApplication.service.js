@@ -7,6 +7,7 @@
 const { HrmsEmployee } = require('../../models/HrmsEmployee');
 const { HrmsWorkflowRequest } = require('../../models/workflow');
 const { HrmsDailyAttendance } = require('../../models/HrmsDailyAttendance');
+const { HrmsShiftMaster } = require('../../models/HrmsShiftMaster');
 const workflowExecutionService = require('../workflow/workflowExecution.service');
 const moment = require('moment');
 
@@ -51,8 +52,16 @@ const applyWFH = async (wfhData, employee_id, user_id) => {
         throw new Error('day_type must be one of: full_day, first_half, second_half');
     }
 
-    // Get employee details
-    const employee = await HrmsEmployee.findByPk(employee_id, { raw: true });
+    // Get employee details with shift
+    const employee = await HrmsEmployee.findByPk(employee_id, {
+        include: [{
+            model: HrmsShiftMaster,
+            as: 'shift',
+            required: false
+        }],
+        raw: true,
+        nest: true
+    });
     if (!employee) {
         throw new Error('Employee not found');
     }
@@ -107,6 +116,7 @@ const applyWFH = async (wfhData, employee_id, user_id) => {
         workflow_master_id: 3,  // WFH
         employee_id: employee_id,
         company_id: employee.company_id,
+        shift: employee.shift,  // Employee's default shift
         dates: wfhDates,
         is_date_range: isDateRangeMode,
         from_date: requestData.from_date,
@@ -274,6 +284,46 @@ const handleSpecificDatesMode = (data) => {
 };
 
 /**
+ * Calculate punch_in and punch_out times based on shift and day_type
+ * @param {Object} shift - Shift object with timing details
+ * @param {string} day_type - 'full_day', 'first_half', 'second_half'
+ * @returns {Object} { punch_in, punch_out }
+ */
+const calculatePunchTimes = (shift, day_type) => {
+    if (!shift || !shift.shift_start_time) {
+        return { punch_in: null, punch_out: null };
+    }
+
+    const shiftStartTime = shift.shift_start_time;  // e.g., "09:00:00"
+    const shiftEndTime = shift.shift_end_time;  // e.g., "18:00:00"
+    const firstHalfDuration = shift.first_half_duration_minutes || 270;  // default 4:30 hours
+
+    if (day_type === 'first_half') {
+        // First half: shift_start_time to (shift_start_time + first_half_duration)
+        const startMoment = moment(shiftStartTime, 'HH:mm:ss');
+        const endMoment = startMoment.clone().add(firstHalfDuration, 'minutes');
+        return {
+            punch_in: shiftStartTime,
+            punch_out: endMoment.format('HH:mm:ss')
+        };
+    } else if (day_type === 'second_half') {
+        // Second half: (shift_start_time + first_half_duration) to shift_end_time
+        const startMoment = moment(shiftStartTime, 'HH:mm:ss');
+        const secondHalfStart = startMoment.clone().add(firstHalfDuration, 'minutes');
+        return {
+            punch_in: secondHalfStart.format('HH:mm:ss'),
+            punch_out: shiftEndTime
+        };
+    } else {
+        // Full day: shift_start_time to shift_end_time
+        return {
+            punch_in: shiftStartTime,
+            punch_out: shiftEndTime
+        };
+    }
+};
+
+/**
  * Create daily attendance entries for all dates in the request
  * Creates one entry per unique date with status "pending"
  *
@@ -286,6 +336,7 @@ const createDailyAttendanceEntries = async (data) => {
         workflow_master_id,
         employee_id,
         company_id,
+        shift,
         is_date_range,
         from_date,
         to_date,
@@ -331,6 +382,9 @@ const createDailyAttendanceEntries = async (data) => {
             pay_day = 1;  // Full Day (default)
         }
 
+        // Calculate punch_in/punch_out from employee's shift
+        const punchTimes = calculatePunchTimes(shift, dateItem.day_type);
+
         await HrmsDailyAttendance.create({
             employee_id,
             company_id,
@@ -339,8 +393,8 @@ const createDailyAttendanceEntries = async (data) => {
             workflow_master_id,
             pay_day,  // 1=Full Day, 2=First Half, 3=Second Half
             status,  // pending
-            punch_in: null,
-            punch_out: null,
+            punch_in: punchTimes.punch_in,
+            punch_out: punchTimes.punch_out,
             punch_in_location: null,
             punch_out_location: null
         });
