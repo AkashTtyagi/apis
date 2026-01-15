@@ -183,7 +183,87 @@ const validateLeaveRequest = async (params) => {
         throw new Error(`${leaveMaster.leave_name} requires document attachment`);
     }
 
-    // 11. Check max requests per month
+    // 11. Check for duplicate/overlapping leave on same dates
+    // Get the leave_mode from params (passed from service layer)
+    const requestedLeaveMode = params.leave_mode || 'full_day';
+
+    const requestedDates = [];
+    if (specific_dates && specific_dates.length > 0) {
+        // Multiple dates mode
+        specific_dates.forEach(item => {
+            const date = typeof item === 'string' ? item : item.date;
+            const dayType = typeof item === 'string' ? 'full_day' : (item.day_type || 'full_day');
+            requestedDates.push({ date, day_type: dayType });
+        });
+    } else if (from_date && to_date) {
+        // Date range mode - generate all dates in range
+        let currentDate = moment(from_date);
+        const endDate = moment(to_date);
+        while (currentDate.isSameOrBefore(endDate)) {
+            requestedDates.push({
+                date: currentDate.format('YYYY-MM-DD'),
+                day_type: requestedLeaveMode
+            });
+            currentDate.add(1, 'day');
+        }
+    }
+
+    if (requestedDates.length > 0) {
+        // Check for existing leave requests on these dates
+        const existingRequests = await HrmsWorkflowRequest.findAll({
+            where: {
+                employee_id: employee_id,
+                workflow_master_id: 1, // Leave workflow
+                request_status: {
+                    [Op.in]: ['pending', 'approved', 'submitted', 'in_progress']
+                },
+                [Op.or]: [
+                    // Date range overlaps with requested dates
+                    {
+                        from_date: { [Op.lte]: to_date || from_date },
+                        to_date: { [Op.gte]: from_date }
+                    }
+                ]
+            },
+            attributes: ['id', 'request_number', 'from_date', 'to_date', 'request_data']
+        });
+
+        // Check for date overlap considering half-day scenarios
+        for (const existingReq of existingRequests) {
+            const existingFrom = moment(existingReq.from_date);
+            const existingTo = moment(existingReq.to_date);
+            const existingLeaveMode = existingReq.request_data?.leave_mode || 'full_day';
+
+            for (const reqDateObj of requestedDates) {
+                const checkDate = moment(reqDateObj.date);
+                const newLeaveMode = reqDateObj.day_type;
+
+                if (checkDate.isBetween(existingFrom, existingTo, 'day', '[]')) {
+                    // Check if it's a half-day conflict
+                    // Allow: first_half + second_half on same day
+                    // Block: full_day + any, first_half + first_half, second_half + second_half
+
+                    const isHalfDayConflict = (
+                        existingLeaveMode === 'full_day' ||
+                        newLeaveMode === 'full_day' ||
+                        existingLeaveMode === newLeaveMode
+                    );
+
+                    if (isHalfDayConflict) {
+                        const conflictMsg = existingLeaveMode !== 'full_day'
+                            ? ` (${existingLeaveMode})`
+                            : '';
+                        throw new Error(
+                            `Leave already applied for ${reqDateObj.date}${conflictMsg}. ` +
+                            `Existing request: ${existingReq.request_number}`
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    // 12. Check max requests per month
     if (leaveMaster.max_requests_per_month) {
         const currentMonth = moment(from_date).format('YYYY-MM');
         const requestsThisMonth = await HrmsWorkflowRequest.count({
@@ -208,12 +288,13 @@ const validateLeaveRequest = async (params) => {
         }
     }
 
-    // 12. Check max requests per tenure
+    // 12. Check max requests per tenure (for this specific leave type)
     if (leaveMaster.max_requests_per_tenure) {
         const requestsInTenure = await HrmsWorkflowRequest.count({
             where: {
                 employee_id: employee_id,
                 workflow_master_id: 1, // Leave workflow
+                leave_type: leaveMaster.id, // Filter by specific leave type
                 request_status: {
                     [Op.in]: ['pending', 'approved']
                 }
@@ -228,26 +309,29 @@ const validateLeaveRequest = async (params) => {
         }
     }
 
-    // 13. Check max leaves per month
+    // 13. Check max leaves per month (for this specific leave type)
     if (leaveMaster.max_leaves_per_month) {
-        const currentMonth = moment(from_date).format('YYYY-MM');
+        const monthStart = moment(from_date).startOf('month').format('YYYY-MM-DD');
+        const monthEnd = moment(from_date).endOf('month').format('YYYY-MM-DD');
+
         const existingRequests = await HrmsWorkflowRequest.findAll({
             where: {
                 employee_id: employee_id,
                 workflow_master_id: 1,
+                leave_type: leaveMaster.id,
                 request_status: {
                     [Op.in]: ['pending', 'approved']
+                },
+                from_date: {
+                    [Op.between]: [monthStart, monthEnd]
                 }
             }
         });
 
         let totalLeavesThisMonth = duration;
         existingRequests.forEach(req => {
-            if (req.request_data && req.request_data.leave_type === leave_type) {
-                const reqMonth = moment(req.request_data.from_date).format('YYYY-MM');
-                if (reqMonth === currentMonth) {
-                    totalLeavesThisMonth += parseFloat(req.request_data.duration || 0);
-                }
+            if (req.request_data) {
+                totalLeavesThisMonth += parseFloat(req.request_data.duration || 0);
             }
         });
 
@@ -259,26 +343,29 @@ const validateLeaveRequest = async (params) => {
         }
     }
 
-    // 14. Check max leaves per year
+    // 14. Check max leaves per year (for this specific leave type)
     if (leaveMaster.max_leaves_per_year) {
-        const currentYear = moment(from_date).format('YYYY');
+        const yearStart = moment(from_date).startOf('year').format('YYYY-MM-DD');
+        const yearEnd = moment(from_date).endOf('year').format('YYYY-MM-DD');
+
         const existingRequests = await HrmsWorkflowRequest.findAll({
             where: {
                 employee_id: employee_id,
                 workflow_master_id: 1,
+                leave_type: leaveMaster.id,
                 request_status: {
                     [Op.in]: ['pending', 'approved']
+                },
+                from_date: {
+                    [Op.between]: [yearStart, yearEnd]
                 }
             }
         });
 
         let totalLeavesThisYear = duration;
         existingRequests.forEach(req => {
-            if (req.request_data && req.request_data.leave_type === leave_type) {
-                const reqYear = moment(req.request_data.from_date).format('YYYY');
-                if (reqYear === currentYear) {
-                    totalLeavesThisYear += parseFloat(req.request_data.duration || 0);
-                }
+            if (req.request_data) {
+                totalLeavesThisYear += parseFloat(req.request_data.duration || 0);
             }
         });
 

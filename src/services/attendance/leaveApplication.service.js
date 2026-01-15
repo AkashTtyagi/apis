@@ -97,7 +97,8 @@ const applyLeave = async (leaveData, employee_id, user_id, requested_by_role = '
         specific_dates: isMultipleDatesMode ? specific_dates : null,
         duration: calculatedDuration,
         requested_by_role: requested_by_role,
-        attachment: attachments
+        attachment: attachments,
+        leave_mode: day_type  // For duplicate date check with half-day support
     });
 
     // Handle Date Range Mode
