@@ -42,20 +42,27 @@ const applyLeave = async (leaveData, employee_id, user_id, requested_by_role = '
     const isDateRangeMode = from_date && to_date;
     const isMultipleDatesMode = specific_dates && Array.isArray(specific_dates) && specific_dates.length > 0;
 
-    // Get leave master configuration
-    const leaveMaster = await HrmsLeaveMaster.findByPk(leave_type, { raw: true });
-    if (!leaveMaster) {
-        throw new Error('Invalid leave_type. Must be valid leave master ID.');
-    }
-
-    // Derive is_paid from leave master
-    const is_paid = leaveMaster.leave_type === 'paid';
-
-    // Get employee details
+    // Get employee details first (needed for company_id filter)
     const employee = await HrmsEmployee.findByPk(employee_id, { raw: true });
     if (!employee) {
         throw new Error('Employee not found');
     }
+
+    // Get leave master configuration with company filter
+    const leaveMaster = await HrmsLeaveMaster.findOne({
+        where: {
+            id: leave_type,
+            company_id: employee.company_id,
+            is_active: true
+        },
+        raw: true
+    });
+    if (!leaveMaster) {
+        throw new Error('Invalid leave_type. Leave type not found or not active for your company.');
+    }
+
+    // Derive is_paid from leave master
+    const is_paid = leaveMaster.leave_type === 'paid';
 
     let requestData;
     let calculatedDuration = 0;
