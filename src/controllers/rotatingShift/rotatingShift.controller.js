@@ -98,8 +98,9 @@ const getRotatingShiftPatternById = async (req, res) => {
  */
 const getRotatingShiftPatterns = async (req, res) => {
     try {
+        const { company_id } = req.user;
         const filters = {
-            company_id: req.body.company_id,
+            company_id,
             frequency: req.body.frequency,
             is_active: req.body.is_active,
             active_on_date: req.body.active_on_date,

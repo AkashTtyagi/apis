@@ -103,8 +103,9 @@ const getRosterById = async (req, res) => {
  */
 const getRosters = async (req, res) => {
     try {
+        const { company_id } = req.user;
         const filters = {
-            company_id: req.body.company_id,
+            company_id,
             is_active: req.body.is_active,
             search: req.body.search,
             page: req.body.page || 1,
