@@ -32,7 +32,7 @@ const getAllPolicies = async (filters = {}) => {
             {
                 model: HrmsCompany,
                 as: 'company',
-                attributes: ['id', 'company_name']
+                attributes: ['id', 'org_name']
             },
             {
                 model: HrmsHolidayPolicyMapping,
@@ -78,7 +78,7 @@ const getPolicyById = async (id) => {
             {
                 model: HrmsCompany,
                 as: 'company',
-                attributes: ['id', 'company_name']
+                attributes: ['id', 'org_name']
             },
             {
                 model: HrmsHolidayPolicyMapping,
