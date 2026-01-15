@@ -47,19 +47,6 @@ const HrmsHolidayPolicyApplicability = sequelize.define('HrmsHolidayPolicyApplic
         comment: 'Company ID for filtering'
     },
 
-    // Advanced Applicability (additional filter)
-    advanced_applicability_type: {
-        type: DataTypes.STRING(50),
-        allowNull: true,
-        defaultValue: 'none',
-        comment: 'Advanced filter: none, employee_type, branch, region'
-    },
-    advanced_applicability_value: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-        comment: 'Comma-separated IDs for advanced filter'
-    },
-
     is_excluded: {
         type: DataTypes.TINYINT(1),
         allowNull: false,
@@ -107,15 +94,6 @@ const HrmsHolidayPolicyApplicability = sequelize.define('HrmsHolidayPolicyApplic
         {
             name: 'idx_company_id',
             fields: ['company_id']
-        },
-        {
-            name: 'idx_advanced_applicability_type',
-            fields: ['advanced_applicability_type']
-        },
-        {
-            name: 'idx_advanced_applicability_value',
-            fields: ['advanced_applicability_value'],
-            length: { advanced_applicability_value: 100 }
         },
         {
             name: 'idx_is_active',

@@ -56,8 +56,6 @@ const getAllPolicies = async (filters = {}) => {
                     'id',
                     'applicability_type',
                     'applicability_value',
-                    'advanced_applicability_type',
-                    'advanced_applicability_value',
                     'is_excluded',
                     'priority'
                 ]
@@ -183,8 +181,6 @@ const createPolicy = async (policyData, userId) => {
                 applicability_type: rule.applicability_type,
                 applicability_value: rule.applicability_value,
                 company_id,
-                advanced_applicability_type: rule.advanced_applicability_type || 'none',
-                advanced_applicability_value: rule.advanced_applicability_value || null,
                 is_excluded: rule.is_excluded || 0,
                 priority: rule.priority || 1,
                 is_active: 1,
@@ -286,8 +282,6 @@ const updatePolicy = async (id, policyData, userId) => {
                     applicability_type: rule.applicability_type,
                     applicability_value: rule.applicability_value,
                     company_id: policy.company_id,
-                    advanced_applicability_type: rule.advanced_applicability_type || 'none',
-                    advanced_applicability_value: rule.advanced_applicability_value || null,
                     is_excluded: rule.is_excluded || 0,
                     priority: rule.priority || 1,
                     is_active: 1,
