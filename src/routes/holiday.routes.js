@@ -25,8 +25,11 @@ const {
     validateRemoveHolidayFromPolicy
 } = require('../middlewares/validators/holiday.validator');
 
-// Middleware (add authentication/authorization as needed)
-// const { authenticate } = require('../middleware/auth.middleware');
+// Middleware
+const { authenticate } = require('../middlewares/auth.middleware');
+
+// Apply authentication to all routes
+router.use(authenticate);
 
 // ========================================
 // HOLIDAY BANK ROUTES
