@@ -28,6 +28,12 @@ const HrmsHolidayBank = sequelize.define('HrmsHolidayBank', {
         defaultValue: 0,
         comment: '1=National Holiday, 0=Restricted/Optional Holiday'
     },
+    day_type: {
+        type: DataTypes.ENUM('full_day', 'first_half', 'second_half'),
+        allowNull: false,
+        defaultValue: 'full_day',
+        comment: 'full_day=Full Day Holiday, first_half=Morning Off, second_half=Afternoon Off'
+    },
     description: {
         type: DataTypes.TEXT,
         allowNull: true,

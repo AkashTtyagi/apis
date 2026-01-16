@@ -166,11 +166,23 @@ const applyRestrictedHoliday = async (data, employee_id, user_id) => {
         throw new Error(`You have already used/applied for all ${maxAllowed} restricted holidays allowed for this year.`);
     }
 
+    // Determine pay_day based on holiday day_type
+    const dayType = holiday.day_type || 'full_day';
+    let pay_day;
+    if (dayType === 'first_half') {
+        pay_day = 2;  // First Half
+    } else if (dayType === 'second_half') {
+        pay_day = 3;  // Second Half
+    } else {
+        pay_day = 1;  // Full Day
+    }
+
     // Prepare request data
     const requestData = {
         holiday_id: holiday.id,
         holiday_name: holiday.holiday_name,
         holiday_date: holiday.holiday_date,
+        day_type: dayType,
         policy_id: applicablePolicy.id,
         policy_name: applicablePolicy.calendar_name,
         reason: reason || null,
@@ -192,10 +204,10 @@ const applyRestrictedHoliday = async (data, employee_id, user_id) => {
         attendance_date: holiday.holiday_date,
         request_id: request.id,
         workflow_master_id: workflowMasterId,
-        pay_day: 1,  // Full Day
+        pay_day,  // 1=Full Day, 2=First Half, 3=Second Half
         is_paid: true,  // Restricted holidays are paid
         status: 'pending',
-        remarks: `Restricted Holiday: ${holiday.holiday_name}`,
+        remarks: `Restricted Holiday: ${holiday.holiday_name} (${dayType})`,
         punch_in: null,
         punch_out: null
     });
@@ -204,6 +216,7 @@ const applyRestrictedHoliday = async (data, employee_id, user_id) => {
         request,
         holiday_name: holiday.holiday_name,
         holiday_date: holiday.holiday_date,
+        day_type: dayType,
         remaining_count: maxAllowed - approvedCount - pendingCount - 1
     };
 };
@@ -440,6 +453,7 @@ const getAvailableRestrictedHolidays = async (employee_id) => {
             id: holiday.id,
             holiday_name: holiday.holiday_name,
             holiday_date: holidayDate,
+            day_type: holiday.day_type || 'full_day',  // full_day, first_half, second_half
             description: holiday.description,
             is_past: isPast,
             is_applied: !!appliedStatus,
