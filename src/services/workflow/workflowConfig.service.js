@@ -324,20 +324,29 @@ const updateWorkflowConfig = async (configId, updateData) => {
 
         // Update applicability if provided
         if (applicability && Array.isArray(applicability)) {
+            console.log(`Updating applicability for config ${configId}, received ${applicability.length} rules`);
+
             // Get existing applicability rules
             const existingApplicability = await HrmsWorkflowApplicability.findAll({
-                where: { workflow_config_id: configId, is_active: true },
+                where: { workflow_config_id: parseInt(configId), is_active: 1 },
                 transaction
             });
 
-            const existingIds = existingApplicability.map(a => a.id);
-            const incomingIds = applicability.filter(a => a.id).map(a => a.id);
+            console.log(`Found ${existingApplicability.length} existing applicability rules`);
+
+            const existingIds = existingApplicability.map(a => parseInt(a.id));
+            const incomingIds = applicability.filter(a => a.id).map(a => parseInt(a.id));
+
+            console.log('Existing IDs:', existingIds);
+            console.log('Incoming IDs:', incomingIds);
 
             // Deactivate removed applicability rules
             const idsToDeactivate = existingIds.filter(id => !incomingIds.includes(id));
+            console.log('IDs to deactivate:', idsToDeactivate);
+
             if (idsToDeactivate.length > 0) {
                 await HrmsWorkflowApplicability.update(
-                    { is_active: false },
+                    { is_active: 0 },
                     { where: { id: idsToDeactivate }, transaction }
                 );
                 console.log(`✓ Deactivated ${idsToDeactivate.length} applicability rules`);
@@ -356,35 +365,49 @@ const updateWorkflowConfig = async (configId, updateData) => {
                     processedAdvancedValue = rule.advanced_applicability_value.join(',');
                 }
 
-                if (rule.id && existingIds.includes(rule.id)) {
+                const ruleId = rule.id ? parseInt(rule.id) : null;
+
+                if (ruleId && existingIds.includes(ruleId)) {
                     // Update existing rule
+                    console.log(`Updating applicability rule ${ruleId} with:`, {
+                        applicability_type: rule.applicability_type,
+                        applicability_value: processedApplicabilityValue,
+                        advanced_applicability_type: rule.advanced_applicability_type || 'none',
+                        advanced_applicability_value: processedAdvancedValue
+                    });
+
                     await HrmsWorkflowApplicability.update(
                         {
                             applicability_type: rule.applicability_type,
                             applicability_value: processedApplicabilityValue,
                             advanced_applicability_type: rule.advanced_applicability_type || 'none',
                             advanced_applicability_value: processedAdvancedValue,
-                            is_excluded: rule.is_excluded || false,
+                            is_excluded: rule.is_excluded ? 1 : 0,
                             priority: rule.priority || 1,
                             company_id: rule.company_id || config.company_id,
-                            is_active: true
+                            is_active: 1
                         },
-                        { where: { id: rule.id }, transaction }
+                        { where: { id: ruleId }, transaction }
                     );
-                    console.log(`✓ Updated applicability rule: ${rule.id}`);
+                    console.log(`✓ Updated applicability rule: ${ruleId}`);
                 } else {
                     // Create new rule
+                    console.log(`Creating new applicability rule with:`, {
+                        applicability_type: rule.applicability_type,
+                        applicability_value: processedApplicabilityValue
+                    });
+
                     await HrmsWorkflowApplicability.create(
                         {
-                            workflow_config_id: configId,
+                            workflow_config_id: parseInt(configId),
                             applicability_type: rule.applicability_type,
                             applicability_value: processedApplicabilityValue,
                             advanced_applicability_type: rule.advanced_applicability_type || 'none',
                             advanced_applicability_value: processedAdvancedValue,
-                            is_excluded: rule.is_excluded || false,
+                            is_excluded: rule.is_excluded ? 1 : 0,
                             priority: rule.priority || 1,
                             company_id: rule.company_id || config.company_id,
-                            is_active: true,
+                            is_active: 1,
                             created_by: updateData.updated_by
                         },
                         { transaction }
@@ -396,20 +419,27 @@ const updateWorkflowConfig = async (configId, updateData) => {
 
         // Update stages if provided
         if (stages && Array.isArray(stages)) {
+            console.log(`Updating stages for config ${configId}, received ${stages.length} stages`);
+
             // Get existing stages
             const existingStages = await HrmsWorkflowStage.findAll({
-                where: { workflow_config_id: configId, is_active: true },
+                where: { workflow_config_id: parseInt(configId), is_active: 1 },
                 transaction
             });
 
-            const existingStageIds = existingStages.map(s => s.id);
-            const incomingStageIds = stages.filter(s => s.id).map(s => s.id);
+            console.log(`Found ${existingStages.length} existing stages`);
+
+            const existingStageIds = existingStages.map(s => parseInt(s.id));
+            const incomingStageIds = stages.filter(s => s.id).map(s => parseInt(s.id));
+
+            console.log('Existing stage IDs:', existingStageIds);
+            console.log('Incoming stage IDs:', incomingStageIds);
 
             // Deactivate removed stages
             const stageIdsToDeactivate = existingStageIds.filter(id => !incomingStageIds.includes(id));
             if (stageIdsToDeactivate.length > 0) {
                 await HrmsWorkflowStage.update(
-                    { is_active: false },
+                    { is_active: 0 },
                     { where: { id: stageIdsToDeactivate }, transaction }
                 );
                 console.log(`✓ Deactivated ${stageIdsToDeactivate.length} stages`);
@@ -417,18 +447,20 @@ const updateWorkflowConfig = async (configId, updateData) => {
 
             // Update or create stages
             for (const stage of stages) {
-                let stageId = stage.id;
+                let stageId = stage.id ? parseInt(stage.id) : null;
 
-                if (stage.id && existingStageIds.includes(stage.id)) {
+                if (stageId && existingStageIds.includes(stageId)) {
                     // Update existing stage
+                    console.log(`Updating stage ${stageId}: ${stage.stage_name}`);
+
                     await HrmsWorkflowStage.update(
                         {
                             stage_name: stage.stage_name,
                             stage_order: stage.stage_order,
                             stage_type: stage.stage_type,
                             approver_logic: stage.approver_logic,
-                            is_mandatory: stage.is_mandatory,
-                            can_skip: stage.can_skip,
+                            is_mandatory: stage.is_mandatory ? 1 : 0,
+                            can_skip: stage.can_skip ? 1 : 0,
                             skip_condition: stage.skip_condition,
                             sla_days: stage.sla_days,
                             sla_hours: stage.sla_hours,
@@ -437,28 +469,30 @@ const updateWorkflowConfig = async (configId, updateData) => {
                             on_approve_next_stage_id: stage.on_approve_next_stage_id,
                             on_reject_action: stage.on_reject_action,
                             on_reject_stage_id: stage.on_reject_stage_id,
-                            send_email_on_assign: stage.send_email_on_assign,
-                            send_email_on_approve: stage.send_email_on_approve,
-                            send_email_on_reject: stage.send_email_on_reject,
+                            send_email_on_assign: stage.send_email_on_assign ? 1 : 0,
+                            send_email_on_approve: stage.send_email_on_approve ? 1 : 0,
+                            send_email_on_reject: stage.send_email_on_reject ? 1 : 0,
                             email_template_id: stage.email_template_id,
                             email_config: stage.email_config,
-                            is_active: true,
+                            is_active: 1,
                             updated_by: updateData.updated_by
                         },
-                        { where: { id: stage.id }, transaction }
+                        { where: { id: stageId }, transaction }
                     );
-                    console.log(`✓ Updated stage: ${stage.id}`);
+                    console.log(`✓ Updated stage: ${stageId}`);
                 } else {
                     // Create new stage
+                    console.log(`Creating new stage: ${stage.stage_name}`);
+
                     const newStage = await HrmsWorkflowStage.create(
                         {
-                            workflow_config_id: configId,
+                            workflow_config_id: parseInt(configId),
                             stage_name: stage.stage_name,
                             stage_order: stage.stage_order,
                             stage_type: stage.stage_type || 'approval',
                             approver_logic: stage.approver_logic || 'OR',
-                            is_mandatory: stage.is_mandatory !== false,
-                            can_skip: stage.can_skip || false,
+                            is_mandatory: stage.is_mandatory !== false ? 1 : 0,
+                            can_skip: stage.can_skip ? 1 : 0,
                             skip_condition: stage.skip_condition,
                             sla_days: stage.sla_days || 0,
                             sla_hours: stage.sla_hours || 0,
@@ -467,12 +501,12 @@ const updateWorkflowConfig = async (configId, updateData) => {
                             on_approve_next_stage_id: stage.on_approve_next_stage_id,
                             on_reject_action: stage.on_reject_action || 'final_reject',
                             on_reject_stage_id: stage.on_reject_stage_id,
-                            send_email_on_assign: stage.send_email_on_assign !== false,
-                            send_email_on_approve: stage.send_email_on_approve !== false,
-                            send_email_on_reject: stage.send_email_on_reject !== false,
+                            send_email_on_assign: stage.send_email_on_assign !== false ? 1 : 0,
+                            send_email_on_approve: stage.send_email_on_approve !== false ? 1 : 0,
+                            send_email_on_reject: stage.send_email_on_reject !== false ? 1 : 0,
                             email_template_id: stage.email_template_id,
                             email_config: stage.email_config,
-                            is_active: true,
+                            is_active: 1,
                             created_by: updateData.updated_by
                         },
                         { transaction }
@@ -483,58 +517,65 @@ const updateWorkflowConfig = async (configId, updateData) => {
 
                 // Update approvers for this stage
                 if (stage.approvers && Array.isArray(stage.approvers)) {
+                    console.log(`Updating ${stage.approvers.length} approvers for stage ${stageId}`);
+
                     // Get existing approvers for this stage
                     const existingApprovers = await HrmsWorkflowStageApprover.findAll({
-                        where: { stage_id: stageId, is_active: true },
+                        where: { stage_id: stageId, is_active: 1 },
                         transaction
                     });
 
-                    const existingApproverIds = existingApprovers.map(a => a.id);
-                    const incomingApproverIds = stage.approvers.filter(a => a.id).map(a => a.id);
+                    const existingApproverIds = existingApprovers.map(a => parseInt(a.id));
+                    const incomingApproverIds = stage.approvers.filter(a => a.id).map(a => parseInt(a.id));
 
                     // Deactivate removed approvers
                     const approverIdsToDeactivate = existingApproverIds.filter(id => !incomingApproverIds.includes(id));
                     if (approverIdsToDeactivate.length > 0) {
                         await HrmsWorkflowStageApprover.update(
-                            { is_active: false },
+                            { is_active: 0 },
                             { where: { id: approverIdsToDeactivate }, transaction }
                         );
+                        console.log(`✓ Deactivated ${approverIdsToDeactivate.length} approvers`);
                     }
 
                     // Update or create approvers
                     for (const approver of stage.approvers) {
-                        if (approver.id && existingApproverIds.includes(approver.id)) {
+                        const approverId = approver.id ? parseInt(approver.id) : null;
+
+                        if (approverId && existingApproverIds.includes(approverId)) {
                             // Update existing approver
                             await HrmsWorkflowStageApprover.update(
                                 {
                                     approver_type: approver.approver_type,
                                     custom_user_id: approver.custom_user_id,
                                     approver_order: approver.approver_order,
-                                    has_condition: approver.has_condition || false,
+                                    has_condition: approver.has_condition ? 1 : 0,
                                     condition_id: approver.condition_id,
-                                    allow_delegation: approver.allow_delegation !== false,
+                                    allow_delegation: approver.allow_delegation !== false ? 1 : 0,
                                     delegate_to_user_id: approver.delegate_to_user_id,
-                                    is_active: true
+                                    is_active: 1
                                 },
-                                { where: { id: approver.id }, transaction }
+                                { where: { id: approverId }, transaction }
                             );
+                            console.log(`✓ Updated approver: ${approverId}`);
                         } else {
                             // Create new approver
-                            await HrmsWorkflowStageApprover.create(
+                            const newApprover = await HrmsWorkflowStageApprover.create(
                                 {
                                     stage_id: stageId,
                                     approver_type: approver.approver_type,
                                     custom_user_id: approver.custom_user_id,
                                     approver_order: approver.approver_order || 1,
-                                    has_condition: approver.has_condition || false,
+                                    has_condition: approver.has_condition ? 1 : 0,
                                     condition_id: approver.condition_id,
-                                    allow_delegation: approver.allow_delegation !== false,
+                                    allow_delegation: approver.allow_delegation !== false ? 1 : 0,
                                     delegate_to_user_id: approver.delegate_to_user_id,
-                                    is_active: true,
+                                    is_active: 1,
                                     created_by: updateData.updated_by
                                 },
                                 { transaction }
                             );
+                            console.log(`✓ Created new approver: ${newApprover.id}`);
                         }
                     }
                 }
