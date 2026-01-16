@@ -82,7 +82,11 @@ const getRotatingShiftPatternById = async (req, res) => {
 
         const result = await rotatingShiftService.getRotatingShiftPatternById(pattern_id);
 
-        return successResponse(res, result.data, 'Rotating shift pattern retrieved successfully');
+        return res.status(200).json({
+            success: true,
+            message: 'Rotating shift pattern retrieved successfully',
+            data: result.data
+        });
 
     } catch (error) {
         console.error('Error in getRotatingShiftPatternById controller:', error);
@@ -112,7 +116,12 @@ const getRotatingShiftPatterns = async (req, res) => {
 
         const result = await rotatingShiftService.getRotatingShiftPatterns(filters);
 
-        return successResponse(res, result.data, 'Rotating shift patterns retrieved successfully', 200, result.pagination);
+        return res.status(200).json({
+            success: true,
+            message: 'Rotating shift patterns retrieved successfully',
+            data: result.data,
+            pagination: result.pagination
+        });
 
     } catch (error) {
         console.error('Error in getRotatingShiftPatterns controller:', error);
@@ -141,7 +150,11 @@ const deleteRotatingShiftPattern = async (req, res) => {
 
         const result = await rotatingShiftService.deleteRotatingShiftPattern(pattern_id, user_id);
 
-        return successResponse(res, null, result.message);
+        return res.status(200).json({
+            success: true,
+            message: result.message,
+            data: null
+        });
 
     } catch (error) {
         console.error('Error in deleteRotatingShiftPattern controller:', error);
