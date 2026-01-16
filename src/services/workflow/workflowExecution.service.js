@@ -81,8 +81,8 @@ const submitRequest = async (employeeId, workflowMasterId, requestData, submitte
             requestPayload.to_date = requestData.to_date || null;
         }
 
-        // Add date fields for OnDuty (workflow_master_id = 2) and WFH (workflow_master_id = 3)
-        if ((workflowMasterId === 2 || workflowMasterId === 3) && requestData) {
+        // Add date fields for OnDuty (workflow_master_id = 2) and WFH (workflow_master_id = 4)
+        if ((workflowMasterId === 2 || workflowMasterId === 4) && requestData) {
             requestPayload.from_date = requestData.from_date || null;
             requestPayload.to_date = requestData.to_date || null;
         }
@@ -174,7 +174,7 @@ const processStage = async (requestId, stageId, context, transaction = null) => 
 
         if (conditionResult.matched && conditionResult.action === 'skip_stage') {
             console.log(`Skipping stage: ${stage.stage_name}`);
-            await moveToNextStage(requestId, stageId, transaction);
+            await moveToNextStage(requestId, stageId, transaction, null);
             return;
         }
 
@@ -215,8 +215,8 @@ const processStage = async (requestId, stageId, context, transaction = null) => 
                     is_system_action: true
                 }, queryOptions);
 
-                // Move to next stage
-                await moveToNextStage(requestId, stageId, transaction);
+                // Move to next stage - pass self-approver's user_id
+                await moveToNextStage(requestId, stageId, transaction, requesterUserId);
                 return;
             } else {
                 // Filter out self from approvers if self-approval not allowed
@@ -225,7 +225,7 @@ const processStage = async (requestId, stageId, context, transaction = null) => 
                 if (filteredApprovers.length === 0) {
                     // No other approvers, skip this stage
                     console.log(`⏭️ Skipping stage ${stage.stage_name} - Only self as approver and self-approval not allowed`);
-                    await moveToNextStage(requestId, stageId, transaction);
+                    await moveToNextStage(requestId, stageId, transaction, null);
                     return;
                 }
 
@@ -407,8 +407,8 @@ const handleApproval = async (requestId, approverUserId, remarks = null, attachm
 
                 await processStage(requestId, nextStage.id, context, transaction.trans_id);
             } else {
-                // Final approval
-                await finalizeRequest(requestId, 'approved', transaction.trans_id);
+                // Final approval - pass approverUserId
+                await finalizeRequest(requestId, 'approved', transaction.trans_id, approverUserId);
             }
         }
 
@@ -617,8 +617,9 @@ const autoRejectRequest = async (requestId, reason, transaction = null) => {
  * @param {number} requestId - Request ID
  * @param {string} status - Final status
  * @param {Object} transaction - Transaction
+ * @param {number} approvedByUserId - User ID who approved/rejected (optional, null for system actions)
  */
-const finalizeRequest = async (requestId, status, transaction = null) => {
+const finalizeRequest = async (requestId, status, transaction = null, approvedByUserId = null) => {
     try {
         const overallStatus = ['approved', 'auto_approved'].includes(status) ? 'completed' : 'rejected';
 
@@ -635,6 +636,39 @@ const finalizeRequest = async (requestId, status, transaction = null) => {
         });
 
         console.log(`✓ Request ${requestId} finalized with status: ${status}`);
+
+        // Update HrmsDailyAttendance status for attendance-related workflows
+        // workflow_master_id: 1=Leave, 2=OnDuty, 3=Regularization, 4=WFH, 5=ShortLeave, + RestrictedHoliday
+        if ([1, 2, 3, 4, 5].includes(request.workflow_master_id) || request.workflow_code === 'RESTRICTED_HOLIDAY') {
+            const { HrmsDailyAttendance } = require('../../models/HrmsDailyAttendance');
+
+            // Map workflow status to attendance status
+            let attendanceStatus;
+            if (['approved', 'auto_approved'].includes(status)) {
+                attendanceStatus = 'approved';
+            } else if (['rejected', 'auto_rejected'].includes(status)) {
+                attendanceStatus = 'rejected';
+            }
+
+            if (attendanceStatus) {
+                const updateData = { status: attendanceStatus };
+
+                // Set approved_by and approved_at when approved
+                if (attendanceStatus === 'approved') {
+                    updateData.approved_by = approvedByUserId;
+                    updateData.approved_at = new Date();
+                }
+
+                await HrmsDailyAttendance.update(
+                    updateData,
+                    {
+                        where: { request_id: requestId },
+                        transaction
+                    }
+                );
+                console.log(`✓ Updated HrmsDailyAttendance status to '${attendanceStatus}' for request ${requestId}`);
+            }
+        }
 
         // If approved and it's a leave request (workflow_master_id = 1), debit leave balance
         if (['approved', 'auto_approved'].includes(status) && request.workflow_master_id === 1) {
@@ -732,14 +766,15 @@ const processLeaveApproval = async (request, transaction = null) => {
  * @param {number} requestId - Request ID
  * @param {number} currentStageId - Current stage ID
  * @param {Object} transaction - Transaction
+ * @param {number} approvedByUserId - User ID who approved (optional, for self-approval scenarios)
  */
-const moveToNextStage = async (requestId, currentStageId, transaction = null) => {
+const moveToNextStage = async (requestId, currentStageId, transaction = null, approvedByUserId = null) => {
     try {
         const currentStage = await HrmsWorkflowStage.findByPk(currentStageId, { raw: true });
         const nextStage = await HrmsWorkflowStage.findByPk(currentStage.on_approve_next_stage_id, { raw: true });
 
         if (!nextStage) {
-            await finalizeRequest(requestId, 'approved', transaction);
+            await finalizeRequest(requestId, 'approved', transaction, approvedByUserId);
             return;
         }
 

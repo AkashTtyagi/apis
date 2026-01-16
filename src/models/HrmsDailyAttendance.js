@@ -7,9 +7,13 @@
  * - workflow_master_id = NULL → Regular attendance (punch in/out)
  * - workflow_master_id = 1 → Leave (from workflow request)
  * - workflow_master_id = 2 → On Duty (from workflow request)
- * - workflow_master_id = 3 → WFH (from workflow request)
+ * - workflow_master_id = 3 → Regularization (from workflow request)
+ * - workflow_master_id = 4 → WFH (from workflow request)
+ * - workflow_master_id = 5 → Short Leave (from workflow request)
+ * - workflow_master_id = RESTRICTED_HOLIDAY → Restricted Holiday (from workflow request)
  *
- * Note: Holidays and Week-offs are NOT stored here (calculated from calendar)
+ * Note: National Holidays and Week-offs are NOT stored here (calculated from calendar)
+ * Note: Restricted Holidays ARE stored here when employee opts for them
  *
  * Example: Employee applies for 5 days leave
  * → 1 entry in hrms_workflow_requests
@@ -160,11 +164,15 @@ const HrmsDailyAttendance = sequelize.define('HrmsDailyAttendance', {
         comment: 'Type of leave if workflow_master_id = 1'
     },
 
-    // Approval (for manual/regularization entries)
-    is_approved: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false
+    // Status for soft delete and workflow tracking
+    status: {
+        type: DataTypes.ENUM('pending', 'approved', 'rejected', 'withdrawn'),
+        allowNull: false,
+        defaultValue: 'pending',
+        comment: 'pending=awaiting approval, approved=approved, rejected=rejected, withdrawn=withdrawn by employee'
     },
+
+    // Approval (for manual/regularization entries)
     approved_by: {
         type: DataTypes.INTEGER,
         allowNull: true,
@@ -217,6 +225,10 @@ const HrmsDailyAttendance = sequelize.define('HrmsDailyAttendance', {
         {
             name: 'idx_employee_month',
             fields: ['employee_id', 'attendance_date']
+        },
+        {
+            name: 'idx_status',
+            fields: ['status']
         }
     ],
     comment: 'Daily attendance records with workflow integration'

@@ -107,6 +107,23 @@ router.post('/employee/requests/withdraw', validateWithdrawRequest, employeeCont
 router.post('/employee/leave/balance', employeeController.getLeaveBalance);
 
 /**
+ * @route   POST /api/attendance/employee/restricted-holiday/available
+ * @desc    Get available restricted holidays for employee
+ * @body    {} (empty body - uses logged-in employee)
+ * @access  Employee
+ */
+router.post('/employee/restricted-holiday/available', employeeController.getAvailableRestrictedHolidays);
+
+/**
+ * @route   POST /api/attendance/employee/restricted-holiday/apply
+ * @desc    Employee applies for restricted holiday
+ * @body    holiday_id: number (required - from hrms_holiday_bank)
+ * @body    reason: string (optional)
+ * @access  Employee
+ */
+router.post('/employee/restricted-holiday/apply', employeeController.applyRestrictedHoliday);
+
+/**
  * @route   POST /api/attendance/calendar
  * @desc    Get attendance calendar with derived status (Common for Employee/Manager/Admin)
  * @body    employee_id: Employee ID (optional - for manager/admin, if not provided uses req.user.employee_id)

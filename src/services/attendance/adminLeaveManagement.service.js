@@ -233,12 +233,12 @@ const getDashboardStats = async (company_id, filters = {}) => {
     // Get stats for each workflow type
     const stats = {};
 
-    // workflow_master_id: 1=Leave, 2=OnDuty, 3=WFH, 4=Regularization, 5=ShortLeave
+    // workflow_master_id: 1=Leave, 2=OnDuty, 3=Regularization, 4=WFH, 5=ShortLeave
     const workflowTypes = [
         { id: 1, name: 'leave' },
         { id: 2, name: 'onduty' },
-        { id: 3, name: 'wfh' },
-        { id: 4, name: 'regularization' },
+        { id: 3, name: 'regularization' },
+        { id: 4, name: 'wfh' },
         { id: 5, name: 'short_leave' }
     ];
 

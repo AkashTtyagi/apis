@@ -541,38 +541,69 @@ const getLeaveRequestDetails = async (request_id, employee_id) => {
  * Withdraw leave request
  * @param {number} request_id - Request ID
  * @param {number} employee_id - Employee ID
+ * @param {number} user_id - User ID who is withdrawing
  * @param {string} remarks - Withdrawal remarks
  * @returns {Promise<Object>} Updated request
  */
-const withdrawLeaveRequest = async (request_id, employee_id, remarks = null) => {
-    const request = await HrmsWorkflowRequest.findOne({
-        where: {
-            id: request_id,
-            employee_id
+const withdrawLeaveRequest = async (request_id, employee_id, user_id, remarks = null) => {
+    const { sequelize } = require('../../utils/database');
+    const transaction = await sequelize.transaction();
+
+    try {
+        const request = await HrmsWorkflowRequest.findOne({
+            where: {
+                id: request_id,
+                employee_id
+            },
+            transaction
+        });
+
+        if (!request) {
+            throw new Error('Request not found');
         }
-    });
 
-    if (!request) {
-        throw new Error('Request not found');
+        // Check if already completed
+        if (request.overall_status === 'completed') {
+            throw new Error('Cannot withdraw completed request');
+        }
+
+        if (request.request_status === 'withdrawn') {
+            throw new Error('Request already withdrawn');
+        }
+
+        // Update request status
+        await request.update({
+            request_status: 'withdrawn',
+            overall_status: 'withdrawn',
+            admin_remarks: remarks || 'Request withdrawn by employee'
+        }, { transaction });
+
+        // Soft delete: Update status to 'withdrawn' in HrmsDailyAttendance
+        // This handles Leave(1), OnDuty(2), WFH(3), Regularization(4), ShortLeave(5)
+        const [updatedCount] = await HrmsDailyAttendance.update(
+            {
+                status: 'withdrawn',
+                updated_by: user_id
+            },
+            {
+                where: {
+                    request_id: request_id
+                },
+                transaction
+            }
+        );
+
+        await transaction.commit();
+
+        return {
+            ...request.toJSON(),
+            attendance_entries_withdrawn: updatedCount
+        };
+
+    } catch (error) {
+        await transaction.rollback();
+        throw error;
     }
-
-    // Check if already completed
-    if (request.overall_status === 'completed') {
-        throw new Error('Cannot withdraw completed request');
-    }
-
-    if (request.request_status === 'withdrawn') {
-        throw new Error('Request already withdrawn');
-    }
-
-    // Update request status
-    await request.update({
-        request_status: 'withdrawn',
-        overall_status: 'withdrawn',
-        admin_remarks: remarks || 'Request withdrawn by employee'
-    });
-
-    return request;
 };
 
 /**

@@ -8,6 +8,7 @@ const leaveApplicationService = require('../../services/attendance/leaveApplicat
 const onDutyApplicationService = require('../../services/attendance/onDutyApplication.service');
 const wfhApplicationService = require('../../services/attendance/wfhApplication.service');
 const shortLeaveApplicationService = require('../../services/attendance/shortLeaveApplication.service');
+const restrictedHolidayApplicationService = require('../../services/attendance/restrictedHolidayApplication.service');
 const workflowExecutionService = require('../../services/workflow/workflowExecution.service');
 const moment = require('moment');
 
@@ -220,12 +221,12 @@ const applyRegularization = async (req, res) => {
             applied_at: new Date()
         };
 
-        // Submit workflow request (workflow_master_id = 4 for Regularization)
+        // Submit workflow request (workflow_master_id = 3 for Regularization)
         const request = await workflowExecutionService.submitRequest(
             employee_id,
-            user_id,
-            4,
-            requestData
+            3,  // workflow_master_id for Regularization
+            requestData,
+            user_id
         );
 
         return res.status(201).json({
@@ -334,6 +335,7 @@ const withdrawRequest = async (req, res) => {
     try {
         const { request_id, withdrawal_reason } = req.body;
         const employee_id = req.user.employee_id;
+        const user_id = req.user.user_id;
 
         if (!request_id) {
             return res.status(400).json({
@@ -343,15 +345,16 @@ const withdrawRequest = async (req, res) => {
         }
 
         // Delegate to service layer
-        const request = await leaveApplicationService.withdrawLeaveRequest(request_id, employee_id, withdrawal_reason);
+        const result = await leaveApplicationService.withdrawLeaveRequest(request_id, employee_id, user_id, withdrawal_reason);
 
         return res.status(200).json({
             success: true,
             message: 'Request withdrawn successfully',
             data: {
-                request_id: request.id,
-                request_number: request.request_number,
-                request_status: request.request_status,
+                request_id: result.id,
+                request_number: result.request_number,
+                request_status: result.request_status,
+                attendance_entries_withdrawn: result.attendance_entries_withdrawn || 0,
                 withdrawn_date: new Date()
             }
         });
@@ -393,14 +396,75 @@ const getLeaveBalance = async (req, res) => {
     }
 };
 
+/**
+ * Apply for Restricted Holiday
+ * POST /api/attendance/employee/restricted-holiday/apply
+ */
+const applyRestrictedHoliday = async (req, res) => {
+    try {
+        const employee_id = req.user.employee_id;
+        const user_id = req.user.user_id;
+
+        // Delegate to service layer
+        const result = await restrictedHolidayApplicationService.applyRestrictedHoliday(req.body, employee_id, user_id);
+
+        return res.status(201).json({
+            success: true,
+            message: 'Restricted Holiday request submitted successfully',
+            data: {
+                request_number: result.request.request_number,
+                request_id: result.request.id,
+                request_status: result.request.request_status,
+                holiday_name: result.holiday_name,
+                holiday_date: result.holiday_date,
+                remaining_count: result.remaining_count
+            }
+        });
+
+    } catch (error) {
+        console.error('Error applying restricted holiday:', error);
+        return res.status(400).json({
+            success: false,
+            message: error.message || 'Failed to apply restricted holiday'
+        });
+    }
+};
+
+/**
+ * Get Available Restricted Holidays
+ * POST /api/attendance/employee/restricted-holiday/available
+ */
+const getAvailableRestrictedHolidays = async (req, res) => {
+    try {
+        const employee_id = req.user.employee_id;
+
+        // Delegate to service layer
+        const result = await restrictedHolidayApplicationService.getAvailableRestrictedHolidays(employee_id);
+
+        return res.status(200).json({
+            success: true,
+            data: result
+        });
+
+    } catch (error) {
+        console.error('Error getting available restricted holidays:', error);
+        return res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to get available restricted holidays'
+        });
+    }
+};
+
 module.exports = {
     applyLeave,
     applyOnDuty,
     applyWFH,
     applyShortLeave,
     applyRegularization,
+    applyRestrictedHoliday,
     getMyRequests,
     getRequestDetails,
     withdrawRequest,
-    getLeaveBalance
+    getLeaveBalance,
+    getAvailableRestrictedHolidays
 };

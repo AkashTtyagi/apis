@@ -173,10 +173,10 @@ const applyRegularizationOnBehalf = async (regularizationData, target_employee_i
         applied_by_role: requester_role
     };
 
-    // Submit workflow request (workflow_master_id = 4 for Regularization)
+    // Submit workflow request (workflow_master_id = 3 for Regularization)
     const request = await workflowExecutionService.submitRequest(
         target_employee_id,
-        4,  // workflow_master_id for Regularization
+        3,  // workflow_master_id for Regularization
         requestData,
         requester_user_id  // submittedBy
     );

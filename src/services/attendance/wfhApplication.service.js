@@ -102,10 +102,10 @@ const applyWFH = async (wfhData, employee_id, user_id) => {
         wfhDates = specificDatesResult.dates;
     }
 
-    // Submit workflow request (workflow_master_id = 3 for WFH)
+    // Submit workflow request (workflow_master_id = 4 for WFH)
     const request = await workflowExecutionService.submitRequest(
         employee_id,
-        3,  // workflow_master_id for WFH
+        4,  // workflow_master_id for WFH
         requestData,
         user_id  // submittedBy
     );
@@ -113,7 +113,7 @@ const applyWFH = async (wfhData, employee_id, user_id) => {
     // Create daily attendance entries for each date
     await createDailyAttendanceEntries({
         request_id: request.id,
-        workflow_master_id: 3,  // WFH
+        workflow_master_id: 4,  // WFH
         employee_id: employee_id,
         company_id: employee.company_id,
         shift: employee.shift,  // Employee's default shift
