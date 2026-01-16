@@ -65,6 +65,7 @@ const createHoliday = async (holidayData, userId) => {
             holiday_name,
             holiday_date,
             is_national_holiday,
+            day_type,
             description
         } = holidayData;
 
@@ -92,6 +93,7 @@ const createHoliday = async (holidayData, userId) => {
             holiday_name,
             holiday_date,
             is_national_holiday: is_national_holiday || 0,
+            day_type: day_type || 'full_day',
             description: description || null,
             is_active: 1,
             created_by: userId
@@ -123,6 +125,7 @@ const updateHoliday = async (id, holidayData, userId) => {
             holiday_name,
             holiday_date,
             is_national_holiday,
+            day_type,
             description
         } = holidayData;
 
@@ -148,6 +151,7 @@ const updateHoliday = async (id, holidayData, userId) => {
             holiday_name: holiday_name || holiday.holiday_name,
             holiday_date: holiday_date || holiday.holiday_date,
             is_national_holiday: is_national_holiday !== undefined ? is_national_holiday : holiday.is_national_holiday,
+            day_type: day_type || holiday.day_type,
             description: description !== undefined ? description : holiday.description
         }, { transaction });
 
@@ -212,6 +216,7 @@ const bulkCreateHolidays = async (holidaysData, userId) => {
             holiday_name: holiday.holiday_name,
             holiday_date: holiday.holiday_date,
             is_national_holiday: holiday.is_national_holiday || 0,
+            day_type: holiday.day_type || 'full_day',
             description: holiday.description || null,
             is_active: 1,
             created_by: userId
