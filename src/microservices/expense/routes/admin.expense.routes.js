@@ -7,6 +7,7 @@ const express = require('express');
 const router = express.Router();
 const locationGroupController = require('../controllers/admin/locationGroup.controller');
 const expenseCategoryController = require('../controllers/admin/expenseCategory.controller');
+const currencyController = require('../controllers/admin/currency.controller');
 
 // ==================== LOCATION GROUP MANAGEMENT ====================
 
@@ -119,5 +120,103 @@ router.post('/categories/reorder', expenseCategoryController.reorderCategories);
  * POST /api/expense/admin/categories/hierarchy
  */
 router.post('/categories/hierarchy', expenseCategoryController.getCategoryHierarchy);
+
+// ==================== CURRENCY MANAGEMENT ====================
+
+/**
+ * Create a new currency
+ * POST /api/expense/admin/currencies/create
+ */
+router.post('/currencies/create', currencyController.createCurrency);
+
+/**
+ * Get all currencies with filters
+ * POST /api/expense/admin/currencies/list
+ */
+router.post('/currencies/list', currencyController.getAllCurrencies);
+
+/**
+ * Get currency details
+ * POST /api/expense/admin/currencies/details
+ */
+router.post('/currencies/details', currencyController.getCurrencyDetails);
+
+/**
+ * Update currency
+ * POST /api/expense/admin/currencies/update
+ */
+router.post('/currencies/update', currencyController.updateCurrency);
+
+/**
+ * Delete currency
+ * POST /api/expense/admin/currencies/delete
+ */
+router.post('/currencies/delete', currencyController.deleteCurrency);
+
+/**
+ * Set base currency
+ * POST /api/expense/admin/currencies/set-base
+ */
+router.post('/currencies/set-base', currencyController.setBaseCurrency);
+
+/**
+ * Get dropdown data for currency forms
+ * POST /api/expense/admin/currencies/dropdown
+ */
+router.post('/currencies/dropdown', currencyController.getDropdownData);
+
+// ==================== EXCHANGE RATE MANAGEMENT ====================
+
+/**
+ * Add/Update exchange rate
+ * POST /api/expense/admin/currencies/exchange-rates/upsert
+ */
+router.post('/currencies/exchange-rates/upsert', currencyController.upsertExchangeRate);
+
+/**
+ * Get exchange rates
+ * POST /api/expense/admin/currencies/exchange-rates/list
+ */
+router.post('/currencies/exchange-rates/list', currencyController.getExchangeRates);
+
+/**
+ * Delete exchange rate
+ * POST /api/expense/admin/currencies/exchange-rates/delete
+ */
+router.post('/currencies/exchange-rates/delete', currencyController.deleteExchangeRate);
+
+/**
+ * Bulk update exchange rates
+ * POST /api/expense/admin/currencies/exchange-rates/bulk-update
+ */
+router.post('/currencies/exchange-rates/bulk-update', currencyController.bulkUpdateRates);
+
+/**
+ * Get exchange rate history (audit log)
+ * POST /api/expense/admin/currencies/exchange-rates/history
+ */
+router.post('/currencies/exchange-rates/history', currencyController.getExchangeRateHistory);
+
+// ==================== CURRENCY POLICY MANAGEMENT ====================
+
+/**
+ * Get currency policy
+ * POST /api/expense/admin/currencies/policy/get
+ */
+router.post('/currencies/policy/get', currencyController.getCurrencyPolicy);
+
+/**
+ * Update currency policy
+ * POST /api/expense/admin/currencies/policy/update
+ */
+router.post('/currencies/policy/update', currencyController.updateCurrencyPolicy);
+
+// ==================== CURRENCY CONVERSION ====================
+
+/**
+ * Convert amount between currencies
+ * POST /api/expense/admin/currencies/convert
+ */
+router.post('/currencies/convert', currencyController.convertAmount);
 
 module.exports = router;

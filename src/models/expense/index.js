@@ -9,6 +9,10 @@ const { ExpenseCategory } = require('./ExpenseCategory');
 const { ExpenseCategoryLimit } = require('./ExpenseCategoryLimit');
 const { ExpenseCategoryCustomField } = require('./ExpenseCategoryCustomField');
 const { ExpenseCategoryFilingRule } = require('./ExpenseCategoryFilingRule');
+const { ExpenseCurrency } = require('./ExpenseCurrency');
+const { ExpenseExchangeRate } = require('./ExpenseExchangeRate');
+const { ExpenseCurrencyPolicy } = require('./ExpenseCurrencyPolicy');
+const { ExpenseExchangeRateHistory } = require('./ExpenseExchangeRateHistory');
 
 // ==================== EXPENSE CATEGORY ASSOCIATIONS ====================
 
@@ -72,6 +76,43 @@ ExpenseLocationGroup.hasMany(ExpenseCategoryLimit, {
     as: 'categoryLimits'
 });
 
+// ==================== CURRENCY ASSOCIATIONS ====================
+
+// Currency -> Exchange Rates (as from_currency)
+ExpenseCurrency.hasMany(ExpenseExchangeRate, {
+    foreignKey: 'from_currency_id',
+    as: 'ratesFrom'
+});
+
+// Currency -> Exchange Rates (as to_currency)
+ExpenseCurrency.hasMany(ExpenseExchangeRate, {
+    foreignKey: 'to_currency_id',
+    as: 'ratesTo'
+});
+
+// Exchange Rate -> From Currency
+ExpenseExchangeRate.belongsTo(ExpenseCurrency, {
+    foreignKey: 'from_currency_id',
+    as: 'fromCurrency'
+});
+
+// Exchange Rate -> To Currency
+ExpenseExchangeRate.belongsTo(ExpenseCurrency, {
+    foreignKey: 'to_currency_id',
+    as: 'toCurrency'
+});
+
+// Exchange Rate -> History (one-to-many)
+ExpenseExchangeRate.hasMany(ExpenseExchangeRateHistory, {
+    foreignKey: 'exchange_rate_id',
+    as: 'history'
+});
+
+ExpenseExchangeRateHistory.belongsTo(ExpenseExchangeRate, {
+    foreignKey: 'exchange_rate_id',
+    as: 'exchangeRate'
+});
+
 module.exports = {
     // Location Group Models
     ExpenseLocationGroup,
@@ -81,5 +122,11 @@ module.exports = {
     ExpenseCategory,
     ExpenseCategoryLimit,
     ExpenseCategoryCustomField,
-    ExpenseCategoryFilingRule
+    ExpenseCategoryFilingRule,
+
+    // Currency Models
+    ExpenseCurrency,
+    ExpenseExchangeRate,
+    ExpenseCurrencyPolicy,
+    ExpenseExchangeRateHistory
 };
