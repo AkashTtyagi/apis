@@ -39,6 +39,9 @@ const essPolicyRoutes = require('./policy/ess.policy.routes');
 const essAttendanceRoutes = require('../microservices/ess/routes/attendance.routes');
 const essBreakRoutes = require('../microservices/ess/routes/break.routes');
 
+// Expense Microservice routes
+const adminExpenseRoutes = require('../microservices/expense/routes/admin.expense.routes');
+
 // Organizational routes
 const channelRoutes = require('./organizational/channel.routes');
 const businessUnitRoutes = require('./organizational/businessUnit.routes');
@@ -169,5 +172,8 @@ router.use('/role-permission', rolePermissionRoutes);
 
 // Package Management routes
 router.use('/package', packageManagementRoutes);
+
+// Expense Management routes (Admin APIs)
+router.use('/expense/admin', adminExpenseRoutes);
 
 module.exports = router;
