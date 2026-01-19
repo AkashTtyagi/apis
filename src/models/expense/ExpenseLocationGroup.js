@@ -87,30 +87,4 @@ const ExpenseLocationGroup = sequelize.define('ExpenseLocationGroup', {
     ]
 });
 
-ExpenseLocationGroup.associate = (models) => {
-    // Location Group has many Location Mappings
-    ExpenseLocationGroup.hasMany(models.ExpenseLocationGroupMapping, {
-        foreignKey: 'location_group_id',
-        as: 'locations'
-    });
-
-    // Belongs to Company
-    ExpenseLocationGroup.belongsTo(models.HrmsCompany, {
-        foreignKey: 'company_id',
-        as: 'company'
-    });
-
-    // Belongs to Creator User
-    ExpenseLocationGroup.belongsTo(models.HrmsUsers, {
-        foreignKey: 'created_by',
-        as: 'creator'
-    });
-
-    // Belongs to Updater User
-    ExpenseLocationGroup.belongsTo(models.HrmsUsers, {
-        foreignKey: 'updated_by',
-        as: 'updater'
-    });
-};
-
 module.exports = { ExpenseLocationGroup };
