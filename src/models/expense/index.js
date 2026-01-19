@@ -14,6 +14,16 @@ const { ExpenseExchangeRate } = require('./ExpenseExchangeRate');
 const { ExpenseCurrencyPolicy } = require('./ExpenseCurrencyPolicy');
 const { ExpenseExchangeRateHistory } = require('./ExpenseExchangeRateHistory');
 
+// ==================== LOCATION GROUP ASSOCIATIONS ====================
+
+// Location Group -> Mappings (one-to-many)
+// Note: The belongsTo is defined in ExpenseLocationGroupMapping.associate()
+ExpenseLocationGroup.hasMany(ExpenseLocationGroupMapping, {
+    foreignKey: 'location_group_id',
+    as: 'locations',
+    onDelete: 'CASCADE'
+});
+
 // ==================== EXPENSE CATEGORY ASSOCIATIONS ====================
 
 // Category -> Limits (one-to-many)

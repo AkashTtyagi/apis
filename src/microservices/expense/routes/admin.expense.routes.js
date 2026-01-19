@@ -5,9 +5,13 @@
 
 const express = require('express');
 const router = express.Router();
+const { authenticate } = require('../../../middlewares/auth.middleware');
 const locationGroupController = require('../controllers/admin/locationGroup.controller');
 const expenseCategoryController = require('../controllers/admin/expenseCategory.controller');
 const currencyController = require('../controllers/admin/currency.controller');
+
+// Apply authentication middleware to all routes
+router.use(authenticate);
 
 // ==================== LOCATION GROUP MANAGEMENT ====================
 
