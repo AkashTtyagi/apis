@@ -1,14 +1,26 @@
 /**
  * Expense Workflow Service
  * Business logic for expense approval workflow management
+ *
+ * WORKFLOW SELECTION FLOW:
+ * 1. Applicability (WHO) → Selects which workflow based on employee attributes
+ *    - Department, Grade, Designation, Level, Location, Entity, Employee
+ *
+ * 2. workflow_scope (HOW) → Defines how workflow processes items
+ *    - All_Expenses: Same approval chain for all items
+ *    - Category_Specific: Different stages for different categories
+ *    - Amount_Based: Different stages based on amount ranges
+ *    - Policy_Specific: Based on expense policy
  */
 
 const {
     ExpenseApprovalWorkflow,
     ExpenseApprovalWorkflowStage,
     ExpenseWorkflowCategoryMapping,
+    ExpenseWorkflowApplicability,
     ExpenseCategory
 } = require('../../../models/expense');
+const { HrmsEmployee } = require('../../../models/HrmsEmployee');
 const { sequelize } = require('../../../utils/database');
 const { Op } = require('sequelize');
 
@@ -875,16 +887,399 @@ const manageCategoryMapping = async (data, companyId, userId) => {
     throw new Error('Invalid action');
 };
 
+// ==================== WORKFLOW SELECTION HELPERS ====================
+
 /**
- * Get applicable workflow for an expense
- * @param {Object} params - Parameters
+ * Check if an applicability rule matches the employee
+ * @param {Object} rule - Applicability rule
+ * @param {Object} employee - Employee object with attributes
+ * @returns {boolean} True if matches
+ */
+const checkApplicabilityRule = (rule, employee) => {
+    // Helper function to check if employee value is in comma-separated list
+    const isInList = (commaSeparatedValues, employeeValue) => {
+        if (!commaSeparatedValues || !employeeValue) return false;
+        const values = commaSeparatedValues.split(',').map(v => parseInt(v.trim()));
+        return values.includes(parseInt(employeeValue));
+    };
+
+    // Step 1: Check PRIMARY applicability
+    let primaryMatches = false;
+    const applicabilityValue = rule.applicability_value;
+
+    switch (rule.applicability_type) {
+        case 'company':
+            if (!applicabilityValue) {
+                primaryMatches = (rule.company_id === employee.company_id);
+            } else {
+                primaryMatches = isInList(applicabilityValue, employee.company_id);
+            }
+            break;
+        case 'entity':
+            primaryMatches = isInList(applicabilityValue, employee.entity_id);
+            break;
+        case 'location':
+            primaryMatches = isInList(applicabilityValue, employee.location_id);
+            break;
+        case 'level':
+            primaryMatches = isInList(applicabilityValue, employee.level_id);
+            break;
+        case 'designation':
+            primaryMatches = isInList(applicabilityValue, employee.designation_id);
+            break;
+        case 'department':
+            primaryMatches = isInList(applicabilityValue, employee.department_id);
+            break;
+        case 'sub_department':
+            primaryMatches = isInList(applicabilityValue, employee.sub_department_id);
+            break;
+        case 'employee':
+            primaryMatches = isInList(applicabilityValue, employee.id);
+            break;
+        case 'grade':
+            primaryMatches = isInList(applicabilityValue, employee.grade_id);
+            break;
+        default:
+            primaryMatches = false;
+    }
+
+    if (!primaryMatches) {
+        return false;
+    }
+
+    // Step 2: Check ADVANCED applicability (if specified)
+    const advancedType = rule.advanced_applicability_type;
+    const advancedValue = rule.advanced_applicability_value;
+
+    if (!advancedType || advancedType === 'none') {
+        return rule.is_excluded ? false : primaryMatches;
+    }
+
+    let advancedMatches = false;
+
+    switch (advancedType) {
+        case 'employee_type':
+            advancedMatches = isInList(advancedValue, employee.employee_type_id);
+            break;
+        case 'branch':
+            advancedMatches = isInList(advancedValue, employee.branch_id);
+            break;
+        case 'region':
+            advancedMatches = isInList(advancedValue, employee.region_id);
+            break;
+        case 'cost_center':
+            advancedMatches = isInList(advancedValue, employee.cost_center_id);
+            break;
+        case 'project':
+            advancedMatches = isInList(advancedValue, employee.project_id);
+            break;
+        default:
+            advancedMatches = false;
+    }
+
+    const finalMatch = primaryMatches && advancedMatches;
+    return rule.is_excluded ? !finalMatch : finalMatch;
+};
+
+/**
+ * Find applicable workflow for an employee based on applicability rules
+ * STEP 1 of workflow selection: WHO (based on employee attributes)
+ *
+ * @param {number} employeeId - Employee ID
  * @param {number} companyId - Company ID
- * @returns {Promise<Object>} Applicable workflow
+ * @returns {Promise<Object>} Applicable workflow with scope
+ */
+const findApplicableWorkflowForEmployee = async (employeeId, companyId) => {
+    // Get employee details
+    const employee = await HrmsEmployee.findByPk(employeeId, {
+        attributes: [
+            'id', 'company_id', 'entity_id', 'department_id', 'sub_department_id',
+            'designation_id', 'level_id', 'grade_id', 'location_id', 'employee_type_id',
+            'branch_id', 'region_id', 'cost_center_id'
+        ],
+        raw: true
+    });
+
+    if (!employee) {
+        throw new Error('Employee not found');
+    }
+
+    // Get all active workflows with their applicability rules
+    const workflows = await ExpenseApprovalWorkflow.findAll({
+        where: {
+            company_id: companyId,
+            is_active: 1,
+            deleted_at: null
+        },
+        include: [
+            {
+                model: ExpenseWorkflowApplicability,
+                as: 'applicability',
+                where: { is_active: 1 },
+                required: false
+            },
+            {
+                model: ExpenseApprovalWorkflowStage,
+                as: 'stages',
+                where: { is_active: 1 },
+                required: false,
+                order: [['stage_order', 'ASC']]
+            }
+        ],
+        order: [
+            ['is_default', 'DESC'],
+            ['created_at', 'DESC']
+        ]
+    });
+
+    if (!workflows || workflows.length === 0) {
+        throw new Error('No workflows configured');
+    }
+
+    // Find the most applicable workflow based on priority
+    let applicableWorkflow = null;
+    let highestPriority = 999999;
+    let matchedRuleType = null;
+
+    for (const workflow of workflows) {
+        const applicabilityRules = workflow.applicability || [];
+
+        // If no applicability rules and is_default, this is company-wide default
+        if (applicabilityRules.length === 0 && workflow.is_default) {
+            const defaultPriority = 1000;
+            if (defaultPriority < highestPriority) {
+                applicableWorkflow = workflow;
+                highestPriority = defaultPriority;
+                matchedRuleType = 'default';
+            }
+            continue;
+        }
+
+        // Check each applicability rule
+        for (const rule of applicabilityRules) {
+            const matches = checkApplicabilityRule(rule, employee);
+
+            if (matches) {
+                const builtInPriority = getBuiltInPriority(rule.applicability_type);
+
+                if (builtInPriority < highestPriority) {
+                    applicableWorkflow = workflow;
+                    highestPriority = builtInPriority;
+                    matchedRuleType = rule.applicability_type;
+                }
+            }
+        }
+    }
+
+    if (!applicableWorkflow) {
+        // Fallback to default or first available
+        applicableWorkflow = workflows.find(w => w.is_default) || workflows[0];
+        matchedRuleType = applicableWorkflow.is_default ? 'default' : 'first_available';
+    }
+
+    return {
+        workflow_id: applicableWorkflow.id,
+        workflow_name: applicableWorkflow.workflow_name,
+        workflow_code: applicableWorkflow.workflow_code,
+        workflow_scope: applicableWorkflow.workflow_scope,
+        approval_mode: applicableWorkflow.approval_mode,
+        approval_level: applicableWorkflow.approval_level,
+        stages: applicableWorkflow.stages || [],
+        matched_by: matchedRuleType,
+        is_default: applicableWorkflow.is_default === 1
+    };
+};
+
+/**
+ * Get applicable stages for expense items based on workflow_scope
+ * STEP 2 of workflow selection: HOW (based on workflow_scope)
+ *
+ * @param {Object} workflow - Workflow object with stages
+ * @param {Array} items - Expense items [{category_id, amount}, ...]
+ * @returns {Array} Items with their applicable stages
+ */
+const getApplicableStagesForItems = (workflow, items) => {
+    const { workflow_scope, stages, approval_level } = workflow;
+
+    // Sort stages by stage_order
+    const sortedStages = [...stages].sort((a, b) => a.stage_order - b.stage_order);
+
+    // If Request Level - all items get same stages
+    if (approval_level === 'Request_Level') {
+        const totalAmount = items.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+
+        let applicableStages;
+
+        switch (workflow_scope) {
+            case 'Amount_Based':
+                // Filter stages based on total amount
+                applicableStages = sortedStages.filter(stage => {
+                    const minOk = !stage.min_amount || totalAmount >= parseFloat(stage.min_amount);
+                    const maxOk = !stage.max_amount || totalAmount <= parseFloat(stage.max_amount);
+                    return minOk && maxOk;
+                });
+                break;
+
+            case 'Category_Specific':
+            case 'All_Expenses':
+            case 'Policy_Specific':
+            default:
+                // All stages apply
+                applicableStages = sortedStages;
+                break;
+        }
+
+        return {
+            approval_level: 'Request_Level',
+            total_amount: totalAmount,
+            stages: applicableStages.map(s => ({
+                stage_id: s.id,
+                stage_order: s.stage_order,
+                stage_name: s.stage_name,
+                approver_type: s.approver_type,
+                approver_user_ids: s.approver_user_ids,
+                approver_role_id: s.approver_role_id,
+                sla_hours: s.sla_hours
+            })),
+            items: items.map(item => ({
+                ...item,
+                follows_request_stages: true
+            }))
+        };
+    }
+
+    // Line Item Level - each item may have different stages
+    const itemsWithStages = items.map(item => {
+        const itemAmount = parseFloat(item.amount) || 0;
+        const itemCategoryId = item.category_id;
+
+        let applicableStages;
+
+        switch (workflow_scope) {
+            case 'Category_Specific':
+                // Filter stages that apply to this category
+                applicableStages = sortedStages.filter(stage => {
+                    // If applies_to_categories is null, applies to all
+                    if (!stage.applies_to_categories) return true;
+
+                    // Parse JSON if string
+                    let categories = stage.applies_to_categories;
+                    if (typeof categories === 'string') {
+                        try {
+                            categories = JSON.parse(categories);
+                        } catch (e) {
+                            return true;
+                        }
+                    }
+
+                    // Check if category is in the list
+                    return Array.isArray(categories) && categories.includes(itemCategoryId);
+                });
+                break;
+
+            case 'Amount_Based':
+                // Filter stages based on item amount
+                applicableStages = sortedStages.filter(stage => {
+                    const minOk = !stage.min_amount || itemAmount >= parseFloat(stage.min_amount);
+                    const maxOk = !stage.max_amount || itemAmount <= parseFloat(stage.max_amount);
+                    return minOk && maxOk;
+                });
+                break;
+
+            case 'All_Expenses':
+            case 'Policy_Specific':
+            default:
+                // All stages apply to all items
+                applicableStages = sortedStages;
+                break;
+        }
+
+        return {
+            ...item,
+            stages: applicableStages.map(s => ({
+                stage_id: s.id,
+                stage_order: s.stage_order,
+                stage_name: s.stage_name,
+                approver_type: s.approver_type,
+                approver_user_ids: s.approver_user_ids,
+                approver_role_id: s.approver_role_id,
+                sla_hours: s.sla_hours
+            }))
+        };
+    });
+
+    return {
+        approval_level: 'Line_Item_Level',
+        workflow_scope,
+        items: itemsWithStages
+    };
+};
+
+/**
+ * Get applicable workflow for an expense (MAIN FUNCTION)
+ * Combines Applicability (WHO) + workflow_scope (HOW)
+ *
+ * @param {Object} params - Parameters
+ * @param {number} params.employee_id - Employee ID (required for applicability check)
+ * @param {Array} params.items - Expense items [{category_id, amount}, ...] (optional)
+ * @param {number} params.category_id - Single category ID (for simple queries)
+ * @param {number} params.amount - Single amount (for simple queries)
+ * @param {number} companyId - Company ID
+ * @returns {Promise<Object>} Applicable workflow with stages
  */
 const getApplicableWorkflow = async (params, companyId) => {
-    const { category_id, amount, policy_id } = params;
+    const { employee_id, items, category_id, amount } = params;
 
-    // 1. Check category-specific mapping
+    // If employee_id provided, use full applicability flow
+    if (employee_id) {
+        // Step 1: Find workflow based on WHO (applicability)
+        const workflow = await findApplicableWorkflowForEmployee(employee_id, companyId);
+
+        // Step 2: If items provided, determine stages based on HOW (workflow_scope)
+        if (items && items.length > 0) {
+            const stagesResult = getApplicableStagesForItems(workflow, items);
+
+            return {
+                workflow_id: workflow.workflow_id,
+                workflow_name: workflow.workflow_name,
+                workflow_code: workflow.workflow_code,
+                workflow_scope: workflow.workflow_scope,
+                approval_mode: workflow.approval_mode,
+                matched_by: workflow.matched_by,
+                ...stagesResult
+            };
+        }
+
+        // If single category/amount, create simple items array
+        if (category_id || amount) {
+            const simpleItems = [{ category_id, amount: amount || 0 }];
+            const stagesResult = getApplicableStagesForItems(workflow, simpleItems);
+
+            return {
+                workflow_id: workflow.workflow_id,
+                workflow_name: workflow.workflow_name,
+                workflow_code: workflow.workflow_code,
+                workflow_scope: workflow.workflow_scope,
+                approval_mode: workflow.approval_mode,
+                matched_by: workflow.matched_by,
+                ...stagesResult
+            };
+        }
+
+        // Just return workflow info
+        return {
+            workflow_id: workflow.workflow_id,
+            workflow_name: workflow.workflow_name,
+            workflow_code: workflow.workflow_code,
+            workflow_scope: workflow.workflow_scope,
+            approval_mode: workflow.approval_mode,
+            approval_level: workflow.approval_level,
+            matched_by: workflow.matched_by,
+            stages_count: workflow.stages.length
+        };
+    }
+
+    // Legacy flow: No employee_id, check category mapping or default
     if (category_id) {
         const categoryMapping = await ExpenseWorkflowCategoryMapping.findOne({
             where: {
@@ -911,12 +1306,13 @@ const getApplicableWorkflow = async (params, companyId) => {
             return {
                 workflow_id: categoryMapping.workflow.id,
                 workflow_name: categoryMapping.workflow.workflow_name,
+                workflow_scope: categoryMapping.workflow.workflow_scope,
                 source: 'Category_Mapping'
             };
         }
     }
 
-    // 2. Get default workflow
+    // Get default workflow
     const defaultWorkflow = await ExpenseApprovalWorkflow.findOne({
         where: {
             company_id: companyId,
@@ -930,11 +1326,12 @@ const getApplicableWorkflow = async (params, companyId) => {
         return {
             workflow_id: defaultWorkflow.id,
             workflow_name: defaultWorkflow.workflow_name,
+            workflow_scope: defaultWorkflow.workflow_scope,
             source: 'Default'
         };
     }
 
-    // 3. Get any active workflow
+    // Get any active workflow
     const anyWorkflow = await ExpenseApprovalWorkflow.findOne({
         where: {
             company_id: companyId,
@@ -947,6 +1344,7 @@ const getApplicableWorkflow = async (params, companyId) => {
         return {
             workflow_id: anyWorkflow.id,
             workflow_name: anyWorkflow.workflow_name,
+            workflow_scope: anyWorkflow.workflow_scope,
             source: 'First_Available'
         };
     }
@@ -1025,15 +1423,342 @@ const getDropdownData = async (companyId) => {
     };
 };
 
+// ==================== APPLICABILITY METHODS ====================
+
+/**
+ * Get built-in priority based on applicability type
+ * Lower number = Higher priority
+ * @param {string} applicabilityType - Applicability type
+ * @returns {number} Priority value
+ */
+const getBuiltInPriority = (applicabilityType) => {
+    const priorityMap = {
+        'employee': 1,         // Highest priority - specific employees
+        'sub_department': 2,
+        'department': 3,
+        'designation': 4,
+        'level': 5,
+        'grade': 6,
+        'location': 7,
+        'entity': 8,           // Business Unit
+        'company': 9           // Lowest priority
+    };
+
+    return priorityMap[applicabilityType] || 999;
+};
+
+/**
+ * Get all applicability rules for a workflow
+ * @param {number} workflowId - Workflow ID
+ * @param {number} companyId - Company ID
+ * @returns {Promise<Array>} Applicability rules
+ */
+const getApplicabilityRules = async (workflowId, companyId) => {
+    const rules = await ExpenseWorkflowApplicability.findAll({
+        where: {
+            workflow_id: workflowId,
+            company_id: companyId,
+            is_active: 1
+        },
+        order: [['priority', 'ASC'], ['created_at', 'DESC']]
+    });
+
+    return rules.map(rule => ({
+        id: rule.id,
+        workflow_id: rule.workflow_id,
+        applicability_type: rule.applicability_type,
+        applicability_value: rule.applicability_value,
+        advanced_applicability_type: rule.advanced_applicability_type,
+        advanced_applicability_value: rule.advanced_applicability_value,
+        is_excluded: rule.is_excluded === 1,
+        priority: rule.priority,
+        created_at: rule.created_at
+    }));
+};
+
+/**
+ * Add applicability rule to workflow
+ * @param {Object} data - Applicability data
+ * @param {number} companyId - Company ID
+ * @param {number} userId - User ID
+ * @returns {Promise<Object>} Created applicability rule
+ */
+const addApplicability = async (data, companyId, userId) => {
+    const {
+        workflow_id,
+        applicability_type,
+        applicability_value,
+        advanced_applicability_type,
+        advanced_applicability_value,
+        is_excluded,
+        priority
+    } = data;
+
+    if (!workflow_id) {
+        throw new Error('Workflow ID is required');
+    }
+
+    if (!applicability_type) {
+        throw new Error('Applicability type is required');
+    }
+
+    // Verify workflow exists
+    const workflow = await ExpenseApprovalWorkflow.findOne({
+        where: {
+            id: workflow_id,
+            company_id: companyId,
+            deleted_at: null
+        }
+    });
+
+    if (!workflow) {
+        throw new Error('Workflow not found');
+    }
+
+    // Helper function to convert array to comma-separated string
+    const toCommaSeparated = (value) => {
+        if (!value) return null;
+        if (Array.isArray(value)) return value.join(',');
+        return value.toString();
+    };
+
+    // Create applicability rule
+    const applicability = await ExpenseWorkflowApplicability.create({
+        workflow_id,
+        company_id: companyId,
+        applicability_type,
+        applicability_value: toCommaSeparated(applicability_value),
+        advanced_applicability_type: advanced_applicability_type || 'none',
+        advanced_applicability_value: toCommaSeparated(advanced_applicability_value),
+        is_excluded: is_excluded ? 1 : 0,
+        priority: priority || getBuiltInPriority(applicability_type),
+        is_active: 1,
+        created_by: userId
+    });
+
+    return {
+        id: applicability.id,
+        workflow_id: applicability.workflow_id,
+        applicability_type: applicability.applicability_type,
+        applicability_value: applicability.applicability_value,
+        priority: applicability.priority,
+        message: 'Applicability rule added successfully'
+    };
+};
+
+/**
+ * Update applicability rule
+ * @param {Object} data - Update data
+ * @param {number} companyId - Company ID
+ * @param {number} userId - User ID
+ * @returns {Promise<Object>} Updated applicability
+ */
+const updateApplicability = async (data, companyId, userId) => {
+    const {
+        id,
+        applicability_type,
+        applicability_value,
+        advanced_applicability_type,
+        advanced_applicability_value,
+        is_excluded,
+        priority
+    } = data;
+
+    if (!id) {
+        throw new Error('Applicability ID is required');
+    }
+
+    const applicability = await ExpenseWorkflowApplicability.findOne({
+        where: {
+            id,
+            company_id: companyId,
+            is_active: 1
+        }
+    });
+
+    if (!applicability) {
+        throw new Error('Applicability rule not found');
+    }
+
+    // Helper function to convert array to comma-separated string
+    const toCommaSeparated = (value) => {
+        if (!value) return null;
+        if (Array.isArray(value)) return value.join(',');
+        return value.toString();
+    };
+
+    // Update
+    await applicability.update({
+        applicability_type: applicability_type || applicability.applicability_type,
+        applicability_value: applicability_value !== undefined
+            ? toCommaSeparated(applicability_value)
+            : applicability.applicability_value,
+        advanced_applicability_type: advanced_applicability_type !== undefined
+            ? (advanced_applicability_type || 'none')
+            : applicability.advanced_applicability_type,
+        advanced_applicability_value: advanced_applicability_value !== undefined
+            ? toCommaSeparated(advanced_applicability_value)
+            : applicability.advanced_applicability_value,
+        is_excluded: is_excluded !== undefined ? (is_excluded ? 1 : 0) : applicability.is_excluded,
+        priority: priority || applicability.priority,
+        updated_by: userId
+    });
+
+    return {
+        id: applicability.id,
+        message: 'Applicability rule updated successfully'
+    };
+};
+
+/**
+ * Delete applicability rule
+ * @param {number} applicabilityId - Applicability ID
+ * @param {number} companyId - Company ID
+ * @param {number} userId - User ID
+ * @returns {Promise<Object>} Delete result
+ */
+const deleteApplicability = async (applicabilityId, companyId, userId) => {
+    if (!applicabilityId) {
+        throw new Error('Applicability ID is required');
+    }
+
+    const applicability = await ExpenseWorkflowApplicability.findOne({
+        where: {
+            id: applicabilityId,
+            company_id: companyId,
+            is_active: 1
+        }
+    });
+
+    if (!applicability) {
+        throw new Error('Applicability rule not found');
+    }
+
+    await applicability.update({
+        is_active: 0,
+        updated_by: userId
+    });
+
+    return { message: 'Applicability rule deleted successfully' };
+};
+
+/**
+ * Manage applicability (add/update/delete)
+ * @param {Object} data - { action: 'add'|'update'|'delete', ... }
+ * @param {number} companyId - Company ID
+ * @param {number} userId - User ID
+ * @returns {Promise<Object>} Result
+ */
+const manageApplicability = async (data, companyId, userId) => {
+    const { action } = data;
+
+    switch (action) {
+        case 'add':
+            return await addApplicability(data, companyId, userId);
+        case 'update':
+            return await updateApplicability(data, companyId, userId);
+        case 'delete':
+            return await deleteApplicability(data.id, companyId, userId);
+        default:
+            throw new Error('Invalid action. Use add, update, or delete');
+    }
+};
+
+/**
+ * Get all applicability rules with filters
+ * @param {Object} filters - Filter options
+ * @param {number} companyId - Company ID
+ * @returns {Promise<Object>} Applicability rules with pagination
+ */
+const getAllApplicabilityRules = async (filters, companyId) => {
+    const {
+        workflow_id,
+        applicability_type,
+        limit = 50,
+        offset = 0
+    } = filters;
+
+    const where = {
+        company_id: companyId,
+        is_active: 1
+    };
+
+    if (workflow_id) {
+        where.workflow_id = workflow_id;
+    }
+
+    if (applicability_type) {
+        where.applicability_type = applicability_type;
+    }
+
+    const total = await ExpenseWorkflowApplicability.count({ where });
+
+    const rules = await ExpenseWorkflowApplicability.findAll({
+        where,
+        include: [
+            {
+                model: ExpenseApprovalWorkflow,
+                as: 'workflow',
+                attributes: ['id', 'workflow_name', 'workflow_code', 'is_default', 'is_active']
+            }
+        ],
+        order: [['workflow_id', 'ASC'], ['priority', 'ASC']],
+        limit: parseInt(limit),
+        offset: parseInt(offset)
+    });
+
+    const data = rules.map(rule => ({
+        id: rule.id,
+        workflow_id: rule.workflow_id,
+        workflow_name: rule.workflow?.workflow_name,
+        workflow_code: rule.workflow?.workflow_code,
+        applicability_type: rule.applicability_type,
+        applicability_value: rule.applicability_value,
+        advanced_applicability_type: rule.advanced_applicability_type,
+        advanced_applicability_value: rule.advanced_applicability_value,
+        is_excluded: rule.is_excluded === 1,
+        priority: rule.priority,
+        created_at: rule.created_at
+    }));
+
+    return {
+        data,
+        pagination: {
+            total,
+            limit: parseInt(limit),
+            offset: parseInt(offset),
+            total_pages: Math.ceil(total / parseInt(limit)),
+            current_page: Math.floor(parseInt(offset) / parseInt(limit)) + 1
+        }
+    };
+};
+
 module.exports = {
+    // Workflow CRUD
     createWorkflow,
     getAllWorkflows,
     getWorkflowDetails,
     updateWorkflow,
     deleteWorkflow,
     cloneWorkflow,
+    getDropdownData,
+
+    // Category Mapping
     getCategoryMappings,
     manageCategoryMapping,
-    getApplicableWorkflow,
-    getDropdownData
+
+    // Workflow Selection (Main functions)
+    getApplicableWorkflow,              // Main function - combines WHO + HOW
+    findApplicableWorkflowForEmployee,  // Step 1: WHO (applicability based)
+    getApplicableStagesForItems,        // Step 2: HOW (workflow_scope based)
+    checkApplicabilityRule,             // Helper: Check single rule
+
+    // Applicability CRUD
+    getBuiltInPriority,
+    getApplicabilityRules,
+    addApplicability,
+    updateApplicability,
+    deleteApplicability,
+    manageApplicability,
+    getAllApplicabilityRules
 };

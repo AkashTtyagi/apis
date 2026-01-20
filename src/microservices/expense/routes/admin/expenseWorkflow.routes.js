@@ -67,4 +67,50 @@ router.post('/category-mapping/manage', expenseWorkflowController.manageCategory
  */
 router.post('/get-applicable', expenseWorkflowController.getApplicableWorkflow);
 
+// ==================== APPLICABILITY ROUTES ====================
+
+/**
+ * Get all applicability rules with filters
+ * POST /api/expense/admin/workflows/applicability/list
+ */
+router.post('/applicability/list', expenseWorkflowController.getApplicabilityList);
+
+/**
+ * Get applicability rules for a specific workflow
+ * POST /api/expense/admin/workflows/applicability/details
+ */
+router.post('/applicability/details', expenseWorkflowController.getApplicabilityDetails);
+
+/**
+ * Manage applicability (add/update/delete)
+ * POST /api/expense/admin/workflows/applicability/manage
+ *
+ * Body for add:
+ * {
+ *   "action": "add",
+ *   "workflow_id": 1,
+ *   "applicability_type": "department",      // company, entity, location, level, designation, department, sub_department, employee, grade
+ *   "applicability_value": "1,2,3",          // comma-separated IDs
+ *   "advanced_applicability_type": "none",   // none, employee_type, branch, region, cost_center, project
+ *   "advanced_applicability_value": null,
+ *   "is_excluded": false,
+ *   "priority": 3
+ * }
+ *
+ * Body for update:
+ * {
+ *   "action": "update",
+ *   "id": 1,
+ *   "applicability_value": "1,2,3,4",
+ *   "is_excluded": true
+ * }
+ *
+ * Body for delete:
+ * {
+ *   "action": "delete",
+ *   "id": 1
+ * }
+ */
+router.post('/applicability/manage', expenseWorkflowController.manageApplicability);
+
 module.exports = router;

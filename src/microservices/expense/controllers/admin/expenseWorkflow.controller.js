@@ -350,6 +350,102 @@ const getDropdownData = async (req, res) => {
     }
 };
 
+// ==================== APPLICABILITY ENDPOINTS ====================
+
+/**
+ * Get all applicability rules with filters
+ * POST /api/expense/admin/workflows/applicability/list
+ */
+const getApplicabilityList = async (req, res) => {
+    try {
+        const companyId = req.user.company_id;
+        const filters = req.body;
+
+        const result = await expenseWorkflowService.getAllApplicabilityRules(filters, companyId);
+
+        return res.status(200).json({
+            success: true,
+            data: result.data,
+            pagination: result.pagination
+        });
+
+    } catch (error) {
+        console.error('Error getting applicability rules:', error);
+        return res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to get applicability rules'
+        });
+    }
+};
+
+/**
+ * Get applicability rules for a specific workflow
+ * POST /api/expense/admin/workflows/applicability/details
+ */
+const getApplicabilityDetails = async (req, res) => {
+    try {
+        const companyId = req.user.company_id;
+        const { workflow_id } = req.body;
+
+        if (!workflow_id) {
+            return res.status(400).json({
+                success: false,
+                message: 'Workflow ID is required'
+            });
+        }
+
+        const result = await expenseWorkflowService.getApplicabilityRules(workflow_id, companyId);
+
+        return res.status(200).json({
+            success: true,
+            data: result
+        });
+
+    } catch (error) {
+        console.error('Error getting applicability details:', error);
+        return res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to get applicability details'
+        });
+    }
+};
+
+/**
+ * Manage applicability (add/update/delete)
+ * POST /api/expense/admin/workflows/applicability/manage
+ */
+const manageApplicability = async (req, res) => {
+    try {
+        const companyId = req.user.company_id;
+        const userId = req.user.id;
+
+        const result = await expenseWorkflowService.manageApplicability(req.body, companyId, userId);
+
+        return res.status(200).json({
+            success: true,
+            message: result.message,
+            data: { id: result.id }
+        });
+
+    } catch (error) {
+        console.error('Error managing applicability:', error);
+
+        if (error.message.includes('required') ||
+            error.message.includes('Invalid') ||
+            error.message.includes('not found')) {
+            return res.status(400).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        return res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to manage applicability'
+        });
+    }
+};
+
 module.exports = {
     createWorkflow,
     getAllWorkflows,
@@ -360,5 +456,9 @@ module.exports = {
     getCategoryMappings,
     manageCategoryMapping,
     getApplicableWorkflow,
-    getDropdownData
+    getDropdownData,
+    // Applicability
+    getApplicabilityList,
+    getApplicabilityDetails,
+    manageApplicability
 };
