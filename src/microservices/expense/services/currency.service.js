@@ -755,6 +755,7 @@ const getExchangeRates = async (filters, companyId) => {
         to_currency_id,
         effective_date,
         include_history = false,
+        include_inactive = false,
         limit = 50,
         offset = 0
     } = filters;
@@ -771,23 +772,33 @@ const getExchangeRates = async (filters, companyId) => {
         whereConditions.to_currency_id = to_currency_id;
     }
 
-    // Get current rate
+    // Apply inactive filter
+    if (!include_inactive) {
+        whereConditions.is_active = 1;
+    }
+
+    // If both currencies are specified, get the current rate for that pair
     let currentRate = null;
     if (from_currency_id && to_currency_id) {
         const dateToCheck = effective_date || new Date().toISOString().split('T')[0];
 
+        const currentRateWhere = {
+            company_id: companyId,
+            from_currency_id,
+            to_currency_id,
+            effective_from: { [Op.lte]: dateToCheck },
+            [Op.or]: [
+                { effective_to: null },
+                { effective_to: { [Op.gte]: dateToCheck } }
+            ]
+        };
+
+        if (!include_inactive) {
+            currentRateWhere.is_active = 1;
+        }
+
         currentRate = await ExpenseExchangeRate.findOne({
-            where: {
-                company_id: companyId,
-                from_currency_id,
-                to_currency_id,
-                is_active: 1,
-                effective_from: { [Op.lte]: dateToCheck },
-                [Op.or]: [
-                    { effective_to: null },
-                    { effective_to: { [Op.gte]: dateToCheck } }
-                ]
-            },
+            where: currentRateWhere,
             include: [
                 {
                     model: ExpenseCurrency,
@@ -804,7 +815,27 @@ const getExchangeRates = async (filters, companyId) => {
         });
     }
 
-    // Get history if requested
+    // Get all exchange rates matching the filters (list mode)
+    const { count, rows: rates } = await ExpenseExchangeRate.findAndCountAll({
+        where: whereConditions,
+        include: [
+            {
+                model: ExpenseCurrency,
+                as: 'fromCurrency',
+                attributes: ['id', 'currency_code', 'currency_name', 'currency_symbol']
+            },
+            {
+                model: ExpenseCurrency,
+                as: 'toCurrency',
+                attributes: ['id', 'currency_code', 'currency_name', 'currency_symbol']
+            }
+        ],
+        order: [['effective_from', 'DESC']],
+        limit: parseInt(limit),
+        offset: parseInt(offset)
+    });
+
+    // Get history if requested (for specific currency pair)
     let history = [];
     if (include_history && from_currency_id && to_currency_id) {
         history = await ExpenseExchangeRate.findAll({
@@ -832,6 +863,22 @@ const getExchangeRates = async (filters, companyId) => {
         is_active: currentRate.is_active === 1
     } : null;
 
+    const formattedRates = rates.map(rate => ({
+        id: rate.id,
+        from_currency_id: rate.from_currency_id,
+        from_currency_code: rate.fromCurrency.currency_code,
+        from_currency_name: rate.fromCurrency.currency_name,
+        to_currency_id: rate.to_currency_id,
+        to_currency_code: rate.toCurrency.currency_code,
+        to_currency_name: rate.toCurrency.currency_name,
+        exchange_rate: parseFloat(rate.exchange_rate),
+        effective_from: rate.effective_from,
+        effective_to: rate.effective_to,
+        rate_source: rate.rate_source,
+        is_active: rate.is_active === 1,
+        created_at: rate.created_at
+    }));
+
     const formattedHistory = history.map(rate => ({
         id: rate.id,
         exchange_rate: parseFloat(rate.exchange_rate),
@@ -844,13 +891,16 @@ const getExchangeRates = async (filters, companyId) => {
     return {
         success: true,
         data: {
+            rates: formattedRates,
             current_rate: formattedCurrentRate,
             history: formattedHistory
         },
         pagination: {
-            total: history.length,
+            total: count,
             limit: parseInt(limit),
-            offset: parseInt(offset)
+            offset: parseInt(offset),
+            total_pages: Math.ceil(count / limit),
+            current_page: Math.floor(offset / limit) + 1
         }
     };
 };
