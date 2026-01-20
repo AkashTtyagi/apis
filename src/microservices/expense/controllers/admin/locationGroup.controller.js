@@ -76,7 +76,7 @@ const getAllLocationGroups = async (req, res) => {
 const getLocationGroupDetails = async (req, res) => {
     try {
         const companyId = req.user.company_id;
-        const { location_group_id } = req.body;
+        const { id:location_group_id } = req.body;
 
         const result = await locationGroupService.getLocationGroupDetails(location_group_id, companyId);
 
