@@ -727,6 +727,84 @@ const cloneWorkflow = async (workflowId, data, companyId, userId) => {
 };
 
 /**
+ * Get all category to workflow mappings
+ * @param {Object} filters - Filter options
+ * @param {number} companyId - Company ID
+ * @returns {Promise<Object>} Category mappings with pagination
+ */
+const getCategoryMappings = async (filters, companyId) => {
+    const {
+        workflow_id,
+        category_id,
+        limit = 50,
+        offset = 0
+    } = filters;
+
+    const where = {
+        company_id: companyId,
+        is_active: 1
+    };
+
+    if (workflow_id) {
+        where.workflow_id = workflow_id;
+    }
+
+    if (category_id) {
+        where.category_id = category_id;
+    }
+
+    // Get total count
+    const total = await ExpenseWorkflowCategoryMapping.count({ where });
+
+    // Get mappings with related data
+    const mappings = await ExpenseWorkflowCategoryMapping.findAll({
+        where,
+        include: [
+            {
+                model: ExpenseApprovalWorkflow,
+                as: 'workflow',
+                attributes: ['id', 'workflow_name', 'workflow_code', 'is_default', 'is_active']
+            },
+            {
+                model: ExpenseCategory,
+                as: 'category',
+                attributes: ['id', 'category_name', 'category_code']
+            }
+        ],
+        order: [['priority', 'DESC'], ['created_at', 'DESC']],
+        limit: parseInt(limit),
+        offset: parseInt(offset)
+    });
+
+    // Format response
+    const data = mappings.map(m => ({
+        id: m.id,
+        workflow_id: m.workflow_id,
+        workflow_name: m.workflow?.workflow_name,
+        workflow_code: m.workflow?.workflow_code,
+        workflow_is_default: m.workflow?.is_default === 1,
+        category_id: m.category_id,
+        category_name: m.category?.category_name,
+        category_code: m.category?.category_code,
+        min_amount: parseFloat(m.min_amount) || 0,
+        max_amount: m.max_amount ? parseFloat(m.max_amount) : null,
+        priority: m.priority,
+        created_at: m.created_at
+    }));
+
+    return {
+        data,
+        pagination: {
+            total,
+            limit: parseInt(limit),
+            offset: parseInt(offset),
+            total_pages: Math.ceil(total / parseInt(limit)),
+            current_page: Math.floor(parseInt(offset) / parseInt(limit)) + 1
+        }
+    };
+};
+
+/**
  * Manage category to workflow mapping
  * @param {Object} data - Mapping data
  * @param {number} companyId - Company ID
@@ -954,6 +1032,7 @@ module.exports = {
     updateWorkflow,
     deleteWorkflow,
     cloneWorkflow,
+    getCategoryMappings,
     manageCategoryMapping,
     getApplicableWorkflow,
     getDropdownData

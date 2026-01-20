@@ -234,6 +234,32 @@ const cloneWorkflow = async (req, res) => {
 };
 
 /**
+ * Get all category to workflow mappings
+ * POST /api/expense/admin/workflows/category-mapping/list
+ */
+const getCategoryMappings = async (req, res) => {
+    try {
+        const companyId = req.user.company_id;
+        const filters = req.body;
+
+        const result = await expenseWorkflowService.getCategoryMappings(filters, companyId);
+
+        return res.status(200).json({
+            success: true,
+            data: result.data,
+            pagination: result.pagination
+        });
+
+    } catch (error) {
+        console.error('Error getting category mappings:', error);
+        return res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to get category mappings'
+        });
+    }
+};
+
+/**
  * Manage category to workflow mapping
  * POST /api/expense/admin/workflows/category-mapping/manage
  */
@@ -331,6 +357,7 @@ module.exports = {
     updateWorkflow,
     deleteWorkflow,
     cloneWorkflow,
+    getCategoryMappings,
     manageCategoryMapping,
     getApplicableWorkflow,
     getDropdownData
