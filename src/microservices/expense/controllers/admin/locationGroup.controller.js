@@ -189,6 +189,30 @@ const deleteLocationGroup = async (req, res) => {
 };
 
 /**
+ * Generate a unique location group code
+ * GET /api/expense/admin/location-groups/generate-code
+ */
+const generateCode = async (req, res) => {
+    try {
+        const companyId = req.user.company_id;
+
+        const result = await locationGroupService.generateCode(companyId);
+
+        return res.status(200).json({
+            success: true,
+            data: result
+        });
+
+    } catch (error) {
+        console.error('Error generating location group code:', error);
+        return res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to generate location group code'
+        });
+    }
+};
+
+/**
  * Get location dropdown data (countries, states, cities)
  * POST /api/expense/admin/location-groups/locations/dropdown
  */
@@ -218,5 +242,6 @@ module.exports = {
     getLocationGroupDetails,
     updateLocationGroup,
     deleteLocationGroup,
+    generateCode,
     getLocationDropdownData
 };

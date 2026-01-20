@@ -11,6 +11,37 @@ const { sequelize } = require('../../../utils/database');
 const { Op } = require('sequelize');
 
 /**
+ * Generate next sequential code with transaction lock
+ * @param {number} companyId - Company ID
+ * @param {Object} transaction - Sequelize transaction
+ * @returns {Promise<string>} Generated code
+ */
+const generateSequentialCode = async (companyId, transaction) => {
+    // Lock rows to prevent race condition - find highest LG code
+    const [results] = await sequelize.query(
+        `SELECT group_code FROM expense_location_groups
+         WHERE company_id = :companyId AND group_code LIKE 'LG%'
+         ORDER BY CAST(SUBSTRING(group_code, 3) AS UNSIGNED) DESC
+         LIMIT 1 FOR UPDATE`,
+        {
+            replacements: { companyId },
+            transaction
+        }
+    );
+
+    let nextNumber = 1;
+
+    if (results && results.length > 0 && results[0].group_code) {
+        const match = results[0].group_code.match(/^LG(\d+)$/);
+        if (match) {
+            nextNumber = parseInt(match[1], 10) + 1;
+        }
+    }
+
+    return `LG${String(nextNumber).padStart(3, '0')}`;
+};
+
+/**
  * Create a new location group with location mappings
  * @param {Object} data - Location group data
  * @param {number} companyId - Company ID
@@ -35,37 +66,45 @@ const createLocationGroup = async (data, companyId, userId) => {
             throw new Error('Group name is required');
         }
 
-        if (!group_code || group_code.trim() === '') {
-            throw new Error('Group code is required');
-        }
-
         if (group_name.length > 100) {
             throw new Error('Group name must be 100 characters or less');
         }
 
-        if (group_code.length > 50) {
-            throw new Error('Group code must be 50 characters or less');
-        }
+        // Determine the final code to use
+        let finalCode;
 
-        // Check for duplicate group_code within the company
-        const existingGroup = await ExpenseLocationGroup.findOne({
-            where: {
-                company_id: companyId,
-                group_code: group_code.trim(),
-                deleted_at: null
-            },
-            transaction
-        });
+        if (group_code && group_code.trim() !== '') {
+            if (group_code.length > 50) {
+                throw new Error('Group code must be 50 characters or less');
+            }
 
-        if (existingGroup) {
-            throw new Error('A location group with this code already exists');
+            // Check for duplicate group_code within the company
+            const existingGroup = await ExpenseLocationGroup.findOne({
+                where: {
+                    company_id: companyId,
+                    group_code: group_code.trim().toUpperCase(),
+                    deleted_at: null
+                },
+                transaction,
+                lock: transaction.LOCK.UPDATE
+            });
+
+            if (existingGroup) {
+                // Code already taken, generate new sequential code
+                finalCode = await generateSequentialCode(companyId, transaction);
+            } else {
+                finalCode = group_code.trim().toUpperCase();
+            }
+        } else {
+            // No code provided, generate sequential code
+            finalCode = await generateSequentialCode(companyId, transaction);
         }
 
         // Create location group
         const locationGroup = await ExpenseLocationGroup.create({
             company_id: companyId,
             group_name: group_name.trim(),
-            group_code: group_code.trim().toUpperCase(),
+            group_code: finalCode,
             group_description: group_description || null,
             cost_of_living_index: cost_of_living_index || 'Medium',
             is_active: is_active !== false ? 1 : 0,
@@ -403,6 +442,41 @@ const deleteLocationGroup = async (locationGroupId, companyId, userId) => {
 };
 
 /**
+ * Generate a unique location group code
+ * @param {number} companyId - Company ID
+ * @returns {Promise<Object>} Generated code
+ */
+const generateCode = async (companyId) => {
+    // Find the highest existing code for this company
+    const latestGroup = await ExpenseLocationGroup.findOne({
+        where: {
+            company_id: companyId,
+            group_code: {
+                [Op.like]: 'LG%'
+            }
+        },
+        order: [['group_code', 'DESC']]
+    });
+
+    let nextNumber = 1;
+
+    if (latestGroup && latestGroup.group_code) {
+        // Extract the number from the code (e.g., "LG005" -> 5)
+        const match = latestGroup.group_code.match(/^LG(\d+)$/);
+        if (match) {
+            nextNumber = parseInt(match[1], 10) + 1;
+        }
+    }
+
+    // Generate code with zero-padded number (e.g., LG001, LG002, etc.)
+    const generatedCode = `LG${String(nextNumber).padStart(3, '0')}`;
+
+    return {
+        code: generatedCode
+    };
+};
+
+/**
  * Get location dropdown data (countries, states, cities)
  * @param {Object} filters - Filter options
  * @returns {Promise<Object>} Dropdown data
@@ -469,5 +543,6 @@ module.exports = {
     getLocationGroupDetails,
     updateLocationGroup,
     deleteLocationGroup,
+    generateCode,
     getLocationDropdownData
 };

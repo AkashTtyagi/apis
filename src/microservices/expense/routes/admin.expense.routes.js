@@ -17,6 +17,12 @@ router.use(authenticate);
 // ==================== LOCATION GROUP MANAGEMENT ====================
 
 /**
+ * Generate a unique location group code
+ * GET /api/expense/admin/location-groups/generate-code
+ */
+router.get('/location-groups/generate-code', locationGroupController.generateCode);
+
+/**
  * Create a new location group
  * POST /api/expense/admin/location-groups/create
  */
