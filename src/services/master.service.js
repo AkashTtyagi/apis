@@ -432,7 +432,14 @@ const getMasterDataBySlug = async (masterSlug, companyId = null, filters = {}, s
 
     // Add additional filters (e.g., department_id for sub_department, country_id for state)
     if (filters && Object.keys(filters).length > 0) {
-        Object.assign(whereClause, filters);
+        for (const [key, value] of Object.entries(filters)) {
+            // Handle array values with Op.in
+            if (Array.isArray(value)) {
+                whereClause[key] = { [Op.in]: value };
+            } else {
+                whereClause[key] = value;
+            }
+        }
     }
 
     // Add search functionality for employee

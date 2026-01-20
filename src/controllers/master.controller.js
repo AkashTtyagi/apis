@@ -146,12 +146,22 @@ const getCountries = async (req, res, next) => {
 
 /**
  * Get states by country
- * GET /api/master/states?country_id=101
+ * GET /api/master/states?country_ids=101
+ * GET /api/master/states?country_ids=101,102 (multiple countries)
  */
 const getStates = async (req, res, next) => {
     try {
-        const { country_id } = req.query;
-        const filters = country_id ? { country_id: parseInt(country_id) } : {};
+        const { country_ids } = req.query;
+
+        let filters = {};
+        if (country_ids) {
+            // Handle single or comma-separated IDs: "77" or "77,78,79"
+            const ids = country_ids.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+            if (ids.length > 0) {
+                filters.country_id = ids;
+            }
+        }
+
         const result = await masterService.getMasterData('state', null, filters, null);
         return sendSuccess(res, 'States retrieved successfully', result);
     } catch (error) {
@@ -161,12 +171,22 @@ const getStates = async (req, res, next) => {
 
 /**
  * Get cities by state
- * GET /api/master/cities?state_id=10
+ * GET /api/master/cities?state_ids=10
+ * GET /api/master/cities?state_ids=10,11 (multiple states)
  */
 const getCities = async (req, res, next) => {
     try {
-        const { state_id } = req.query;
-        const filters = state_id ? { state_id: parseInt(state_id) } : {};
+        const { state_ids } = req.query;
+
+        let filters = {};
+        if (state_ids) {
+            // Handle single or comma-separated IDs: "10" or "10,11,12"
+            const ids = state_ids.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+            if (ids.length > 0) {
+                filters.state_id = ids;
+            }
+        }
+
         const result = await masterService.getMasterData('city', null, filters, null);
         return sendSuccess(res, 'Cities retrieved successfully', result);
     } catch (error) {
