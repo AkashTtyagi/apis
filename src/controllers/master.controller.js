@@ -131,9 +131,55 @@ const getAllMasterCounts = async (req, res, next) => {
     }
 };
 
+/**
+ * Get all countries
+ * GET /api/master/countries
+ */
+const getCountries = async (req, res, next) => {
+    try {
+        const result = await masterService.getMasterData('country', null, {}, null);
+        return sendSuccess(res, 'Countries retrieved successfully', result);
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Get states by country
+ * GET /api/master/states?country_id=101
+ */
+const getStates = async (req, res, next) => {
+    try {
+        const { country_id } = req.query;
+        const filters = country_id ? { country_id: parseInt(country_id) } : {};
+        const result = await masterService.getMasterData('state', null, filters, null);
+        return sendSuccess(res, 'States retrieved successfully', result);
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Get cities by state
+ * GET /api/master/cities?state_id=10
+ */
+const getCities = async (req, res, next) => {
+    try {
+        const { state_id } = req.query;
+        const filters = state_id ? { state_id: parseInt(state_id) } : {};
+        const result = await masterService.getMasterData('city', null, filters, null);
+        return sendSuccess(res, 'Cities retrieved successfully', result);
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     getMasterData,
     getMultipleMasterData,
     getHierarchicalMasterData,
-    getAllMasterCounts
+    getAllMasterCounts,
+    getCountries,
+    getStates,
+    getCities
 };

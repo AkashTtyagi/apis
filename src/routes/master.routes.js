@@ -12,6 +12,28 @@ const { authenticate } = require('../middlewares/auth.middleware');
 // Apply authentication middleware to all routes
 router.use(authenticate);
 
+// ==================== GET ENDPOINTS (for simple lookups) ====================
+
+/**
+ * Get all countries
+ * GET /api/master/countries
+ */
+router.get('/countries', masterController.getCountries);
+
+/**
+ * Get states by country
+ * GET /api/master/states?country_id=101
+ */
+router.get('/states', masterController.getStates);
+
+/**
+ * Get cities by state
+ * GET /api/master/cities?state_id=10
+ */
+router.get('/cities', masterController.getCities);
+
+// ==================== POST ENDPOINTS (for complex queries) ====================
+
 /**
  * Get master data
  * POST /api/master/data

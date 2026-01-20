@@ -14,6 +14,16 @@ const { ExpenseExchangeRate } = require('./ExpenseExchangeRate');
 const { ExpenseCurrencyPolicy } = require('./ExpenseCurrencyPolicy');
 const { ExpenseExchangeRateHistory } = require('./ExpenseExchangeRateHistory');
 
+// Workflow Models
+const { ExpenseApprovalWorkflow } = require('./ExpenseApprovalWorkflow');
+const { ExpenseApprovalWorkflowStage } = require('./ExpenseApprovalWorkflowStage');
+const { ExpenseWorkflowCategoryMapping } = require('./ExpenseWorkflowCategoryMapping');
+const { ExpenseApprovalRequest } = require('./ExpenseApprovalRequest');
+const { ExpenseApprovalRequestItem } = require('./ExpenseApprovalRequestItem');
+const { ExpenseApprovalHistory } = require('./ExpenseApprovalHistory');
+const { ExpenseApprovalPending } = require('./ExpenseApprovalPending');
+const { ExpenseApprovalDelegate } = require('./ExpenseApprovalDelegate');
+
 // ==================== LOCATION GROUP ASSOCIATIONS ====================
 
 // Location Group -> Mappings (one-to-many)
@@ -123,6 +133,113 @@ ExpenseExchangeRateHistory.belongsTo(ExpenseExchangeRate, {
     as: 'exchangeRate'
 });
 
+// ==================== WORKFLOW ASSOCIATIONS ====================
+
+// Workflow -> Stages (one-to-many)
+ExpenseApprovalWorkflow.hasMany(ExpenseApprovalWorkflowStage, {
+    foreignKey: 'workflow_id',
+    as: 'stages',
+    onDelete: 'CASCADE'
+});
+
+ExpenseApprovalWorkflowStage.belongsTo(ExpenseApprovalWorkflow, {
+    foreignKey: 'workflow_id',
+    as: 'workflow'
+});
+
+// Workflow -> Category Mappings (one-to-many)
+ExpenseApprovalWorkflow.hasMany(ExpenseWorkflowCategoryMapping, {
+    foreignKey: 'workflow_id',
+    as: 'categoryMappings',
+    onDelete: 'CASCADE'
+});
+
+ExpenseWorkflowCategoryMapping.belongsTo(ExpenseApprovalWorkflow, {
+    foreignKey: 'workflow_id',
+    as: 'workflow'
+});
+
+// Category -> Workflow Mappings
+ExpenseCategory.hasMany(ExpenseWorkflowCategoryMapping, {
+    foreignKey: 'category_id',
+    as: 'workflowMappings',
+    onDelete: 'CASCADE'
+});
+
+ExpenseWorkflowCategoryMapping.belongsTo(ExpenseCategory, {
+    foreignKey: 'category_id',
+    as: 'category'
+});
+
+// Workflow -> Approval Requests (one-to-many)
+ExpenseApprovalWorkflow.hasMany(ExpenseApprovalRequest, {
+    foreignKey: 'workflow_id',
+    as: 'approvalRequests'
+});
+
+ExpenseApprovalRequest.belongsTo(ExpenseApprovalWorkflow, {
+    foreignKey: 'workflow_id',
+    as: 'workflow'
+});
+
+// Approval Request -> Current Stage
+ExpenseApprovalRequest.belongsTo(ExpenseApprovalWorkflowStage, {
+    foreignKey: 'current_stage_id',
+    as: 'currentStage'
+});
+
+// Approval Request -> Items (one-to-many)
+ExpenseApprovalRequest.hasMany(ExpenseApprovalRequestItem, {
+    foreignKey: 'approval_request_id',
+    as: 'items',
+    onDelete: 'CASCADE'
+});
+
+ExpenseApprovalRequestItem.belongsTo(ExpenseApprovalRequest, {
+    foreignKey: 'approval_request_id',
+    as: 'approvalRequest'
+});
+
+// Approval Request Item -> Stage
+ExpenseApprovalRequestItem.belongsTo(ExpenseApprovalWorkflowStage, {
+    foreignKey: 'current_stage_id',
+    as: 'currentStage'
+});
+
+// Approval Request Item -> Workflow (for category-specific)
+ExpenseApprovalRequestItem.belongsTo(ExpenseApprovalWorkflow, {
+    foreignKey: 'item_workflow_id',
+    as: 'itemWorkflow'
+});
+
+// Approval Request -> History (one-to-many)
+ExpenseApprovalRequest.hasMany(ExpenseApprovalHistory, {
+    foreignKey: 'approval_request_id',
+    as: 'history'
+});
+
+ExpenseApprovalHistory.belongsTo(ExpenseApprovalRequest, {
+    foreignKey: 'approval_request_id',
+    as: 'approvalRequest'
+});
+
+// Approval Request -> Pending (one-to-many)
+ExpenseApprovalRequest.hasMany(ExpenseApprovalPending, {
+    foreignKey: 'approval_request_id',
+    as: 'pendingApprovals'
+});
+
+ExpenseApprovalPending.belongsTo(ExpenseApprovalRequest, {
+    foreignKey: 'approval_request_id',
+    as: 'approvalRequest'
+});
+
+// Pending -> Stage
+ExpenseApprovalPending.belongsTo(ExpenseApprovalWorkflowStage, {
+    foreignKey: 'stage_id',
+    as: 'stage'
+});
+
 module.exports = {
     // Location Group Models
     ExpenseLocationGroup,
@@ -138,5 +255,15 @@ module.exports = {
     ExpenseCurrency,
     ExpenseExchangeRate,
     ExpenseCurrencyPolicy,
-    ExpenseExchangeRateHistory
+    ExpenseExchangeRateHistory,
+
+    // Workflow Models
+    ExpenseApprovalWorkflow,
+    ExpenseApprovalWorkflowStage,
+    ExpenseWorkflowCategoryMapping,
+    ExpenseApprovalRequest,
+    ExpenseApprovalRequestItem,
+    ExpenseApprovalHistory,
+    ExpenseApprovalPending,
+    ExpenseApprovalDelegate
 };
