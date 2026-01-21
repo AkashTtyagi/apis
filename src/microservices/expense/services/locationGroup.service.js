@@ -7,6 +7,7 @@ const { ExpenseLocationGroup, ExpenseLocationGroupMapping } = require('../../../
 const { HrmsCountryMaster } = require('../../../models/HrmsCountryMaster');
 const { HrmsStateMaster } = require('../../../models/HrmsStateMaster');
 const { HrmsCityMaster } = require('../../../models/HrmsCityMaster');
+const { HrmsEmployee } = require('../../../models/HrmsEmployee');
 const { sequelize } = require('../../../utils/database');
 const { Op } = require('sequelize');
 
@@ -304,6 +305,16 @@ const getLocationGroupDetails = async (locationGroupId, companyId) => {
                         attributes: ['id', 'city_name']
                     }
                 ]
+            },
+            {
+                model: HrmsEmployee,
+                as: 'createdByEmployee',
+                attributes: ['id', 'employee_code', 'first_name', 'middle_name', 'last_name']
+            },
+            {
+                model: HrmsEmployee,
+                as: 'updatedByEmployee',
+                attributes: ['id', 'employee_code', 'first_name', 'middle_name', 'last_name']
             }
         ]
     });
@@ -324,6 +335,20 @@ const getLocationGroupDetails = async (locationGroupId, companyId) => {
         postal_code_range: loc.postal_code_range
     }));
 
+    // Format created_by
+    const createdBy = locationGroup.createdByEmployee ? {
+        id: locationGroup.createdByEmployee.id,
+        code: locationGroup.createdByEmployee.employee_code,
+        name: [locationGroup.createdByEmployee.first_name, locationGroup.createdByEmployee.middle_name, locationGroup.createdByEmployee.last_name].filter(Boolean).join(' ')
+    } : null;
+
+    // Format updated_by
+    const updatedBy = locationGroup.updatedByEmployee ? {
+        id: locationGroup.updatedByEmployee.id,
+        code: locationGroup.updatedByEmployee.employee_code,
+        name: [locationGroup.updatedByEmployee.first_name, locationGroup.updatedByEmployee.middle_name, locationGroup.updatedByEmployee.last_name].filter(Boolean).join(' ')
+    } : null;
+
     return {
         id: locationGroup.id,
         group_name: locationGroup.group_name,
@@ -332,9 +357,9 @@ const getLocationGroupDetails = async (locationGroupId, companyId) => {
         cost_of_living_index: locationGroup.cost_of_living_index,
         is_active: locationGroup.is_active === 1,
         locations,
-        created_by: locationGroup.created_by,
+        created_by: createdBy,
         created_at: locationGroup.created_at,
-        updated_by: locationGroup.updated_by,
+        updated_by: updatedBy,
         updated_at: locationGroup.updated_at
     };
 };

@@ -10,6 +10,7 @@ const { ExpenseLocationGroupMapping } = require('./ExpenseLocationGroupMapping')
 const { HrmsCountryMaster } = require('../HrmsCountryMaster');
 const { HrmsStateMaster } = require('../HrmsStateMaster');
 const { HrmsCityMaster } = require('../HrmsCityMaster');
+const { HrmsEmployee } = require('../HrmsEmployee');
 const { ExpenseCategory } = require('./ExpenseCategory');
 const { ExpenseCategoryLimit } = require('./ExpenseCategoryLimit');
 const { ExpenseCategoryCustomField } = require('./ExpenseCategoryCustomField');
@@ -55,6 +56,18 @@ ExpenseLocationGroupMapping.belongsTo(HrmsStateMaster, {
 ExpenseLocationGroupMapping.belongsTo(HrmsCityMaster, {
     foreignKey: 'city_id',
     as: 'city'
+});
+
+// Location Group -> Created By Employee
+ExpenseLocationGroup.belongsTo(HrmsEmployee, {
+    foreignKey: 'created_by',
+    as: 'createdByEmployee'
+});
+
+// Location Group -> Updated By Employee
+ExpenseLocationGroup.belongsTo(HrmsEmployee, {
+    foreignKey: 'updated_by',
+    as: 'updatedByEmployee'
 });
 
 // ==================== EXPENSE CATEGORY ASSOCIATIONS ====================
