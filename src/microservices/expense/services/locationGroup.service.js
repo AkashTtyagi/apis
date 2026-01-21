@@ -120,7 +120,11 @@ const createLocationGroup = async (data, companyId, userId) => {
         let locationsToSave = locations;
 
         // Convert country_ids/state_ids/city_ids format to locations array
-        if (!locationsToSave && (country_ids || state_ids || city_ids)) {
+        // Check if locations is not provided or is empty array
+        const hasLocations = locationsToSave && Array.isArray(locationsToSave) && locationsToSave.length > 0;
+        const hasIdArrays = (country_ids && country_ids.length > 0) || (state_ids && state_ids.length > 0) || (city_ids && city_ids.length > 0);
+
+        if (!hasLocations && hasIdArrays) {
             locationsToSave = [];
 
             const countryArr = Array.isArray(country_ids) ? country_ids : (country_ids ? [country_ids] : []);
@@ -401,7 +405,11 @@ const updateLocationGroup = async (data, companyId, userId) => {
         let locationsToSave = locations;
 
         // Convert country_ids/state_ids/city_ids format to locations array
-        if (!locationsToSave && (country_ids || state_ids || city_ids)) {
+        // Check if locations is not provided or is empty array
+        const hasLocations = locationsToSave && Array.isArray(locationsToSave) && locationsToSave.length > 0;
+        const hasIdArrays = (country_ids && country_ids.length > 0) || (state_ids && state_ids.length > 0) || (city_ids && city_ids.length > 0);
+
+        if (!hasLocations && hasIdArrays) {
             locationsToSave = [];
 
             // Determine the max length to iterate
