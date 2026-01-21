@@ -241,8 +241,8 @@ const getAllWorkflows = async (filters, companyId) => {
         deleted_at: null
     };
 
-    // Filter by active status
-    if (is_active !== undefined) {
+    // Filter by active status (only apply if explicitly true or false, not null)
+    if (is_active !== undefined && is_active !== null) {
         where.is_active = is_active ? 1 : 0;
     }
 
