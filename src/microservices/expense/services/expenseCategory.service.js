@@ -10,8 +10,9 @@ const {
     ExpenseCategoryFilingRule,
     ExpenseLocationGroup
 } = require('../../../models/expense');
+const { HrmsEmployee } = require('../../../models/HrmsEmployee');
 const { sequelize } = require('../../../utils/database');
-const { Op } = require('sequelize');
+const { Op, fn, col } = require('sequelize');
 
 /**
  * Create a new expense category with limits, custom fields, and filing rules
@@ -436,6 +437,26 @@ const getCategoryDetails = async (categoryId, companyId) => {
             {
                 model: ExpenseCategoryFilingRule,
                 as: 'filingRules'
+            },
+            {
+                model: HrmsEmployee,
+                as: 'createdByEmployee',
+                attributes: [
+                    'id',
+                    'employee_code',
+                    [fn('CONCAT_WS', ' ', col('createdByEmployee.first_name'), col('createdByEmployee.middle_name'), col('createdByEmployee.last_name')), 'name']
+                ],
+                required: false
+            },
+            {
+                model: HrmsEmployee,
+                as: 'updatedByEmployee',
+                attributes: [
+                    'id',
+                    'employee_code',
+                    [fn('CONCAT_WS', ' ', col('updatedByEmployee.first_name'), col('updatedByEmployee.middle_name'), col('updatedByEmployee.last_name')), 'name']
+                ],
+                required: false
             }
         ]
     });
@@ -556,9 +577,17 @@ const getCategoryDetails = async (categoryId, companyId) => {
             expense_type: child.expense_type,
             is_active: child.is_active === 1
         })),
-        created_by: category.created_by,
+        created_by: category.createdByEmployee ? {
+            id: category.createdByEmployee.id,
+            code: category.createdByEmployee.employee_code,
+            name: category.createdByEmployee.get('name')
+        } : null,
         created_at: category.created_at,
-        updated_by: category.updated_by,
+        updated_by: category.updatedByEmployee ? {
+            id: category.updatedByEmployee.id,
+            code: category.updatedByEmployee.employee_code,
+            name: category.updatedByEmployee.get('name')
+        } : null,
         updated_at: category.updated_at
     };
 };

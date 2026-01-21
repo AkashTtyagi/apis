@@ -121,6 +121,20 @@ ExpenseCategory.hasMany(ExpenseCategory, {
     as: 'children'
 });
 
+// Category -> Created By Employee
+ExpenseCategory.hasOne(HrmsEmployee, {
+    foreignKey: 'user_id',
+    sourceKey: 'created_by',
+    as: 'createdByEmployee'
+});
+
+// Category -> Updated By Employee
+ExpenseCategory.hasOne(HrmsEmployee, {
+    foreignKey: 'user_id',
+    sourceKey: 'updated_by',
+    as: 'updatedByEmployee'
+});
+
 // ==================== CROSS-MODEL ASSOCIATIONS ====================
 
 // Category Limit -> Location Group
