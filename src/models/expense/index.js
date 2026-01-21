@@ -23,7 +23,6 @@ const { ExpenseExchangeRateHistory } = require('./ExpenseExchangeRateHistory');
 // Workflow Models
 const { ExpenseApprovalWorkflow } = require('./ExpenseApprovalWorkflow');
 const { ExpenseApprovalWorkflowStage } = require('./ExpenseApprovalWorkflowStage');
-const { ExpenseWorkflowCategoryMapping } = require('./ExpenseWorkflowCategoryMapping');
 const { ExpenseWorkflowApplicability } = require('./ExpenseWorkflowApplicability');
 const { ExpenseApprovalRequest } = require('./ExpenseApprovalRequest');
 const { ExpenseApprovalRequestItem } = require('./ExpenseApprovalRequestItem');
@@ -199,18 +198,6 @@ ExpenseApprovalWorkflowStage.belongsTo(ExpenseApprovalWorkflow, {
     as: 'workflow'
 });
 
-// Workflow -> Category Mappings (one-to-many)
-ExpenseApprovalWorkflow.hasMany(ExpenseWorkflowCategoryMapping, {
-    foreignKey: 'workflow_id',
-    as: 'categoryMappings',
-    onDelete: 'CASCADE'
-});
-
-ExpenseWorkflowCategoryMapping.belongsTo(ExpenseApprovalWorkflow, {
-    foreignKey: 'workflow_id',
-    as: 'workflow'
-});
-
 // Workflow -> Applicability (one-to-many)
 ExpenseApprovalWorkflow.hasMany(ExpenseWorkflowApplicability, {
     foreignKey: 'workflow_id',
@@ -221,18 +208,6 @@ ExpenseApprovalWorkflow.hasMany(ExpenseWorkflowApplicability, {
 ExpenseWorkflowApplicability.belongsTo(ExpenseApprovalWorkflow, {
     foreignKey: 'workflow_id',
     as: 'workflow'
-});
-
-// Category -> Workflow Mappings
-ExpenseCategory.hasMany(ExpenseWorkflowCategoryMapping, {
-    foreignKey: 'category_id',
-    as: 'workflowMappings',
-    onDelete: 'CASCADE'
-});
-
-ExpenseWorkflowCategoryMapping.belongsTo(ExpenseCategory, {
-    foreignKey: 'category_id',
-    as: 'category'
 });
 
 // Workflow -> Approval Requests (one-to-many)
@@ -324,7 +299,6 @@ module.exports = {
     // Workflow Models
     ExpenseApprovalWorkflow,
     ExpenseApprovalWorkflowStage,
-    ExpenseWorkflowCategoryMapping,
     ExpenseWorkflowApplicability,
     ExpenseApprovalRequest,
     ExpenseApprovalRequestItem,

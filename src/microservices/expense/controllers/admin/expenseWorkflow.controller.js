@@ -234,67 +234,6 @@ const cloneWorkflow = async (req, res) => {
 };
 
 /**
- * Get all category to workflow mappings
- * POST /api/expense/admin/workflows/category-mapping/list
- */
-const getCategoryMappings = async (req, res) => {
-    try {
-        const companyId = req.user.company_id;
-        const filters = req.body;
-
-        const result = await expenseWorkflowService.getCategoryMappings(filters, companyId);
-
-        return res.status(200).json({
-            success: true,
-            data: result.data,
-            pagination: result.pagination
-        });
-
-    } catch (error) {
-        console.error('Error getting category mappings:', error);
-        return res.status(500).json({
-            success: false,
-            message: error.message || 'Failed to get category mappings'
-        });
-    }
-};
-
-/**
- * Manage category to workflow mapping
- * POST /api/expense/admin/workflows/category-mapping/manage
- */
-const manageCategoryMapping = async (req, res) => {
-    try {
-        const companyId = req.user.company_id;
-        const userId = req.user.id;
-
-        const result = await expenseWorkflowService.manageCategoryMapping(req.body, companyId, userId);
-
-        return res.status(200).json({
-            success: true,
-            message: result.message,
-            data: { id: result.id }
-        });
-
-    } catch (error) {
-        console.error('Error managing category mapping:', error);
-
-        if (error.message.includes('required') ||
-            error.message.includes('Invalid')) {
-            return res.status(400).json({
-                success: false,
-                message: error.message
-            });
-        }
-
-        return res.status(500).json({
-            success: false,
-            message: error.message || 'Failed to manage category mapping'
-        });
-    }
-};
-
-/**
  * Get applicable workflow for expense
  * POST /api/expense/admin/workflows/get-applicable
  */
@@ -453,8 +392,6 @@ module.exports = {
     updateWorkflow,
     deleteWorkflow,
     cloneWorkflow,
-    getCategoryMappings,
-    manageCategoryMapping,
     getApplicableWorkflow,
     getDropdownData,
     // Applicability

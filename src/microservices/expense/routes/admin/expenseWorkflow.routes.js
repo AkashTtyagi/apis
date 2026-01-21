@@ -50,18 +50,6 @@ router.post('/clone', expenseWorkflowController.cloneWorkflow);
 router.post('/dropdown', expenseWorkflowController.getDropdownData);
 
 /**
- * Get all category to workflow mappings
- * POST /api/expense/admin/workflows/category-mapping/list
- */
-router.post('/category-mapping/list', expenseWorkflowController.getCategoryMappings);
-
-/**
- * Manage category to workflow mapping
- * POST /api/expense/admin/workflows/category-mapping/manage
- */
-router.post('/category-mapping/manage', expenseWorkflowController.manageCategoryMapping);
-
-/**
  * Get applicable workflow for expense
  * POST /api/expense/admin/workflows/get-applicable
  */

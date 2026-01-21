@@ -16,7 +16,6 @@
 const {
     ExpenseApprovalWorkflow,
     ExpenseApprovalWorkflowStage,
-    ExpenseWorkflowCategoryMapping,
     ExpenseWorkflowApplicability,
     ExpenseCategory
 } = require('../../../models/expense');
@@ -336,19 +335,6 @@ const getWorkflowDetails = async (workflowId, companyId) => {
                 where: { is_active: 1 },
                 required: false,
                 order: [['stage_order', 'ASC']]
-            },
-            {
-                model: ExpenseWorkflowCategoryMapping,
-                as: 'categoryMappings',
-                where: { is_active: 1 },
-                required: false,
-                include: [
-                    {
-                        model: ExpenseCategory,
-                        as: 'category',
-                        attributes: ['id', 'category_name', 'category_code']
-                    }
-                ]
             }
         ]
     });
@@ -387,17 +373,6 @@ const getWorkflowDetails = async (workflowId, companyId) => {
             sla_warning_hours: stage.sla_warning_hours,
             sla_breach_action: stage.sla_breach_action
         }));
-
-    // Format category mappings
-    const categoryMappings = (workflow.categoryMappings || []).map(mapping => ({
-        id: mapping.id,
-        category_id: mapping.category_id,
-        category_name: mapping.category?.category_name,
-        category_code: mapping.category?.category_code,
-        min_amount: parseFloat(mapping.min_amount) || 0,
-        max_amount: mapping.max_amount ? parseFloat(mapping.max_amount) : null,
-        priority: mapping.priority
-    }));
 
     return {
         id: workflow.id,
@@ -445,7 +420,6 @@ const getWorkflowDetails = async (workflowId, companyId) => {
         is_default: workflow.is_default === 1,
         is_active: workflow.is_active === 1,
         stages,
-        category_mappings: categoryMappings,
         created_by: workflow.created_by,
         created_at: workflow.created_at,
         updated_at: workflow.updated_at
@@ -736,155 +710,6 @@ const cloneWorkflow = async (workflowId, data, companyId, userId) => {
     delete cloneData.deleted_by;
 
     return await createWorkflow(cloneData, companyId, userId);
-};
-
-/**
- * Get all category to workflow mappings
- * @param {Object} filters - Filter options
- * @param {number} companyId - Company ID
- * @returns {Promise<Object>} Category mappings with pagination
- */
-const getCategoryMappings = async (filters, companyId) => {
-    const {
-        workflow_id,
-        category_id,
-        limit = 50,
-        offset = 0
-    } = filters;
-
-    const where = {
-        company_id: companyId,
-        is_active: 1
-    };
-
-    if (workflow_id) {
-        where.workflow_id = workflow_id;
-    }
-
-    if (category_id) {
-        where.category_id = category_id;
-    }
-
-    // Get total count
-    const total = await ExpenseWorkflowCategoryMapping.count({ where });
-
-    // Get mappings with related data
-    const mappings = await ExpenseWorkflowCategoryMapping.findAll({
-        where,
-        include: [
-            {
-                model: ExpenseApprovalWorkflow,
-                as: 'workflow',
-                attributes: ['id', 'workflow_name', 'workflow_code', 'is_default', 'is_active']
-            },
-            {
-                model: ExpenseCategory,
-                as: 'category',
-                attributes: ['id', 'category_name', 'category_code']
-            }
-        ],
-        order: [['priority', 'DESC'], ['created_at', 'DESC']],
-        limit: parseInt(limit),
-        offset: parseInt(offset)
-    });
-
-    // Format response
-    const data = mappings.map(m => ({
-        id: m.id,
-        workflow_id: m.workflow_id,
-        workflow_name: m.workflow?.workflow_name,
-        workflow_code: m.workflow?.workflow_code,
-        workflow_is_default: m.workflow?.is_default === 1,
-        category_id: m.category_id,
-        category_name: m.category?.category_name,
-        category_code: m.category?.category_code,
-        min_amount: parseFloat(m.min_amount) || 0,
-        max_amount: m.max_amount ? parseFloat(m.max_amount) : null,
-        priority: m.priority,
-        created_at: m.created_at
-    }));
-
-    return {
-        data,
-        pagination: {
-            total,
-            limit: parseInt(limit),
-            offset: parseInt(offset),
-            total_pages: Math.ceil(total / parseInt(limit)),
-            current_page: Math.floor(parseInt(offset) / parseInt(limit)) + 1
-        }
-    };
-};
-
-/**
- * Manage category to workflow mapping
- * @param {Object} data - Mapping data
- * @param {number} companyId - Company ID
- * @param {number} userId - User ID
- * @returns {Promise<Object>} Result
- */
-const manageCategoryMapping = async (data, companyId, userId) => {
-    const { action, mapping } = data;
-
-    if (action === 'upsert') {
-        if (!mapping.category_id || !mapping.workflow_id) {
-            throw new Error('Category ID and Workflow ID are required');
-        }
-
-        // Check if mapping exists
-        const existing = await ExpenseWorkflowCategoryMapping.findOne({
-            where: {
-                company_id: companyId,
-                category_id: mapping.category_id,
-                min_amount: mapping.min_amount || 0,
-                is_active: 1
-            }
-        });
-
-        if (existing) {
-            // Update
-            await existing.update({
-                workflow_id: mapping.workflow_id,
-                max_amount: mapping.max_amount || null,
-                priority: mapping.priority || 0,
-                updated_by: userId
-            });
-
-            return { message: 'Category mapping updated', id: existing.id };
-        } else {
-            // Create
-            const newMapping = await ExpenseWorkflowCategoryMapping.create({
-                company_id: companyId,
-                category_id: mapping.category_id,
-                workflow_id: mapping.workflow_id,
-                min_amount: mapping.min_amount || 0,
-                max_amount: mapping.max_amount || null,
-                priority: mapping.priority || 0,
-                is_active: 1,
-                created_by: userId
-            });
-
-            return { message: 'Category mapping created', id: newMapping.id };
-        }
-    } else if (action === 'delete') {
-        if (!mapping.id) {
-            throw new Error('Mapping ID is required');
-        }
-
-        await ExpenseWorkflowCategoryMapping.update(
-            { is_active: 0, updated_by: userId },
-            {
-                where: {
-                    id: mapping.id,
-                    company_id: companyId
-                }
-            }
-        );
-
-        return { message: 'Category mapping deleted' };
-    }
-
-    throw new Error('Invalid action');
 };
 
 // ==================== WORKFLOW SELECTION HELPERS ====================
@@ -1277,39 +1102,6 @@ const getApplicableWorkflow = async (params, companyId) => {
             matched_by: workflow.matched_by,
             stages_count: workflow.stages.length
         };
-    }
-
-    // Legacy flow: No employee_id, check category mapping or default
-    if (category_id) {
-        const categoryMapping = await ExpenseWorkflowCategoryMapping.findOne({
-            where: {
-                company_id: companyId,
-                category_id: category_id,
-                is_active: 1,
-                min_amount: { [Op.lte]: amount || 0 },
-                [Op.or]: [
-                    { max_amount: null },
-                    { max_amount: { [Op.gte]: amount || 0 } }
-                ]
-            },
-            order: [['priority', 'DESC']],
-            include: [
-                {
-                    model: ExpenseApprovalWorkflow,
-                    as: 'workflow',
-                    where: { is_active: 1, deleted_at: null }
-                }
-            ]
-        });
-
-        if (categoryMapping && categoryMapping.workflow) {
-            return {
-                workflow_id: categoryMapping.workflow.id,
-                workflow_name: categoryMapping.workflow.workflow_name,
-                workflow_scope: categoryMapping.workflow.workflow_scope,
-                source: 'Category_Mapping'
-            };
-        }
     }
 
     // Get default workflow
@@ -1742,10 +1534,6 @@ module.exports = {
     deleteWorkflow,
     cloneWorkflow,
     getDropdownData,
-
-    // Category Mapping
-    getCategoryMappings,
-    manageCategoryMapping,
 
     // Workflow Selection (Main functions)
     getApplicableWorkflow,              // Main function - combines WHO + HOW
