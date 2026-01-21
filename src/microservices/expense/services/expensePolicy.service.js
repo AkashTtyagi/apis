@@ -177,7 +177,9 @@ const createPolicy = async (data, companyId, userId) => {
         return await getPolicyDetails(policy.id, companyId);
 
     } catch (error) {
-        await transaction.rollback();
+        if (!transaction.finished) {
+            await transaction.rollback();
+        }
         throw error;
     }
 };
@@ -261,8 +263,8 @@ const getPolicies = async (companyId, filters = {}) => {
                 CONCAT_WS(' ', eu.first_name, eu.middle_name, eu.last_name) as updated_by_name,
                 eu.employee_code as updated_by_code
             FROM hrms_expense_policies p
-            LEFT JOIN hrms_employee ec ON ec.user_id = p.created_by
-            LEFT JOIN hrms_employee eu ON eu.user_id = p.updated_by
+            LEFT JOIN hrms_employees ec ON ec.user_id = p.created_by
+            LEFT JOIN hrms_employees eu ON eu.user_id = p.updated_by
             WHERE p.id IN (${policyIds.join(',')})
         `);
 
@@ -337,8 +339,8 @@ const getPolicyDetails = async (policyId, companyId) => {
             CONCAT_WS(' ', eu.first_name, eu.middle_name, eu.last_name) as updated_by_name,
             eu.employee_code as updated_by_code
         FROM hrms_expense_policies p
-        LEFT JOIN hrms_employee ec ON ec.user_id = p.created_by
-        LEFT JOIN hrms_employee eu ON eu.user_id = p.updated_by
+        LEFT JOIN hrms_employees ec ON ec.user_id = p.created_by
+        LEFT JOIN hrms_employees eu ON eu.user_id = p.updated_by
         WHERE p.id = ${policyId}
     `);
 
@@ -525,7 +527,9 @@ const updatePolicy = async (policyId, data, companyId, userId) => {
         return await getPolicyDetails(policyId, companyId);
 
     } catch (error) {
-        await transaction.rollback();
+        if (!transaction.finished) {
+            await transaction.rollback();
+        }
         throw error;
     }
 };
@@ -840,7 +844,9 @@ const manageApplicability = async (policyId, rules, companyId, userId) => {
         return createdRules;
 
     } catch (error) {
-        await transaction.rollback();
+        if (!transaction.finished) {
+            await transaction.rollback();
+        }
         throw error;
     }
 };
@@ -931,7 +937,9 @@ const setDefaultPolicy = async (policyId, companyId, userId) => {
         return await getPolicyDetails(policyId, companyId);
 
     } catch (error) {
-        await transaction.rollback();
+        if (!transaction.finished) {
+            await transaction.rollback();
+        }
         throw error;
     }
 };
