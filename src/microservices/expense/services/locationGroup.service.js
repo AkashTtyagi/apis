@@ -58,7 +58,12 @@ const createLocationGroup = async (data, companyId, userId) => {
             group_description,
             cost_of_living_index,
             is_active,
-            locations
+            locations,
+            // Support alternative format: country_ids, state_ids, city_ids arrays
+            country_ids,
+            state_ids,
+            city_ids,
+            postal_code_range
         } = data;
 
         // Validate required fields
@@ -111,10 +116,33 @@ const createLocationGroup = async (data, companyId, userId) => {
             created_by: userId
         }, { transaction });
 
+        // Build locations array from different input formats
+        let locationsToSave = locations;
+
+        // Convert country_ids/state_ids/city_ids format to locations array
+        if (!locationsToSave && (country_ids || state_ids || city_ids)) {
+            locationsToSave = [];
+
+            const countryArr = Array.isArray(country_ids) ? country_ids : (country_ids ? [country_ids] : []);
+            const stateArr = Array.isArray(state_ids) ? state_ids : (state_ids ? [state_ids] : []);
+            const cityArr = Array.isArray(city_ids) ? city_ids : (city_ids ? [city_ids] : []);
+
+            const maxLen = Math.max(countryArr.length, stateArr.length, cityArr.length);
+
+            for (let i = 0; i < maxLen; i++) {
+                locationsToSave.push({
+                    country_id: countryArr[i] || countryArr[0] || null,
+                    state_id: stateArr[i] || null,
+                    city_id: cityArr[i] || null,
+                    postal_code_range: i === 0 ? postal_code_range : null
+                });
+            }
+        }
+
         // Create location mappings if provided
         let locationsCount = 0;
-        if (locations && Array.isArray(locations) && locations.length > 0) {
-            for (const location of locations) {
+        if (locationsToSave && Array.isArray(locationsToSave) && locationsToSave.length > 0) {
+            for (const location of locationsToSave) {
                 await ExpenseLocationGroupMapping.create({
                     location_group_id: locationGroup.id,
                     country_id: location.country_id || null,
@@ -319,22 +347,27 @@ const updateLocationGroup = async (data, companyId, userId) => {
 
     try {
         const {
-            location_group_id,
+            id,
             group_name,
             group_description,
             cost_of_living_index,
             is_active,
-            locations
+            locations,
+            // Support alternative format: country_ids, state_ids, city_ids arrays
+            country_ids,
+            state_ids,
+            city_ids,
+            postal_code_range
         } = data;
 
-        if (!location_group_id) {
+        if (!id) {
             throw new Error('Location group ID is required');
         }
 
         // Find existing location group
         const locationGroup = await ExpenseLocationGroup.findOne({
             where: {
-                id: location_group_id,
+                id: id,
                 company_id: companyId,
                 deleted_at: null
             },
@@ -364,18 +397,42 @@ const updateLocationGroup = async (data, companyId, userId) => {
             updated_by: userId
         }, { transaction });
 
+        // Build locations array from different input formats
+        let locationsToSave = locations;
+
+        // Convert country_ids/state_ids/city_ids format to locations array
+        if (!locationsToSave && (country_ids || state_ids || city_ids)) {
+            locationsToSave = [];
+
+            // Determine the max length to iterate
+            const countryArr = Array.isArray(country_ids) ? country_ids : (country_ids ? [country_ids] : []);
+            const stateArr = Array.isArray(state_ids) ? state_ids : (state_ids ? [state_ids] : []);
+            const cityArr = Array.isArray(city_ids) ? city_ids : (city_ids ? [city_ids] : []);
+
+            const maxLen = Math.max(countryArr.length, stateArr.length, cityArr.length);
+
+            for (let i = 0; i < maxLen; i++) {
+                locationsToSave.push({
+                    country_id: countryArr[i] || countryArr[0] || null, // Use first country if not enough
+                    state_id: stateArr[i] || null,
+                    city_id: cityArr[i] || null,
+                    postal_code_range: i === 0 ? postal_code_range : null // Apply postal code to first entry
+                });
+            }
+        }
+
         // Update locations if provided
-        if (locations !== undefined && Array.isArray(locations)) {
+        if (locationsToSave !== undefined && Array.isArray(locationsToSave) && locationsToSave.length > 0) {
             // Delete old mappings
             await ExpenseLocationGroupMapping.destroy({
-                where: { location_group_id: location_group_id },
+                where: { location_group_id: id },
                 transaction
             });
 
             // Create new mappings
-            for (const location of locations) {
+            for (const location of locationsToSave) {
                 await ExpenseLocationGroupMapping.create({
-                    location_group_id: location_group_id,
+                    location_group_id: id,
                     country_id: location.country_id || null,
                     state_id: location.state_id || null,
                     city_id: location.city_id || null,
