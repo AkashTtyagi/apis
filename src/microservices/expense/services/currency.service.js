@@ -61,7 +61,7 @@ const createCurrency = async (data, companyId, userId) => {
             throw new Error('Decimal places must be between 0 and 4');
         }
 
-        // Check for duplicate currency_code within the company
+        // Check for duplicate currency_code within the company (active)
         const existingCurrency = await ExpenseCurrency.findOne({
             where: {
                 company_id: companyId,
@@ -74,6 +74,16 @@ const createCurrency = async (data, companyId, userId) => {
         if (existingCurrency) {
             throw new Error('A currency with this code already exists');
         }
+
+        // Check if a deleted currency with same code exists - if so, restore it
+        const deletedCurrency = await ExpenseCurrency.findOne({
+            where: {
+                company_id: companyId,
+                currency_code: currency_code.trim().toUpperCase(),
+                deleted_at: { [Op.ne]: null }
+            },
+            transaction
+        });
 
         // If setting as base currency, unset existing base currency
         if (is_base_currency) {
@@ -105,22 +115,44 @@ const createCurrency = async (data, companyId, userId) => {
             );
         }
 
-        // Create the currency
-        const currency = await ExpenseCurrency.create({
-            company_id: companyId,
-            currency_code: currency_code.trim().toUpperCase(),
-            currency_name: currency_name.trim(),
-            currency_symbol: currency_symbol.trim(),
-            currency_symbol_position: currency_symbol_position || 'Before',
-            decimal_places: decimal_places !== undefined ? decimal_places : 2,
-            decimal_separator: decimal_separator || '.',
-            thousands_separator: thousands_separator || ',',
-            is_base_currency: is_base_currency ? 1 : 0,
-            is_default_expense_currency: is_default_expense_currency ? 1 : 0,
-            country_id: country_id || null,
-            is_active: is_active !== undefined ? (is_active ? 1 : 0) : 1,
-            created_by: userId
-        }, { transaction });
+        let currency;
+
+        // If deleted currency exists, restore and update it
+        if (deletedCurrency) {
+            await deletedCurrency.update({
+                currency_name: currency_name.trim(),
+                currency_symbol: currency_symbol.trim(),
+                currency_symbol_position: currency_symbol_position || 'Before',
+                decimal_places: decimal_places !== undefined ? decimal_places : 2,
+                decimal_separator: decimal_separator || '.',
+                thousands_separator: thousands_separator || ',',
+                is_base_currency: is_base_currency ? 1 : 0,
+                is_default_expense_currency: is_default_expense_currency ? 1 : 0,
+                country_id: country_id || null,
+                is_active: is_active !== undefined ? (is_active ? 1 : 0) : 1,
+                deleted_at: null,
+                deleted_by: null,
+                updated_by: userId
+            }, { transaction });
+            currency = deletedCurrency;
+        } else {
+            // Create the currency
+            currency = await ExpenseCurrency.create({
+                company_id: companyId,
+                currency_code: currency_code.trim().toUpperCase(),
+                currency_name: currency_name.trim(),
+                currency_symbol: currency_symbol.trim(),
+                currency_symbol_position: currency_symbol_position || 'Before',
+                decimal_places: decimal_places !== undefined ? decimal_places : 2,
+                decimal_separator: decimal_separator || '.',
+                thousands_separator: thousands_separator || ',',
+                is_base_currency: is_base_currency ? 1 : 0,
+                is_default_expense_currency: is_default_expense_currency ? 1 : 0,
+                country_id: country_id || null,
+                is_active: is_active !== undefined ? (is_active ? 1 : 0) : 1,
+                created_by: userId
+            }, { transaction });
+        }
 
         await transaction.commit();
 

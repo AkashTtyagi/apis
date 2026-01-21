@@ -26,8 +26,16 @@ const createCategory = async (req, res) => {
     } catch (error) {
         console.error('Error creating expense category:', error);
 
+        // Handle duplicate entry error
+        if (error.name === 'SequelizeUniqueConstraintError' || error.code === 'ER_DUP_ENTRY') {
+            return res.status(400).json({
+                success: false,
+                message: 'A category with this code already exists'
+            });
+        }
+
         // Handle Sequelize validation errors
-        if (error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError') {
+        if (error.name === 'SequelizeValidationError') {
             const messages = error.errors ? error.errors.map(e => e.message).join(', ') : error.message;
             return res.status(400).json({
                 success: false,
