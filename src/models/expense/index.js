@@ -30,6 +30,10 @@ const { ExpenseApprovalHistory } = require('./ExpenseApprovalHistory');
 const { ExpenseApprovalPending } = require('./ExpenseApprovalPending');
 const { ExpenseApprovalDelegate } = require('./ExpenseApprovalDelegate');
 
+// Policy Models
+const { ExpensePolicy } = require('./ExpensePolicy');
+const { ExpensePolicyApplicability } = require('./ExpensePolicyApplicability');
+
 // ==================== LOCATION GROUP ASSOCIATIONS ====================
 
 // Location Group -> Mappings (one-to-many)
@@ -279,6 +283,46 @@ ExpenseApprovalPending.belongsTo(ExpenseApprovalWorkflowStage, {
     as: 'stage'
 });
 
+// ==================== POLICY ASSOCIATIONS ====================
+
+// Policy -> Applicability (one-to-many)
+ExpensePolicy.hasMany(ExpensePolicyApplicability, {
+    foreignKey: 'policy_id',
+    as: 'applicability',
+    onDelete: 'CASCADE'
+});
+
+ExpensePolicyApplicability.belongsTo(ExpensePolicy, {
+    foreignKey: 'policy_id',
+    as: 'policy'
+});
+
+// Policy -> Workflow (optional override)
+ExpensePolicy.belongsTo(ExpenseApprovalWorkflow, {
+    foreignKey: 'workflow_id',
+    as: 'workflow'
+});
+
+// Policy -> Default Currency
+ExpensePolicy.belongsTo(ExpenseCurrency, {
+    foreignKey: 'default_currency_id',
+    as: 'defaultCurrency'
+});
+
+// Policy -> Created By Employee
+ExpensePolicy.hasOne(HrmsEmployee, {
+    foreignKey: 'user_id',
+    sourceKey: 'created_by',
+    as: 'createdByEmployee'
+});
+
+// Policy -> Updated By Employee
+ExpensePolicy.hasOne(HrmsEmployee, {
+    foreignKey: 'user_id',
+    sourceKey: 'updated_by',
+    as: 'updatedByEmployee'
+});
+
 module.exports = {
     // Location Group Models
     ExpenseLocationGroup,
@@ -304,5 +348,9 @@ module.exports = {
     ExpenseApprovalRequestItem,
     ExpenseApprovalHistory,
     ExpenseApprovalPending,
-    ExpenseApprovalDelegate
+    ExpenseApprovalDelegate,
+
+    // Policy Models
+    ExpensePolicy,
+    ExpensePolicyApplicability
 };
