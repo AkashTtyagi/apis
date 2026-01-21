@@ -293,17 +293,22 @@ const getAllCategories = async (filters, companyId) => {
         where.expense_type = expense_type;
     }
 
-    // Filter by parent category
-    if (parent_category_id !== undefined) {
-        where.parent_category_id = parent_category_id;
-    }
-
     // Search by name or code
-    if (search && search.trim()) {
+    const hasSearch = search && search.trim();
+    if (hasSearch) {
         where[Op.or] = [
             { category_name: { [Op.like]: `%${search.trim()}%` } },
             { category_code: { [Op.like]: `%${search.trim()}%` } }
         ];
+    }
+
+    // Filter by parent category
+    if (parent_category_id !== undefined) {
+        where.parent_category_id = parent_category_id;
+    } else if (include_children && !hasSearch) {
+        // When include_children is true, no parent filter, and no search - show only root categories
+        // This prevents child categories from appearing both under parent AND in main list
+        where.parent_category_id = null;
     }
 
     // Validate sort_by field
