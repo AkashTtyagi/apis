@@ -440,6 +440,40 @@ const getCategoryHierarchy = async (req, res) => {
     }
 };
 
+/**
+ * Check category usage in other modules
+ * POST /api/expense/admin/categories/check-usage
+ */
+const checkUsage = async (req, res) => {
+    try {
+        const companyId = req.user.company_id;
+        const { category_id, id } = req.body;
+
+        const result = await expenseCategoryService.checkUsage(category_id || id, companyId);
+
+        return res.status(200).json({
+            success: true,
+            data: result
+        });
+
+    } catch (error) {
+        console.error('Error checking category usage:', error);
+
+        if (error.message === 'Category not found' ||
+            error.message.includes('required')) {
+            return res.status(404).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        return res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to check category usage'
+        });
+    }
+};
+
 module.exports = {
     createCategory,
     getAllCategories,
@@ -452,5 +486,6 @@ module.exports = {
     updateFilingRules,
     cloneCategory,
     reorderCategories,
-    getCategoryHierarchy
+    getCategoryHierarchy,
+    checkUsage
 };

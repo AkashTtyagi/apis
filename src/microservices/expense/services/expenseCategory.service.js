@@ -8,7 +8,8 @@ const {
     ExpenseCategoryLimit,
     ExpenseCategoryCustomField,
     ExpenseCategoryFilingRule,
-    ExpenseLocationGroup
+    ExpenseLocationGroup,
+    ExpenseWorkflowCategoryMapping
 } = require('../../../models/expense');
 const { HrmsEmployee } = require('../../../models/HrmsEmployee');
 const { sequelize } = require('../../../utils/database');
@@ -1640,6 +1641,88 @@ const getCategoryHierarchy = async (filters, companyId) => {
     return await buildTree(where, !include_inactive);
 };
 
+/**
+ * Check if category is being used in other modules
+ * @param {number} categoryId - Category ID
+ * @param {number} companyId - Company ID
+ * @returns {Promise<Object>} Usage details
+ */
+const checkUsage = async (categoryId, companyId) => {
+    if (!categoryId) {
+        throw new Error('Category ID is required');
+    }
+
+    // Check if category exists
+    const category = await ExpenseCategory.findOne({
+        where: {
+            id: categoryId,
+            company_id: companyId,
+            deleted_at: null
+        },
+        attributes: ['id', 'category_name', 'category_code']
+    });
+
+    if (!category) {
+        throw new Error('Category not found');
+    }
+
+    const usages = [];
+
+    // Check for child categories (sub-categories)
+    const childCount = await ExpenseCategory.count({
+        where: {
+            parent_category_id: categoryId,
+            deleted_at: null
+        }
+    });
+
+    if (childCount > 0) {
+        usages.push({
+            module: 'Sub-Categories',
+            count: childCount,
+            message: `Has ${childCount} sub-categor${childCount === 1 ? 'y' : 'ies'}`
+        });
+    }
+
+    // Check usage in Workflow Category Mappings
+    const workflowMappingCount = await ExpenseWorkflowCategoryMapping.count({
+        where: {
+            category_id: categoryId
+        }
+    });
+
+    if (workflowMappingCount > 0) {
+        usages.push({
+            module: 'Approval Workflows',
+            count: workflowMappingCount,
+            message: `Used in ${workflowMappingCount} workflow mapping(s)`
+        });
+    }
+
+    // TODO: Check usage in Expense Requests (when implemented)
+    // const expenseRequestCount = await ExpenseRequest.count({
+    //     where: { category_id: categoryId }
+    // });
+
+    const totalUsageCount = childCount + workflowMappingCount;
+    const isInUse = totalUsageCount > 0;
+
+    return {
+        category: {
+            id: category.id,
+            category_name: category.category_name,
+            category_code: category.category_code
+        },
+        is_in_use: isInUse,
+        total_usage_count: totalUsageCount,
+        usages,
+        can_delete: !isInUse,
+        message: isInUse
+            ? `Category is being used in ${totalUsageCount} place(s). Please remove dependencies before deleting.`
+            : 'Category is not in use and can be safely deleted.'
+    };
+};
+
 module.exports = {
     createCategory,
     getAllCategories,
@@ -1652,5 +1735,6 @@ module.exports = {
     updateFilingRules,
     cloneCategory,
     reorderCategories,
-    getCategoryHierarchy
+    getCategoryHierarchy,
+    checkUsage
 };

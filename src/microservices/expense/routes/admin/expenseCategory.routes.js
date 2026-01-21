@@ -79,4 +79,10 @@ router.post('/reorder', expenseCategoryController.reorderCategories);
  */
 router.post('/hierarchy', expenseCategoryController.getCategoryHierarchy);
 
+/**
+ * Check category usage in other modules
+ * POST /api/expense/admin/categories/check-usage
+ */
+router.post('/check-usage', expenseCategoryController.checkUsage);
+
 module.exports = router;
