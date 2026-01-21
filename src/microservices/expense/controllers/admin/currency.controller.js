@@ -25,6 +25,15 @@ const createCurrency = async (req, res) => {
         return res.status(201).json(result);
     } catch (error) {
         console.error('Error creating currency:', error);
+
+        // Handle duplicate entry error
+        if (error.name === 'SequelizeUniqueConstraintError' || error.code === 'ER_DUP_ENTRY') {
+            return res.status(400).json({
+                success: false,
+                message: 'A currency with this code already exists'
+            });
+        }
+
         return res.status(400).json({
             success: false,
             message: error.message || 'Failed to create currency'
