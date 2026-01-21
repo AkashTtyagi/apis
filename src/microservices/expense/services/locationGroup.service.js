@@ -9,7 +9,7 @@ const { HrmsStateMaster } = require('../../../models/HrmsStateMaster');
 const { HrmsCityMaster } = require('../../../models/HrmsCityMaster');
 const { HrmsEmployee } = require('../../../models/HrmsEmployee');
 const { sequelize } = require('../../../utils/database');
-const { Op } = require('sequelize');
+const { Op, literal, fn, col } = require('sequelize');
 
 /**
  * Generate next sequential code with transaction lock
@@ -306,6 +306,26 @@ const getLocationGroupDetails = async (locationGroupId, companyId) => {
                     }
                 ]
             },
+            {
+                model: HrmsEmployee,
+                as: 'createdByEmployee',
+                attributes: [
+                    'id',
+                    'employee_code',
+                    [fn('CONCAT_WS', ' ', col('createdByEmployee.first_name'), col('createdByEmployee.middle_name'), col('createdByEmployee.last_name')), 'name']
+                ],
+                required: false
+            },
+            {
+                model: HrmsEmployee,
+                as: 'updatedByEmployee',
+                attributes: [
+                    'id',
+                    'employee_code',
+                    [fn('CONCAT_WS', ' ', col('updatedByEmployee.first_name'), col('updatedByEmployee.middle_name'), col('updatedByEmployee.last_name')), 'name']
+                ],
+                required: false
+            }
         ]
     });
 
@@ -325,37 +345,19 @@ const getLocationGroupDetails = async (locationGroupId, companyId) => {
         postal_code_range: loc.postal_code_range
     }));
 
-    // Get created_by employee info (join on user_id)
-    let createdBy = null;
-    if (locationGroup.created_by) {
-        const createdByEmp = await HrmsEmployee.findOne({
-            where: { user_id: locationGroup.created_by },
-            attributes: ['id', 'employee_code', 'first_name', 'middle_name', 'last_name']
-        });
-        if (createdByEmp) {
-            createdBy = {
-                id: createdByEmp.id,
-                code: createdByEmp.employee_code,
-                name: [createdByEmp.first_name, createdByEmp.middle_name, createdByEmp.last_name].filter(Boolean).join(' ')
-            };
-        }
-    }
+    // Format created_by
+    const createdBy = locationGroup.createdByEmployee ? {
+        id: locationGroup.createdByEmployee.id,
+        code: locationGroup.createdByEmployee.employee_code,
+        name: locationGroup.createdByEmployee.get('name')
+    } : null;
 
-    // Get updated_by employee info (join on user_id)
-    let updatedBy = null;
-    if (locationGroup.updated_by) {
-        const updatedByEmp = await HrmsEmployee.findOne({
-            where: { user_id: locationGroup.updated_by },
-            attributes: ['id', 'employee_code', 'first_name', 'middle_name', 'last_name']
-        });
-        if (updatedByEmp) {
-            updatedBy = {
-                id: updatedByEmp.id,
-                code: updatedByEmp.employee_code,
-                name: [updatedByEmp.first_name, updatedByEmp.middle_name, updatedByEmp.last_name].filter(Boolean).join(' ')
-            };
-        }
-    }
+    // Format updated_by
+    const updatedBy = locationGroup.updatedByEmployee ? {
+        id: locationGroup.updatedByEmployee.id,
+        code: locationGroup.updatedByEmployee.employee_code,
+        name: locationGroup.updatedByEmployee.get('name')
+    } : null;
 
     return {
         id: locationGroup.id,

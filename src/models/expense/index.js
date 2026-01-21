@@ -59,16 +59,16 @@ ExpenseLocationGroupMapping.belongsTo(HrmsCityMaster, {
 });
 
 // Location Group -> Created By Employee (created_by stores user_id)
-ExpenseLocationGroup.belongsTo(HrmsEmployee, {
-    foreignKey: 'created_by',
-    targetKey: 'user_id',
+ExpenseLocationGroup.hasOne(HrmsEmployee, {
+    foreignKey: 'user_id',
+    sourceKey: 'created_by',
     as: 'createdByEmployee'
 });
 
 // Location Group -> Updated By Employee (updated_by stores user_id)
-ExpenseLocationGroup.belongsTo(HrmsEmployee, {
-    foreignKey: 'updated_by',
-    targetKey: 'user_id',
+ExpenseLocationGroup.hasOne(HrmsEmployee, {
+    foreignKey: 'user_id',
+    sourceKey: 'updated_by',
     as: 'updatedByEmployee'
 });
 
