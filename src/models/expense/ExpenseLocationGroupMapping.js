@@ -73,30 +73,6 @@ const ExpenseLocationGroupMapping = sequelize.define('ExpenseLocationGroupMappin
     ]
 });
 
-ExpenseLocationGroupMapping.associate = (models) => {
-    // Belongs to Location Group
-    ExpenseLocationGroupMapping.belongsTo(models.ExpenseLocationGroup, {
-        foreignKey: 'location_group_id',
-        as: 'locationGroup'
-    });
-
-    // Belongs to Country
-    ExpenseLocationGroupMapping.belongsTo(models.HrmsCountryMaster, {
-        foreignKey: 'country_id',
-        as: 'country'
-    });
-
-    // Belongs to State
-    ExpenseLocationGroupMapping.belongsTo(models.HrmsStateMaster, {
-        foreignKey: 'state_id',
-        as: 'state'
-    });
-
-    // Belongs to City
-    ExpenseLocationGroupMapping.belongsTo(models.HrmsCityMaster, {
-        foreignKey: 'city_id',
-        as: 'city'
-    });
-};
+// Note: Associations are defined in src/models/expense/index.js
 
 module.exports = { ExpenseLocationGroupMapping };
