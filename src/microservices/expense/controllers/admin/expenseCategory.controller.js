@@ -26,6 +26,15 @@ const createCategory = async (req, res) => {
     } catch (error) {
         console.error('Error creating expense category:', error);
 
+        // Handle Sequelize validation errors
+        if (error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError') {
+            const messages = error.errors ? error.errors.map(e => e.message).join(', ') : error.message;
+            return res.status(400).json({
+                success: false,
+                message: messages
+            });
+        }
+
         if (error.message.includes('already exists') ||
             error.message.includes('required') ||
             error.message.includes('must be') ||
