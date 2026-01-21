@@ -154,9 +154,9 @@ const deleteLocationGroup = async (req, res) => {
     try {
         const companyId = req.user.company_id;
         const userId = req.user.id;
-        const { location_group_id } = req.body;
+        const { id, location_group_id } = req.body;
 
-        const result = await locationGroupService.deleteLocationGroup(location_group_id, companyId, userId);
+        const result = await locationGroupService.deleteLocationGroup(id || location_group_id, companyId, userId);
 
         return res.status(200).json({
             success: true,
