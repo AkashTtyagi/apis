@@ -46,6 +46,12 @@ router.post('/delete', currencyController.deleteCurrency);
 router.post('/set-base', currencyController.setBaseCurrency);
 
 /**
+ * Set default expense currency
+ * POST /api/expense/admin/currencies/set-default
+ */
+router.post('/set-default', currencyController.setDefaultExpenseCurrency);
+
+/**
  * Get dropdown data for currency forms
  * POST /api/expense/admin/currencies/dropdown
  */

@@ -458,6 +458,34 @@ const getExchangeRateHistory = async (req, res) => {
 };
 
 /**
+ * Set default expense currency
+ * POST /api/expense/admin/currencies/set-default
+ */
+const setDefaultExpenseCurrency = async (req, res) => {
+    try {
+        const companyId = req.user?.company_id || req.body.company_id;
+        const userId = req.user?.id || req.body.user_id;
+        const { currency_id, id } = req.body;
+
+        if (!companyId || !userId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Company ID and User ID are required'
+            });
+        }
+
+        const result = await currencyService.setDefaultExpenseCurrency(currency_id || id, companyId, userId);
+        return res.status(200).json(result);
+    } catch (error) {
+        console.error('Error setting default expense currency:', error);
+        return res.status(400).json({
+            success: false,
+            message: error.message || 'Failed to set default expense currency'
+        });
+    }
+};
+
+/**
  * Check currency usage in other modules
  * POST /api/expense/admin/currencies/check-usage
  */
@@ -505,6 +533,7 @@ module.exports = {
     updateCurrency,
     deleteCurrency,
     setBaseCurrency,
+    setDefaultExpenseCurrency,
     upsertExchangeRate,
     getExchangeRates,
     deleteExchangeRate,

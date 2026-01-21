@@ -1542,6 +1542,69 @@ const getExchangeRateHistory = async (filters, companyId) => {
 };
 
 /**
+ * Set default expense currency
+ * @param {number} currencyId - Currency ID
+ * @param {number} companyId - Company ID
+ * @param {number} userId - User ID
+ * @returns {Promise<Object>} Result
+ */
+const setDefaultExpenseCurrency = async (currencyId, companyId, userId) => {
+    const transaction = await sequelize.transaction();
+
+    try {
+        const currency = await ExpenseCurrency.findOne({
+            where: {
+                id: currencyId,
+                company_id: companyId,
+                deleted_at: null,
+                is_active: 1
+            },
+            transaction
+        });
+
+        if (!currency) {
+            throw new Error('Currency not found or inactive');
+        }
+
+        // Unset existing default expense currency
+        await ExpenseCurrency.update(
+            { is_default_expense_currency: 0, updated_by: userId },
+            {
+                where: {
+                    company_id: companyId,
+                    is_default_expense_currency: 1,
+                    deleted_at: null
+                },
+                transaction
+            }
+        );
+
+        // Set new default expense currency
+        await currency.update({
+            is_default_expense_currency: 1,
+            updated_by: userId
+        }, { transaction });
+
+        await transaction.commit();
+
+        return {
+            success: true,
+            message: 'Default expense currency updated successfully',
+            data: {
+                default_expense_currency: {
+                    id: currency.id,
+                    currency_code: currency.currency_code,
+                    currency_name: currency.currency_name
+                }
+            }
+        };
+    } catch (error) {
+        await transaction.rollback();
+        throw error;
+    }
+};
+
+/**
  * Check if currency is being used in other modules
  * @param {number} currencyId - Currency ID
  * @param {number} companyId - Company ID
@@ -1656,6 +1719,7 @@ module.exports = {
     updateCurrency,
     deleteCurrency,
     setBaseCurrency,
+    setDefaultExpenseCurrency,
     upsertExchangeRate,
     getExchangeRates,
     deleteExchangeRate,
