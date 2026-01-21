@@ -1509,6 +1509,114 @@ const getExchangeRateHistory = async (filters, companyId) => {
     };
 };
 
+/**
+ * Check if currency is being used in other modules
+ * @param {number} currencyId - Currency ID
+ * @param {number} companyId - Company ID
+ * @returns {Promise<Object>} Usage details
+ */
+const checkUsage = async (currencyId, companyId) => {
+    if (!currencyId) {
+        throw new Error('Currency ID is required');
+    }
+
+    // Check if currency exists
+    const currency = await ExpenseCurrency.findOne({
+        where: {
+            id: currencyId,
+            company_id: companyId,
+            deleted_at: null
+        },
+        attributes: ['id', 'currency_code', 'currency_name', 'is_base_currency', 'is_default_expense_currency']
+    });
+
+    if (!currency) {
+        throw new Error('Currency not found');
+    }
+
+    const usages = [];
+
+    // Check if it's base currency
+    if (currency.is_base_currency === 1) {
+        usages.push({
+            module: 'Base Currency',
+            count: 1,
+            message: 'This is the base currency'
+        });
+    }
+
+    // Check if it's default expense currency
+    if (currency.is_default_expense_currency === 1) {
+        usages.push({
+            module: 'Default Expense Currency',
+            count: 1,
+            message: 'This is the default expense currency'
+        });
+    }
+
+    // Check usage in Exchange Rates (as from_currency)
+    const ratesFromCount = await ExpenseExchangeRate.count({
+        where: {
+            from_currency_id: currencyId,
+            is_active: 1
+        }
+    });
+
+    if (ratesFromCount > 0) {
+        usages.push({
+            module: 'Exchange Rates (From)',
+            count: ratesFromCount,
+            message: `Used as source in ${ratesFromCount} exchange rate(s)`
+        });
+    }
+
+    // Check usage in Exchange Rates (as to_currency)
+    const ratesToCount = await ExpenseExchangeRate.count({
+        where: {
+            to_currency_id: currencyId,
+            is_active: 1
+        }
+    });
+
+    if (ratesToCount > 0) {
+        usages.push({
+            module: 'Exchange Rates (To)',
+            count: ratesToCount,
+            message: `Used as target in ${ratesToCount} exchange rate(s)`
+        });
+    }
+
+    // TODO: Check usage in Expenses (when implemented)
+    // const expenseCount = await Expense.count({
+    //     where: { currency_id: currencyId }
+    // });
+
+    const totalUsageCount = (currency.is_base_currency === 1 ? 1 : 0) +
+                           (currency.is_default_expense_currency === 1 ? 1 : 0) +
+                           ratesFromCount + ratesToCount;
+    const isInUse = totalUsageCount > 0;
+    const isBaseCurrency = currency.is_base_currency === 1;
+
+    return {
+        currency: {
+            id: currency.id,
+            currency_code: currency.currency_code,
+            currency_name: currency.currency_name,
+            is_base_currency: isBaseCurrency,
+            is_default_expense_currency: currency.is_default_expense_currency === 1
+        },
+        is_in_use: isInUse,
+        total_usage_count: totalUsageCount,
+        usages,
+        can_delete: !isBaseCurrency && !isInUse,
+        message: isBaseCurrency
+            ? 'Cannot delete base currency. Please set another currency as base first.'
+            : isInUse
+                ? `Currency is being used in ${totalUsageCount} place(s). Please remove dependencies before deleting.`
+                : 'Currency is not in use and can be safely deleted.'
+    };
+};
+
 module.exports = {
     createCurrency,
     getAllCurrencies,
@@ -1524,5 +1632,6 @@ module.exports = {
     updateCurrencyPolicy,
     convertAmount,
     getDropdownData,
-    getExchangeRateHistory
+    getExchangeRateHistory,
+    checkUsage
 };

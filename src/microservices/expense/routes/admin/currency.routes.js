@@ -51,6 +51,12 @@ router.post('/set-base', currencyController.setBaseCurrency);
  */
 router.post('/dropdown', currencyController.getDropdownData);
 
+/**
+ * Check currency usage in other modules
+ * POST /api/expense/admin/currencies/check-usage
+ */
+router.post('/check-usage', currencyController.checkUsage);
+
 // ==================== EXCHANGE RATE MANAGEMENT ====================
 
 /**

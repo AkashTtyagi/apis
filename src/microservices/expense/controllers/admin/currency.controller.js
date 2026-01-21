@@ -448,6 +448,47 @@ const getExchangeRateHistory = async (req, res) => {
     }
 };
 
+/**
+ * Check currency usage in other modules
+ * POST /api/expense/admin/currencies/check-usage
+ */
+const checkUsage = async (req, res) => {
+    try {
+        const companyId = req.user?.company_id || req.body.company_id;
+        const { currency_id, id } = req.body;
+
+        if (!companyId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Company ID is required'
+            });
+        }
+
+        const result = await currencyService.checkUsage(currency_id || id, companyId);
+
+        return res.status(200).json({
+            success: true,
+            data: result
+        });
+
+    } catch (error) {
+        console.error('Error checking currency usage:', error);
+
+        if (error.message === 'Currency not found' ||
+            error.message.includes('required')) {
+            return res.status(404).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        return res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to check currency usage'
+        });
+    }
+};
+
 module.exports = {
     createCurrency,
     getAllCurrencies,
@@ -463,5 +504,6 @@ module.exports = {
     updateCurrencyPolicy,
     convertAmount,
     getDropdownData,
-    getExchangeRateHistory
+    getExchangeRateHistory,
+    checkUsage
 };
