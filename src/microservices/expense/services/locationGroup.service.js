@@ -3,7 +3,7 @@
  * Business logic for expense location group management
  */
 
-const { ExpenseLocationGroup, ExpenseLocationGroupMapping } = require('../../../models/expense');
+const { ExpenseLocationGroup, ExpenseLocationGroupMapping, ExpenseCategoryLimit } = require('../../../models/expense');
 const { HrmsCountryMaster } = require('../../../models/HrmsCountryMaster');
 const { HrmsStateMaster } = require('../../../models/HrmsStateMaster');
 const { HrmsCityMaster } = require('../../../models/HrmsCityMaster');
@@ -637,6 +637,67 @@ const getLocationDropdownData = async (filters = {}) => {
     };
 };
 
+/**
+ * Check if location group is being used in other modules
+ * @param {number} locationGroupId - Location group ID
+ * @param {number} companyId - Company ID
+ * @returns {Promise<Object>} Usage details
+ */
+const checkUsage = async (locationGroupId, companyId) => {
+    if (!locationGroupId) {
+        throw new Error('Location group ID is required');
+    }
+
+    // Check if location group exists
+    const locationGroup = await ExpenseLocationGroup.findOne({
+        where: {
+            id: locationGroupId,
+            company_id: companyId,
+            deleted_at: null
+        },
+        attributes: ['id', 'group_name', 'group_code']
+    });
+
+    if (!locationGroup) {
+        throw new Error('Location group not found');
+    }
+
+    // Check usage in ExpenseCategoryLimit
+    const categoryLimitCount = await ExpenseCategoryLimit.count({
+        where: {
+            location_group_id: locationGroupId
+        }
+    });
+
+    const usages = [];
+
+    if (categoryLimitCount > 0) {
+        usages.push({
+            module: 'Category Limits',
+            count: categoryLimitCount,
+            message: `Used in ${categoryLimitCount} category limit(s)`
+        });
+    }
+
+    const totalUsageCount = categoryLimitCount;
+    const isInUse = totalUsageCount > 0;
+
+    return {
+        location_group: {
+            id: locationGroup.id,
+            group_name: locationGroup.group_name,
+            group_code: locationGroup.group_code
+        },
+        is_in_use: isInUse,
+        total_usage_count: totalUsageCount,
+        usages,
+        can_delete: !isInUse,
+        message: isInUse
+            ? `Location group is being used in ${totalUsageCount} place(s). Please remove dependencies before deleting.`
+            : 'Location group is not in use and can be safely deleted.'
+    };
+};
+
 module.exports = {
     createLocationGroup,
     getAllLocationGroups,
@@ -644,5 +705,6 @@ module.exports = {
     updateLocationGroup,
     deleteLocationGroup,
     generateCode,
-    getLocationDropdownData
+    getLocationDropdownData,
+    checkUsage
 };

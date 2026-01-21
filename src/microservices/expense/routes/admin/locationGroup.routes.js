@@ -49,4 +49,10 @@ router.post('/delete', locationGroupController.deleteLocationGroup);
  */
 router.post('/locations/dropdown', locationGroupController.getLocationDropdownData);
 
+/**
+ * Check location group usage in other modules
+ * POST /api/expense/admin/location-groups/check-usage
+ */
+router.post('/check-usage', locationGroupController.checkUsage);
+
 module.exports = router;

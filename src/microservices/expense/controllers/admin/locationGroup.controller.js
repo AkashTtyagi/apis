@@ -236,6 +236,40 @@ const getLocationDropdownData = async (req, res) => {
     }
 };
 
+/**
+ * Check location group usage in other modules
+ * POST /api/expense/admin/location-groups/check-usage
+ */
+const checkUsage = async (req, res) => {
+    try {
+        const companyId = req.user.company_id;
+        const { id } = req.body;
+
+        const result = await locationGroupService.checkUsage(id, companyId);
+
+        return res.status(200).json({
+            success: true,
+            data: result
+        });
+
+    } catch (error) {
+        console.error('Error checking location group usage:', error);
+
+        if (error.message === 'Location group not found' ||
+            error.message.includes('required')) {
+            return res.status(404).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        return res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to check location group usage'
+        });
+    }
+};
+
 module.exports = {
     createLocationGroup,
     getAllLocationGroups,
@@ -243,5 +277,6 @@ module.exports = {
     updateLocationGroup,
     deleteLocationGroup,
     generateCode,
-    getLocationDropdownData
+    getLocationDropdownData,
+    checkUsage
 };
