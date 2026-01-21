@@ -306,16 +306,6 @@ const getLocationGroupDetails = async (locationGroupId, companyId) => {
                     }
                 ]
             },
-            {
-                model: HrmsEmployee,
-                as: 'createdByEmployee',
-                attributes: ['id', 'employee_code', 'first_name', 'middle_name', 'last_name']
-            },
-            {
-                model: HrmsEmployee,
-                as: 'updatedByEmployee',
-                attributes: ['id', 'employee_code', 'first_name', 'middle_name', 'last_name']
-            }
         ]
     });
 
@@ -335,19 +325,37 @@ const getLocationGroupDetails = async (locationGroupId, companyId) => {
         postal_code_range: loc.postal_code_range
     }));
 
-    // Format created_by
-    const createdBy = locationGroup.createdByEmployee ? {
-        id: locationGroup.createdByEmployee.id,
-        code: locationGroup.createdByEmployee.employee_code,
-        name: [locationGroup.createdByEmployee.first_name, locationGroup.createdByEmployee.middle_name, locationGroup.createdByEmployee.last_name].filter(Boolean).join(' ')
-    } : null;
+    // Get created_by employee info (join on user_id)
+    let createdBy = null;
+    if (locationGroup.created_by) {
+        const createdByEmp = await HrmsEmployee.findOne({
+            where: { user_id: locationGroup.created_by },
+            attributes: ['id', 'employee_code', 'first_name', 'middle_name', 'last_name']
+        });
+        if (createdByEmp) {
+            createdBy = {
+                id: createdByEmp.id,
+                code: createdByEmp.employee_code,
+                name: [createdByEmp.first_name, createdByEmp.middle_name, createdByEmp.last_name].filter(Boolean).join(' ')
+            };
+        }
+    }
 
-    // Format updated_by
-    const updatedBy = locationGroup.updatedByEmployee ? {
-        id: locationGroup.updatedByEmployee.id,
-        code: locationGroup.updatedByEmployee.employee_code,
-        name: [locationGroup.updatedByEmployee.first_name, locationGroup.updatedByEmployee.middle_name, locationGroup.updatedByEmployee.last_name].filter(Boolean).join(' ')
-    } : null;
+    // Get updated_by employee info (join on user_id)
+    let updatedBy = null;
+    if (locationGroup.updated_by) {
+        const updatedByEmp = await HrmsEmployee.findOne({
+            where: { user_id: locationGroup.updated_by },
+            attributes: ['id', 'employee_code', 'first_name', 'middle_name', 'last_name']
+        });
+        if (updatedByEmp) {
+            updatedBy = {
+                id: updatedByEmp.id,
+                code: updatedByEmp.employee_code,
+                name: [updatedByEmp.first_name, updatedByEmp.middle_name, updatedByEmp.last_name].filter(Boolean).join(' ')
+            };
+        }
+    }
 
     return {
         id: locationGroup.id,
