@@ -5,6 +5,11 @@
 
 const { ExpenseLocationGroup } = require('./ExpenseLocationGroup');
 const { ExpenseLocationGroupMapping } = require('./ExpenseLocationGroupMapping');
+
+// Import HRMS models for associations
+const { HrmsCountryMaster } = require('../HrmsCountryMaster');
+const { HrmsStateMaster } = require('../HrmsStateMaster');
+const { HrmsCityMaster } = require('../HrmsCityMaster');
 const { ExpenseCategory } = require('./ExpenseCategory');
 const { ExpenseCategoryLimit } = require('./ExpenseCategoryLimit');
 const { ExpenseCategoryCustomField } = require('./ExpenseCategoryCustomField');
@@ -28,11 +33,28 @@ const { ExpenseApprovalDelegate } = require('./ExpenseApprovalDelegate');
 // ==================== LOCATION GROUP ASSOCIATIONS ====================
 
 // Location Group -> Mappings (one-to-many)
-// Note: The belongsTo is defined in ExpenseLocationGroupMapping.associate()
 ExpenseLocationGroup.hasMany(ExpenseLocationGroupMapping, {
     foreignKey: 'location_group_id',
     as: 'locations',
     onDelete: 'CASCADE'
+});
+
+// Location Group Mapping -> Country
+ExpenseLocationGroupMapping.belongsTo(HrmsCountryMaster, {
+    foreignKey: 'country_id',
+    as: 'country'
+});
+
+// Location Group Mapping -> State
+ExpenseLocationGroupMapping.belongsTo(HrmsStateMaster, {
+    foreignKey: 'state_id',
+    as: 'state'
+});
+
+// Location Group Mapping -> City
+ExpenseLocationGroupMapping.belongsTo(HrmsCityMaster, {
+    foreignKey: 'city_id',
+    as: 'city'
 });
 
 // ==================== EXPENSE CATEGORY ASSOCIATIONS ====================
