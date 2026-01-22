@@ -36,8 +36,6 @@ const { ExpensePolicyApplicability } = require('./ExpensePolicyApplicability');
 
 // Settings Models
 const { ExpenseSettings } = require('./ExpenseSettings');
-const { ExpenseMileageRate } = require('./ExpenseMileageRate');
-const { ExpensePerDiemRate } = require('./ExpensePerDiemRate');
 
 // ==================== LOCATION GROUP ASSOCIATIONS ====================
 
@@ -322,20 +320,6 @@ ExpensePolicy.hasOne(HrmsEmployee, {
     as: 'updatedByEmployee'
 });
 
-// ==================== SETTINGS ASSOCIATIONS ====================
-
-// Mileage Rate -> Location Group
-ExpenseMileageRate.belongsTo(ExpenseLocationGroup, {
-    foreignKey: 'location_group_id',
-    as: 'locationGroup'
-});
-
-// Per Diem Rate -> Location Group
-ExpensePerDiemRate.belongsTo(ExpenseLocationGroup, {
-    foreignKey: 'location_group_id',
-    as: 'locationGroup'
-});
-
 module.exports = {
     // Location Group Models
     ExpenseLocationGroup,
@@ -368,7 +352,5 @@ module.exports = {
     ExpensePolicyApplicability,
 
     // Settings Models
-    ExpenseSettings,
-    ExpenseMileageRate,
-    ExpensePerDiemRate
+    ExpenseSettings
 };
