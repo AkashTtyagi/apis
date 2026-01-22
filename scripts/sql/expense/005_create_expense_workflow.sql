@@ -376,8 +376,7 @@ CREATE TABLE IF NOT EXISTS hrms_expense_approval_request_items (
     original_amount DECIMAL(12,2) NOT NULL COMMENT 'Original requested amount',
     expense_date DATE NOT NULL COMMENT 'Date of expense',
 
-    -- Item Workflow
-    item_workflow_id INT COMMENT 'If different workflow for this category',
+    -- Item Stage Tracking (for Line_Item_Level approval)
     current_stage_id INT COMMENT 'Current stage for this item',
     current_stage_order INT COMMENT 'Current stage order',
 
@@ -411,8 +410,6 @@ CREATE TABLE IF NOT EXISTS hrms_expense_approval_request_items (
     -- Foreign Keys
     CONSTRAINT fk_item_approval_request FOREIGN KEY (approval_request_id)
         REFERENCES hrms_expense_approval_requests(id) ON DELETE CASCADE,
-    CONSTRAINT fk_item_workflow FOREIGN KEY (item_workflow_id)
-        REFERENCES hrms_expense_approval_workflows(id),
     CONSTRAINT fk_item_stage FOREIGN KEY (current_stage_id)
         REFERENCES hrms_expense_approval_workflow_stages(id),
 

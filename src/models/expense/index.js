@@ -34,6 +34,11 @@ const { ExpenseApprovalDelegate } = require('./ExpenseApprovalDelegate');
 const { ExpensePolicy } = require('./ExpensePolicy');
 const { ExpensePolicyApplicability } = require('./ExpensePolicyApplicability');
 
+// Settings Models
+const { ExpenseSettings } = require('./ExpenseSettings');
+const { ExpenseMileageRate } = require('./ExpenseMileageRate');
+const { ExpensePerDiemRate } = require('./ExpensePerDiemRate');
+
 // ==================== LOCATION GROUP ASSOCIATIONS ====================
 
 // Location Group -> Mappings (one-to-many)
@@ -249,12 +254,6 @@ ExpenseApprovalRequestItem.belongsTo(ExpenseApprovalWorkflowStage, {
     as: 'currentStage'
 });
 
-// Approval Request Item -> Workflow (for category-specific)
-ExpenseApprovalRequestItem.belongsTo(ExpenseApprovalWorkflow, {
-    foreignKey: 'item_workflow_id',
-    as: 'itemWorkflow'
-});
-
 // Approval Request -> History (one-to-many)
 ExpenseApprovalRequest.hasMany(ExpenseApprovalHistory, {
     foreignKey: 'approval_request_id',
@@ -323,6 +322,20 @@ ExpensePolicy.hasOne(HrmsEmployee, {
     as: 'updatedByEmployee'
 });
 
+// ==================== SETTINGS ASSOCIATIONS ====================
+
+// Mileage Rate -> Location Group
+ExpenseMileageRate.belongsTo(ExpenseLocationGroup, {
+    foreignKey: 'location_group_id',
+    as: 'locationGroup'
+});
+
+// Per Diem Rate -> Location Group
+ExpensePerDiemRate.belongsTo(ExpenseLocationGroup, {
+    foreignKey: 'location_group_id',
+    as: 'locationGroup'
+});
+
 module.exports = {
     // Location Group Models
     ExpenseLocationGroup,
@@ -352,5 +365,10 @@ module.exports = {
 
     // Policy Models
     ExpensePolicy,
-    ExpensePolicyApplicability
+    ExpensePolicyApplicability,
+
+    // Settings Models
+    ExpenseSettings,
+    ExpenseMileageRate,
+    ExpensePerDiemRate
 };

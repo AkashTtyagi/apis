@@ -13,6 +13,7 @@ const expenseCategoryRoutes = require('./admin/expenseCategory.routes');
 const currencyRoutes = require('./admin/currency.routes');
 const expenseWorkflowRoutes = require('./admin/expenseWorkflow.routes');
 const expensePolicyRoutes = require('./admin/expensePolicy.routes');
+const expenseSettingsRoutes = require('./admin/expenseSettings.routes');
 
 // Apply authentication middleware to all routes
 router.use(authenticate);
@@ -23,5 +24,6 @@ router.use('/categories', expenseCategoryRoutes);
 router.use('/currencies', currencyRoutes);
 router.use('/workflows', expenseWorkflowRoutes);
 router.use('/policies', expensePolicyRoutes);
+router.use('/settings', expenseSettingsRoutes);
 
 module.exports = router;

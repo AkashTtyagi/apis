@@ -47,12 +47,7 @@ const ExpenseApprovalRequestItem = sequelize.define('ExpenseApprovalRequestItem'
         comment: 'Date of expense'
     },
 
-    // Item Workflow
-    item_workflow_id: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        comment: 'If different workflow for this category'
-    },
+    // Item Stage Tracking (for Line_Item_Level approval)
     current_stage_id: {
         type: DataTypes.INTEGER,
         allowNull: true,
