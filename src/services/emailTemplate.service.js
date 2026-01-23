@@ -4,7 +4,6 @@
  */
 
 const { HrmsEmailTemplate } = require('../models/HrmsEmailTemplate');
-const { HrmsEmailTemplateMaster } = require('../models/HrmsEmailTemplateMaster');
 const { sequelize } = require('../utils/database');
 const { Op } = require('sequelize');
 
@@ -15,7 +14,12 @@ const { Op } = require('sequelize');
  * @returns {Object} Created template
  */
 const createEmailTemplate = async (templateData) => {
-    const { company_id, slug, name, subject, body, variables, is_active, user_id } = templateData;
+    const { company_id, category, slug, action_type, name, subject, body, variables, is_active, user_id } = templateData;
+
+    // Category is required
+    if (!category) {
+        throw new Error('Category is required');
+    }
 
     const transaction = await sequelize.transaction();
 
@@ -35,7 +39,9 @@ const createEmailTemplate = async (templateData) => {
         // Create template
         const template = await HrmsEmailTemplate.create({
             company_id: company_id || null,
+            category,
             slug,
+            action_type: action_type || null,
             name,
             subject,
             body,
@@ -302,7 +308,9 @@ const cloneTemplateForCompany = async (template_id, company_id, user_id) => {
         // Clone template for company
         const clonedTemplate = await HrmsEmailTemplate.create({
             company_id: company_id,
+            category: sourceTemplate.category,
             slug: sourceTemplate.slug,
+            action_type: sourceTemplate.action_type,
             name: `${sourceTemplate.name} (Customized)`,
             subject: sourceTemplate.subject,
             body: sourceTemplate.body,
@@ -321,37 +329,75 @@ const cloneTemplateForCompany = async (template_id, company_id, user_id) => {
 };
 
 /**
- * Get email template masters (for dropdown)
+ * Get category list with slugs
+ * Groups default templates (company_id = NULL) by category
  *
- * @param {Object} filters - Filter options
- * @returns {Array} List of template masters
+ * @returns {Array} List of categories with their slugs
  */
-const getEmailTemplateMasters = async (filters = {}) => {
-    const whereClause = {};
-
-    if (filters.is_active !== null && filters.is_active !== undefined) {
-        whereClause.is_active = filters.is_active;
-    }
-
-    if (filters.category) {
-        whereClause.category = filters.category;
-    }
-
-    if (filters.search) {
-        whereClause[Op.or] = [
-            { name: { [Op.like]: `%${filters.search}%` } },
-            { slug: { [Op.like]: `%${filters.search}%` } }
-        ];
-    }
-
-    const masters = await HrmsEmailTemplateMaster.findAll({
-        where: whereClause,
-        order: [['display_order', 'ASC'], ['name', 'ASC']],
-        attributes: ['id', 'slug', 'name', 'description', 'category', 'available_variables', 'is_active']
+const getCategoryList = async () => {
+    // Get all default templates (company_id = NULL) grouped by category
+    const templates = await HrmsEmailTemplate.findAll({
+        where: {
+            company_id: null,
+            is_active: true
+        },
+        attributes: ['category', 'slug', 'name', 'action_type', 'variables'],
+        order: [['category', 'ASC'], ['action_type', 'ASC'], ['name', 'ASC']]
     });
 
-    return masters;
+    // Group by category
+    const categoryMap = {};
+    templates.forEach(template => {
+        const cat = template.category || 'general';
+        if (!categoryMap[cat]) {
+            categoryMap[cat] = {
+                category: cat,
+                templates: []
+            };
+        }
+        categoryMap[cat].templates.push({
+            slug: template.slug,
+            name: template.name,
+            action_type: template.action_type,
+            variables: template.variables
+        });
+    });
+
+    return Object.values(categoryMap);
 };
+
+/**
+ * Get templates by category
+ *
+ * @param {string} category - Category name
+ * @param {number} company_id - Company ID
+ * @returns {Array} List of templates
+ */
+const getTemplatesByCategory = async (category, company_id) => {
+    if (!category) {
+        throw new Error('Category is required');
+    }
+
+    const templates = await HrmsEmailTemplate.findAll({
+        where: {
+            category: category,
+            [Op.or]: [
+                { company_id: company_id },
+                { company_id: null }
+            ],
+            is_active: true
+        },
+        order: [
+            ['company_id', 'DESC'],  // Company-specific first
+            ['action_type', 'ASC'],
+            ['slug', 'ASC']
+        ],
+        attributes: { exclude: ['deleted_at'] }
+    });
+
+    return templates;
+};
+
 
 /**
  * Send test email with template
@@ -450,6 +496,7 @@ module.exports = {
     getEmailTemplateBySlug,
     deleteEmailTemplate,
     cloneTemplateForCompany,
-    getEmailTemplateMasters,
+    getCategoryList,
+    getTemplatesByCategory,
     sendTestEmail
 };

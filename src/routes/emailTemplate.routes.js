@@ -18,11 +18,10 @@ router.post('/update', emailTemplateController.updateEmailTemplate);
 router.post('/list', emailTemplateController.getEmailTemplates);
 router.post('/details', emailTemplateController.getEmailTemplateById);
 router.post('/by-slug', emailTemplateController.getEmailTemplateBySlug);
+router.post('/by-category', emailTemplateController.getTemplatesByCategory);
+router.post('/categories', emailTemplateController.getCategoryList);
 router.post('/delete', emailTemplateController.deleteEmailTemplate);
 router.post('/clone', emailTemplateController.cloneTemplateForCompany);
 router.post('/send-test', emailTemplateController.sendTestEmail);
-
-// Email Template Master routes
-router.post('/masters', emailTemplateController.getEmailTemplateMasters);
 
 module.exports = router;

@@ -13,13 +13,23 @@ const { sendSuccess, sendCreated } = require('../utils/response');
  */
 const createEmailTemplate = async (req, res, next) => {
     try {
-        const { slug, name, subject, body, variables, is_active } = req.body;
+        const { category, slug, action_type, name, subject, body, variables, is_active } = req.body;
         const company_id = req.user.company_id;
         const user_id = req.user.id;
 
+        // Validate required fields
+        if (!category) {
+            return res.status(400).json({
+                success: false,
+                message: 'Category is required'
+            });
+        }
+
         const template = await emailTemplateService.createEmailTemplate({
             company_id,
+            category,
             slug,
+            action_type,
             name,
             subject,
             body,
@@ -184,26 +194,43 @@ const cloneTemplateForCompany = async (req, res, next) => {
 };
 
 /**
- * Get email template masters (for dropdown)
- * POST /api/email-templates/masters
+ * Get category list with slugs
+ * POST /api/email-templates/categories
  */
-const getEmailTemplateMasters = async (req, res, next) => {
+const getCategoryList = async (req, res, next) => {
     try {
-        const { is_active, category, search } = req.body;
+        const categories = await emailTemplateService.getCategoryList();
 
-        const filters = {
-            is_active,
-            category,
-            search
-        };
-
-        const masters = await emailTemplateService.getEmailTemplateMasters(filters);
-
-        return sendSuccess(res, 'Email template masters retrieved successfully', masters);
+        return sendSuccess(res, 'Categories retrieved successfully', categories);
     } catch (error) {
         next(error);
     }
 };
+
+/**
+ * Get templates by category
+ * POST /api/email-templates/by-category
+ */
+const getTemplatesByCategory = async (req, res, next) => {
+    try {
+        const { category } = req.body;
+        const company_id = req.user.company_id;
+
+        if (!category) {
+            return res.status(400).json({
+                success: false,
+                message: 'Category is required'
+            });
+        }
+
+        const templates = await emailTemplateService.getTemplatesByCategory(category, company_id);
+
+        return sendSuccess(res, 'Templates retrieved successfully', templates);
+    } catch (error) {
+        next(error);
+    }
+};
+
 
 /**
  * Send test email
@@ -250,6 +277,7 @@ module.exports = {
     getEmailTemplateBySlug,
     deleteEmailTemplate,
     cloneTemplateForCompany,
-    getEmailTemplateMasters,
+    getCategoryList,
+    getTemplatesByCategory,
     sendTestEmail
 };

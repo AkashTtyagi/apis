@@ -23,6 +23,17 @@ const HrmsEmailTemplate = sequelize.define('HrmsEmailTemplate', {
         comment: 'Foreign key reference to hrms_companies table, NULL for default template'
     },
 
+    // Category for grouping templates
+    category: {
+        type: DataTypes.STRING(100),
+        allowNull: false,
+        validate: {
+            notNull: { msg: 'Category is required' },
+            notEmpty: { msg: 'Category cannot be empty' }
+        },
+        comment: 'Category: authentication, onboarding, leave, onduty, regularization, wfh, expense, attendance, payroll'
+    },
+
     // Template Slug (unique identifier for template type)
     slug: {
         type: DataTypes.STRING(100),
@@ -35,7 +46,14 @@ const HrmsEmailTemplate = sequelize.define('HrmsEmailTemplate', {
                 msg: 'Template slug cannot be empty'
             }
         },
-        comment: 'Unique identifier for template type (e.g., welcome_email, reset_password, set_password)'
+        comment: 'Unique identifier for template type (e.g., leave_apply, leave_approve, expense_submit)'
+    },
+
+    // Action Type (apply, approve, reject, cancel, etc.)
+    action_type: {
+        type: DataTypes.STRING(50),
+        allowNull: true,
+        comment: 'Action: apply, approve, reject, cancel, reminder, escalation'
     },
 
     // Template Name
@@ -122,7 +140,19 @@ const HrmsEmailTemplate = sequelize.define('HrmsEmailTemplate', {
             fields: ['company_id', 'slug']
         },
         {
+            fields: ['company_id', 'category']
+        },
+        {
+            fields: ['company_id', 'category', 'action_type']
+        },
+        {
+            fields: ['category']
+        },
+        {
             fields: ['slug']
+        },
+        {
+            fields: ['action_type']
         },
         {
             fields: ['is_active']

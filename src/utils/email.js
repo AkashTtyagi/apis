@@ -94,6 +94,7 @@ const getEmailTemplate = async (slug, company_id = null) => {
     }
 };
 
+
 /**
  * Replace variables in template
  * @param {string} template - Template string
